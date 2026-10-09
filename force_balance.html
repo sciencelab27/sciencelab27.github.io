@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>나란한 두 힘의 합력과 평형 활동지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gothic+A1:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --paper:#FBFCFE; --grid:#E3EAF5; --ink:#1E2A44; --soft:#5B6782;
+  --red:#E5383B; --blue:#2563C9; --mint:#1BA97A; --yellow:#FFC93C; --line:#C9D3E3;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0; color:var(--ink); font-family:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  background-color:#EEF2F8;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px; line-height:1.6;
+}
+#sheet{max-width:1040px; margin:0 auto; padding:28px 22px 40px; background:var(--paper);}
+h1,h2{font-family:"Do Hyeon","Gothic A1",sans-serif; font-weight:400; margin:0}
+.hero{position:relative; padding:8px 0 22px; border-bottom:3px solid var(--ink); margin-bottom:24px}
+.hero .page{font-size:14px; color:var(--soft)}
+.hero h1{font-size:44px; line-height:1.15; margin-top:4px}
+.hero svg{position:absolute; right:0; top:10px; width:150px; height:70px}
+.who{display:flex; gap:10px; flex-wrap:wrap; margin-top:16px}
+.who label{display:flex; align-items:center; gap:6px; font-weight:600; font-size:15px}
+.who input{width:90px}
+.who input.name{width:120px}
+input[type=text],textarea{
+  font:inherit; font-size:15px; color:var(--ink); border:1.5px solid var(--line); border-radius:6px;
+  padding:6px 9px; background:#fff;
+}
+textarea{width:100%; resize:vertical; min-height:64px}
+input:focus,textarea:focus,button:focus-visible{outline:3px solid var(--yellow); outline-offset:1px}
+section{margin:34px 0}
+.sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:10px}
+.num{font-family:"Do Hyeon",sans-serif; font-size:38px; line-height:1; color:var(--yellow); -webkit-text-stroke:1.5px var(--ink)}
+h2{font-size:27px}
+.guide{color:var(--soft); font-size:15px; margin:0 0 14px}
+.card{border:1.5px solid var(--line); border-radius:10px; padding:14px; background:#fff; margin-bottom:12px}
+.card .tag{font-weight:800; font-size:14px; color:var(--mint)}
+.frame{display:grid; grid-template-columns:auto 1fr; gap:8px 10px; align-items:center; margin:8px 0 10px}
+.frame span{font-size:14px; font-weight:600; color:var(--soft); white-space:nowrap}
+.frame input{width:100%}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip{font:inherit; font-size:14px; border:1.5px solid var(--line); background:#fff; color:var(--ink);
+  border-radius:999px; padding:5px 12px; cursor:pointer}
+.chip.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+.scenes{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px}
+@media (min-width:880px){ .scenes{grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px} }
+.item .chips{display:grid; grid-template-columns:1fr 1fr; gap:5px}
+.item .chip{text-align:center; padding:6px 4px}
+.item{border:1.5px solid var(--line); border-radius:10px; padding:10px; background:#fff}
+.item svg,.item img{display:block; aspect-ratio:200/140; object-fit:cover; width:100%; height:auto; border-radius:6px; background:#F1F5FB}
+.item .chip{font-size:13.5px}
+@media (max-width:560px){ .scenes{grid-template-columns:1fr} }
+.item p{margin:8px 0 8px; font-weight:600; font-size:13.5px; line-height:1.45; min-height:4.35em}
+.item .fb{font-size:12.5px; line-height:1.45; margin-top:6px; min-height:0}
+.ok{color:var(--mint)} .no{color:var(--red)}
+.btn{font:inherit; font-weight:800; font-size:15px; border:none; border-radius:8px; padding:9px 16px; cursor:pointer;
+  background:var(--ink); color:#fff}
+.btn.light{background:#fff; color:var(--ink); border:1.5px solid var(--ink)}
+.btn.on{background:var(--red); color:#fff; border-color:var(--red)}
+.row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:10px 0}
+.blank-text{font-size:16px; line-height:2.4}
+.blank-text input{width:110px; text-align:center; font-weight:800}
+.drawgrid{display:grid; grid-template-columns:minmax(0,600px) minmax(0,1fr); gap:18px; align-items:start}
+.drawgrid .frame.side,.check-side{margin-top:56px}
+.frame.two{grid-template-columns:auto 1fr auto 1fr}
+@media (max-width:880px){ .frame.two{grid-template-columns:auto 1fr} .drawgrid .frame.side,.check-side{margin-top:0} }
+.drawgrid .row{margin-top:0}
+.frame.side{grid-template-columns:1fr; gap:4px 0; margin:0}
+.frame.side input{margin-bottom:8px}
+@media (max-width:880px){ .drawgrid{grid-template-columns:1fr} }
+.boardwrap{border:2px solid var(--ink); border-radius:8px; overflow:hidden; background:#fff}
+canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crosshair}
+.legend{font-size:13.5px; color:var(--soft)}
+.result{font-weight:800; margin-top:8px; min-height:1.4em}
+.final{border-top:3px solid var(--ink); padding-top:22px}
+.save{display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:30px}
+.btn.pad{background:var(--mint); color:#fff; text-decoration:none; display:inline-flex; align-items:center}
+.save .btn.pad{background:var(--mint)}
+.ov-btns{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+.ov-btns .btn{font-size:17px; padding:12px 22px}
+#galleryBtn{background:var(--red)}
+.save .btn{font-size:18px; padding:14px 28px; background:var(--red)}
+.ver{text-align:center; font-size:12px; color:var(--soft); margin-top:14px}
+#overlay{position:fixed; inset:0; background:rgba(20,28,45,.85); display:none; flex-direction:column; align-items:center;
+  justify-content:center; padding:20px; z-index:10; gap:12px; color:#fff; text-align:center}
+#overlay img{max-width:100%; max-height:75vh; background:#fff; border-radius:6px}
+@media (max-width:560px){ .hero h1{font-size:34px} .hero svg{display:none} .frame{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+input[type=number]{font:inherit; font-size:15px; color:var(--ink); border:1.5px solid var(--line); border-radius:6px; padding:6px 9px; background:#fff; width:80px; text-align:center; font-weight:800}
+.pgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px}
+@media (max-width:880px){ .pgrid{grid-template-columns:1fr} }
+.prob{border:1.5px solid var(--line); border-radius:10px; padding:12px; background:#fff}
+.prob h3{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:21px; margin:0 0 4px}
+.prob .given{font-size:14px; font-weight:600; color:var(--soft); margin:0 0 8px}
+.prob .boardwrap{border-width:1.5px}
+.ans{display:grid; grid-template-columns:auto 1fr; gap:6px 10px; align-items:center; margin-top:10px}
+.ans > span{font-size:14px; font-weight:600; color:var(--soft); white-space:nowrap}
+.ans input{width:80px; text-align:center; font-weight:800}
+.fb{font-size:13.5px; line-height:1.5; margin-top:6px; min-height:1.4em}
+.sub{font-family:"Do Hyeon",sans-serif; font-size:22px; margin:18px 0 8px}
+.cases{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px}
+@media (max-width:760px){ .cases{grid-template-columns:1fr} }
+.cases .item p{min-height:0}
+.cases .item .chips{grid-template-columns:1fr 1fr}
+.claim{font-size:16px; line-height:2.3}
+.claim .chips{display:inline-flex; vertical-align:middle; margin:0 4px}
+.selfrow{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px dashed var(--line); font-size:15px}
+.penguin{display:grid; grid-template-columns:200px 1fr; gap:16px; align-items:center}
+@media (max-width:560px){ .penguin{grid-template-columns:1fr} }
+.penguin svg{width:100%; height:auto}
+</style>
+</head>
+<body>
+<div id="sheet">
+
+  <header class="hero">
+    <div class="page">비상교육 과학 1 · 160~161쪽</div>
+    <h1>나란한 두 힘의 합력과 평형</h1>
+    <svg viewBox="0 0 150 70" aria-hidden="true">
+      <line x1="10" y1="16" x2="56" y2="16" stroke="#1BA97A" stroke-width="6" stroke-linecap="round"/><polygon points="70,16 52,7 52,25" fill="#1BA97A"/>
+      <line x1="10" y1="34" x2="40" y2="34" stroke="#2563C9" stroke-width="6" stroke-linecap="round"/><polygon points="54,34 36,25 36,43" fill="#2563C9"/>
+      <line x1="10" y1="56" x2="128" y2="56" stroke="#E5383B" stroke-width="7" stroke-linecap="round"/><polygon points="146,56 122,43 122,69" fill="#E5383B"/>
+    </svg>
+    <div class="who">
+      <label>학번 <input type="text" id="sid" inputmode="numeric"></label>
+      <label>모둠 <input type="text" id="team"></label>
+      <label>이름 <input type="text" id="sname" class="name"></label>
+    </div>
+  </header>
+
+  <!-- 1 -->
+  <section>
+    <div class="sec-head"><span class="num">1</span><h2>둘이 들면 왜 덜 힘들까?</h2></div>
+    <div class="penguin">
+      <svg viewBox="0 0 200 150" role="img" aria-label="펭귄 두 마리가 무거운 통을 함께 들고 있는 그림">
+        <ellipse cx="100" cy="142" rx="90" ry="6" fill="#E3EAF5"/>
+        <path d="M40 40 h120 l-12 30 h-96 z" fill="#C98B57" stroke="#1E2A44" stroke-width="2"/>
+        <ellipse cx="100" cy="40" rx="60" ry="10" fill="#E8875A" stroke="#1E2A44" stroke-width="2"/>
+        <g stroke="#1E2A44" stroke-width="2">
+          <ellipse cx="55" cy="105" rx="24" ry="34" fill="#2B3A5C"/><ellipse cx="55" cy="112" rx="15" ry="24" fill="#fff"/>
+          <circle cx="48" cy="88" r="3" fill="#1E2A44"/><circle cx="62" cy="88" r="3" fill="#1E2A44"/>
+          <path d="M50 96 l5 5 l5 -5 z" fill="#FFC93C"/>
+          <ellipse cx="145" cy="105" rx="24" ry="34" fill="#2B3A5C"/><ellipse cx="145" cy="112" rx="15" ry="24" fill="#fff"/>
+          <circle cx="138" cy="88" r="3" fill="#1E2A44"/><circle cx="152" cy="88" r="3" fill="#1E2A44"/>
+          <path d="M140 96 l5 5 l5 -5 z" fill="#FFC93C"/>
+        </g>
+        <path d="M35 90 Q30 70 45 68" stroke="#2B3A5C" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M165 90 Q170 70 155 68" stroke="#2B3A5C" stroke-width="7" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <p style="font-weight:600;margin:0 0 8px">무거운 짐을 혼자 들 때보다 둘이 들 때 힘이 덜 드는 까닭은 무엇일까요?</p>
+        <textarea placeholder="내 생각을 자유롭게 써 보세요."></textarea>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="tag">개념 정리</div>
+      <div class="blank-text">
+        물체에 둘 이상의 힘이 동시에 작용할 때, 이와 같은 효과를 나타내는 하나의 힘을
+        <input type="text" data-ans="합력"> (이)라고 한다.
+      </div>
+      <div class="row"><button class="btn light blankCheck">빈칸 확인</button><span class="result"></span></div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section>
+    <div class="sec-head"><span class="num">2</span><h2>합력 연습실</h2></div>
+    <p class="guide">초록·파란 화살표는 한 물체에 작용하는 두 힘이에요. 모눈 <b>2칸 = 1 N</b>이에요. 아래 줄의 점(•)에서 끌어서 <b>합력</b>을 빨간 화살표로 그리고, 합력의 크기와 방향을 적은 뒤 확인하세요. 합력이 0이면 화살표를 그리지 않아요.</p>
+    <div class="sub">같은 방향으로 작용하는 두 힘</div>
+    <div class="pgrid" id="pgSame"></div>
+    <div class="sub">반대 방향으로 작용하는 두 힘</div>
+    <div class="pgrid" id="pgOpp"></div>
+    <div class="row"><span id="probScore" class="result"></span></div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="tag">규칙 찾기</div>
+      <div class="blank-text">
+        두 힘이 <b>같은 방향</b>으로 작용하면 합력의 크기는 두 힘의 크기를 <input type="text" data-ans="더한,더한값,합한,더하기"> 값이고,
+        합력의 방향은 두 힘의 방향과 <input type="text" data-ans="같은,같다"> 방향이다.<br>
+        두 힘이 <b>반대 방향</b>으로 작용하면 합력의 크기는 <input type="text" data-ans="큰"> 힘의 크기에서
+        <input type="text" data-ans="작은"> 힘의 크기를 <input type="text" data-ans="뺀,뺀값,빼기"> 값이고,
+        합력의 방향은 <input type="text" data-ans="큰"> 힘의 방향과 같다.
+      </div>
+      <div class="row"><button class="btn light blankCheck">빈칸 확인</button><span class="result"></span></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section>
+    <div class="sec-head"><span class="num">3</span><h2>합력이 0이 되는 조건 찾기</h2></div>
+    <p class="guide">줄다리기를 할 때 양쪽에서 줄을 당겨도 줄이 움직이지 않을 때가 있어요. 나무 도막에 두 힘이 작용하는 세 경우를 보고, 합력이 0인지 골라 보세요.</p>
+    <div class="cases" id="cases"></div>
+    <div class="row"><button class="btn" id="caseCheck">확인하기</button><span id="caseScore" class="result"></span></div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="tag">나의 주장</div>
+      <div class="claim">
+        두 힘의 합력이 0이 되려면 두 힘의 크기가
+        <span class="chips" id="cl1"><button class="chip">같고</button><button class="chip">다르고</button></span>,
+        두 힘이 서로
+        <span class="chips" id="cl2"><button class="chip">같은</button><button class="chip">반대</button></span>
+        방향으로 작용해야 한다.
+      </div>
+      <p class="guide" style="margin:6px 0">근거: 2번 연습실과 위 세 경우 중 어떤 결과에서 확인했는지 번호를 넣어 써요.</p>
+      <textarea placeholder="예: 연습실 ○번에서 …"></textarea>
+      <p class="guide" style="margin:12px 0 6px">크기만 같으면 될까요? 방향만 반대이면 될까요? 위 세 경우에서 찾아 설명해 보세요.</p>
+      <textarea placeholder="두 조건 중 하나가 빠지면 합력은 어떻게 되나요?"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="tag">생각해 보기</div>
+      <p style="font-weight:600;margin:4px 0 8px">책을 양손으로 잡고 같은 크기의 힘으로 반대 방향으로 당겼더니 책이 움직이지 않았어요. 친구가 "책이 가만히 있으니까 책에는 아무 힘도 작용하지 않아."라고 말했어요. 친구의 말은 맞을까요?</p>
+      <div class="chips"><button class="chip">맞다</button><button class="chip">틀리다</button></div>
+      <textarea style="margin-top:8px" placeholder="그렇게 생각한 까닭"></textarea>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section>
+    <div class="sec-head"><span class="num">4</span><h2>스스로 확인하기</h2></div>
+    <div class="card">
+      <div class="tag">개념 정리</div>
+      <div class="blank-text">
+        물체에 작용하는 두 힘의 합력이 0이면 두 힘은 힘의 <input type="text" data-ans="평형"> 을/를 이룬다.<br>
+        두 힘이 평형을 이루려면 두 힘의 크기가 <input type="text" data-ans="같고,같다,같아야"> , 두 힘이 서로
+        <input type="text" data-ans="반대,반대의"> 방향으로 작용해야 한다.
+      </div>
+      <div class="row"><button class="btn light blankCheck">빈칸 확인</button><span class="result"></span></div>
+    </div>
+
+    <div class="card">
+      <div class="tag">계산하기</div>
+      <p style="font-weight:600;margin:4px 0 6px">한 물체에 오른쪽으로 7 N, 왼쪽으로 3 N의 힘이 작용해요. 합력은?</p>
+      <div class="ans" style="margin-top:4px">
+        <span>합력의 크기</span><div><input type="number" id="q1n" inputmode="numeric"> N</div>
+        <span>합력의 방향</span><div class="chips" id="q1d"><button class="chip" data-k="-1">왼쪽</button><button class="chip" data-k="1">오른쪽</button><button class="chip" data-k="0">방향 없음</button></div>
+      </div>
+      <div class="row"><button class="btn light" id="q1c">확인</button><span id="q1r" class="result"></span></div>
+    </div>
+
+    <p class="guide" style="margin-top:18px">초록색 고리 자석이 자석끼리 서로 미는 힘으로 공중에 멈춰 있어요. 빨간 화살표는 초록색 고리 자석을 위로 밀어 올리는 2 N의 힘이에요. 이 힘과 <b>평형을 이루는 힘</b>을 점(•)에서 끌어 그려 보세요. (모눈 2칸 = 1 N)</p>
+    <div class="drawgrid">
+      <div class="drawcol">
+        <div class="row" data-board="magnet"><button class="btn light" data-act="clear">다시 그리기</button><span class="legend">점(•)에서 끌어서 그려요.</span></div>
+        <div class="boardwrap"><canvas id="magBoard" width="700" height="325"></canvas></div>
+      </div>
+      <div class="side check-side">
+        <div id="magResult" class="result" style="margin-top:0"></div>
+        <p class="guide" style="margin:8px 0 6px">평형을 이루는 힘의 크기와 방향을 설명해 보세요.</p>
+        <textarea rows="5" placeholder="크기와 방향을 넣어 설명해요."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="final">
+    <div class="sec-head"><span class="num">5</span><h2>수업을 마치며</h2></div>
+    <div class="card">
+      <div class="tag">첫 번째 블록</div>
+      <div class="claim">스쿠버 다이버가 아래로 내려가려면 위로 작용하는 힘보다 아래로 작용하는 힘이 더
+        <span class="chips" id="blk"><button class="chip" data-k="0">작아야</button><button class="chip" data-k="1">커야</button></span> 한다.</div>
+      <div class="row"><button class="btn light" id="blkC">확인</button><span id="blkR" class="result"></span></div>
+    </div>
+    <p style="font-weight:600;margin:14px 0 8px">처음 질문으로 돌아가 볼까요? 둘이 짐을 들면 힘이 덜 드는 까닭을 '합력'이라는 말을 넣어 다시 설명해 보세요.</p>
+    <textarea placeholder="두 사람의 힘이 …"></textarea>
+  </section>
+
+  <div class="save" data-html2canvas-ignore="true"><button class="btn" id="saveBtn">이미지로 저장하기</button><a class="btn pad" href="https://padlet.com/pad228_2/padlet-s024c1id8pk3k1lkvwqn" target="_blank" rel="noopener">패들렛 바로가기</a></div>
+  <div class="ver" data-html2canvas-ignore="true">저장 방식 v5</div>
+</div>
+
+<div id="overlay">
+  <img id="shot" alt="저장된 활동지">
+  <div class="ov-btns">
+    <button class="btn" id="galleryBtn">갤러리에 저장</button>
+    <a class="btn pad" href="https://padlet.com/pad228_2/padlet-s024c1id8pk3k1lkvwqn" target="_blank" rel="noopener">패들렛 바로가기</a>
+    <button class="btn light" id="closeShot">닫기</button>
+  </div>
+  <div id="ovMsg">저장 창이 뜨면 <b>'이미지 저장'</b>을 누르세요. 저장이 안 되면 그림을 길게 눌러 저장할 수 있어요.</div>
+</div>
+
+<script>
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.chips .chip');
+  if (!chip) return;
+  chip.parentElement.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', b === chip));
+});
+/* ---------- 빈칸 확인 ---------- */
+const norm = s => s.replace(/\s/g, '').toLowerCase();
+document.querySelectorAll('.blankCheck').forEach(btn => {
+  btn.onclick = () => {
+    const box = btn.closest('.card');
+    let ok = 0; const ins = box.querySelectorAll('input[data-ans]');
+    const pools = {};
+    ins.forEach(inp => { const g = inp.dataset.group; if (g) (pools[g] = pools[g] || []).push(inp.dataset.ans.split(',')); });
+    ins.forEach(inp => {
+      const hit = list => list.some(a => norm(a) === norm(inp.value));
+      let good;
+      const g = inp.dataset.group;
+      if (g) { const k = pools[g].findIndex(hit); good = k >= 0; if (good) pools[g].splice(k, 1); }
+      else good = hit(inp.dataset.ans.split(','));
+      inp.style.borderColor = good ? 'var(--mint)' : 'var(--red)';
+      inp.style.background = good ? '#EAF8F2' : '#FDEDED';
+      if (good) ok++;
+    });
+    const r = box.querySelector('.result');
+    r.className = 'result ' + (ok === ins.length ? 'ok' : 'no');
+    r.textContent = ok === ins.length ? '모두 맞았어요!' : `${ins.length}칸 중 ${ok}칸 맞음`;
+  };
+});
+
+/* ---------- 화살표 보드 ---------- */
+function drawArrow(ctx, x1, y1, x2, y2, color, label) {
+  const ang = Math.atan2(y2 - y1, x2 - x1), len = Math.hypot(x2 - x1, y2 - y1);
+  if (len < 2) return;
+  const head = Math.min(18, len * 0.45);
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  ctx.lineTo(x2 - Math.cos(ang) * head * 0.8, y2 - Math.sin(ang) * head * 0.8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - head * Math.cos(ang - 0.45), y2 - head * Math.sin(ang - 0.45));
+  ctx.lineTo(x2 - head * Math.cos(ang + 0.45), y2 - head * Math.sin(ang + 0.45));
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.arc(x1, y1, 5, 0, Math.PI * 2); ctx.fillStyle = '#FFC93C'; ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = '#1E2A44'; ctx.stroke();
+  if (label) {
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    const ox = Math.sin(ang) * 16, oy = -Math.cos(ang) * 16;
+    ctx.font = 'bold 17px "Gothic A1", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff'; const w = ctx.measureText(label).width + 8;
+    ctx.fillRect(mx + ox - w / 2, my + oy - 11, w, 22);
+    ctx.fillStyle = color; ctx.fillText(label, mx + ox, my + oy);
+  }
+  ctx.restore();
+}
+function drawGrid(ctx, W, H, cell) {
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+  for (let x = 0; x <= W; x += cell) {
+    ctx.strokeStyle = (x / cell) % 5 === 0 ? '#C9D3E3' : '#E8EDF5'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, H); ctx.stroke();
+  }
+  for (let y = 0; y <= H; y += cell) {
+    ctx.strokeStyle = (y / cell) % 5 === 0 ? '#C9D3E3' : '#E8EDF5';
+    ctx.beginPath(); ctx.moveTo(0, y + .5); ctx.lineTo(W, y + .5); ctx.stroke();
+  }
+}
+function fmtN(v) { return (Math.round(v * 10) / 10) + ' N'; }
+
+function makeBoard(canvas, opt) {
+  const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height, cell = opt.cell;
+  const st = { mode: opt.mode || 'arrow', items: [], cur: null };
+  const pt = e => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+  const snap = v => opt.snap === false ? v : Math.round(v / cell) * cell;
+  function render() {
+    if (opt.grid === false) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); } else drawGrid(ctx, W, H, cell);
+    opt.background && opt.background(ctx);
+    const all = st.cur ? [...st.items, st.cur] : st.items;
+    all.forEach(it => {
+      if (it.type === 'pen') {
+        ctx.strokeStyle = '#1E2A44'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.beginPath(); it.pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke();
+      } else {
+        const len = Math.hypot(it.x2 - it.x1, it.y2 - it.y1) / cell / opt.cellsPerN;
+        drawArrow(ctx, it.x1, it.y1, it.x2, it.y2, opt.color, opt.label && len > 0 ? fmtN(len) : '');
+      }
+    });
+  }
+  canvas.addEventListener('pointerdown', e => {
+    canvas.setPointerCapture(e.pointerId);
+    const [x, y] = pt(e);
+    if (st.mode === 'pen') st.cur = { type: 'pen', pts: [[x, y]] };
+    else { const sx = snap(x), sy = snap(y); st.cur = { type: 'arrow', x1: sx, y1: sy, x2: sx, y2: sy }; }
+    render();
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!st.cur) return;
+    const [x, y] = pt(e);
+    if (st.cur.type === 'pen') st.cur.pts.push([x, y]);
+    else { st.cur.x2 = snap(x); st.cur.y2 = snap(y); }
+    render();
+  });
+  const end = () => {
+    if (!st.cur) return;
+    const c = st.cur; st.cur = null;
+    const keep = c.type === 'pen' ? c.pts.length > 1 : (c.x1 !== c.x2 || c.y1 !== c.y2);
+    if (keep) { if (opt.single) st.items = [c]; else st.items.push(c); }
+    render(); opt.onChange && opt.onChange(st.items);
+  };
+  canvas.addEventListener('pointerup', end);
+  canvas.addEventListener('pointercancel', end);
+  render();
+  return {
+    setMode(m) { st.mode = m; },
+    undo() { st.items.pop(); render(); opt.onChange && opt.onChange(st.items); },
+    clear() { st.items = []; render(); opt.onChange && opt.onChange(st.items); },
+  };
+}
+
+/* ---------- 2. 합력 연습실 ---------- */
+const PC = 20, PPN = 2, PX = 260, PW = 520, PH = 200, RY = 160; // 모눈 20px, 2칸 = 1 N
+const GREEN = '#1BA97A', BLUE = '#2563C9', RED = '#E5383B';
+const PROBS = [
+  { a: 3, b: 1, g: 'pgSame' }, { a: -2, b: -4, g: 'pgSame' },
+  { a: -1, b: 4, g: 'pgOpp' }, { a: -5, b: 2, g: 'pgOpp' },
+  { a: -3, b: 3, g: 'pgOpp' }, { a: -4, b: 4, g: 'pgOpp' },
+];
+const dirName = v => v > 0 ? '오른쪽' : v < 0 ? '왼쪽' : '방향 없음';
+const probState = [];
+PROBS.forEach((p, i) => {
+  const d = document.createElement('div');
+  d.className = 'prob';
+  d.innerHTML = `<h3>문제 ${i + 1}</h3>
+    <p class="given">힘 ①: ${dirName(p.a)} ${Math.abs(p.a)} N · 힘 ②: ${dirName(p.b)} ${Math.abs(p.b)} N</p>
+    <div class="boardwrap"><canvas width="${PW}" height="${PH}"></canvas></div>
+    <div class="ans">
+      <span>합력의 크기</span><div><input type="number" inputmode="numeric" class="pn"> N</div>
+      <span>합력의 방향</span><div class="chips pd"><button class="chip" data-k="-1">왼쪽</button><button class="chip" data-k="1">오른쪽</button><button class="chip" data-k="0">방향 없음</button></div>
+      <span>물체는?</span><div class="chips pm"><button class="chip" data-k="1">움직인다</button><button class="chip" data-k="0">그대로다</button></div>
+    </div>
+    <div class="row"><button class="btn light pc">확인</button><button class="btn light pr">다시 그리기</button></div>
+    <div class="fb"></div>`;
+  document.getElementById(p.g).appendChild(d);
+  const items = { list: [] };
+  const board = makeBoard(d.querySelector('canvas'), {
+    cell: PC, cellsPerN: PPN, color: RED, single: true, label: true,
+    background(ctx) {
+      ctx.font = 'bold 15px "Gothic A1", sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = GREEN; ctx.fillText('힘 ①', 8, 40);
+      ctx.fillStyle = BLUE; ctx.fillText('힘 ②', 8, 85);
+      ctx.fillStyle = RED; ctx.fillText('합력', 8, RY);
+      ctx.strokeStyle = '#9AA6BC'; ctx.setLineDash([6, 5]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(0, 120); ctx.lineTo(PW, 120); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = '#C9D3E3'; ctx.beginPath(); ctx.moveTo(PX + .5, 15); ctx.lineTo(PX + .5, 105); ctx.stroke();
+      drawArrow(ctx, PX, 40, PX + p.a * PC * PPN, 40, GREEN, Math.abs(p.a) + ' N');
+      drawArrow(ctx, PX, 80, PX + p.b * PC * PPN, 80, BLUE, Math.abs(p.b) + ' N');
+      ctx.beginPath(); ctx.arc(PX, RY, 6, 0, Math.PI * 2); ctx.fillStyle = '#FFC93C'; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = '#1E2A44'; ctx.stroke();
+    },
+    onChange(list) { items.list = list; }
+  });
+  d.querySelector('.pr').onclick = () => board.clear();
+  const fb = d.querySelector('.fb');
+  probState[i] = false;
+  d.querySelector('.pc').onclick = () => {
+    const R = p.a + p.b, msgs = [];
+    const a = items.list[0];
+    if (R === 0) {
+      if (a) msgs.push('합력이 0이면 화살표를 그릴 수 없어요. 다시 계산해 보세요.');
+    } else if (!a) msgs.push('합력을 빨간 화살표로 그려 보세요.');
+    else {
+      const dx = (a.x2 - a.x1) / PC / PPN, dy = a.y2 - a.y1;
+      if (a.x1 !== PX || a.y1 !== RY) msgs.push('화살표는 합력 줄의 점(•)에서 시작해야 해요.');
+      else if (dy !== 0) msgs.push('화살표를 옆으로 곧게 그려 보세요.');
+      else if (Math.sign(dx) !== Math.sign(R)) msgs.push('화살표 방향을 다시 보세요. 어느 쪽 힘이 더 큰가요?');
+      else if (dx !== R) msgs.push('화살표 길이를 다시 보세요. 2칸이 1 N이에요.');
+    }
+    const n = d.querySelector('.pn').value;
+    if (n === '' || +n !== Math.abs(R)) msgs.push(Math.sign(p.a) === Math.sign(p.b) ? '크기: 같은 방향의 두 힘은 어떻게 계산할까요?' : '크기: 반대 방향의 두 힘은 어떻게 계산할까요?');
+    const dOn = d.querySelector('.pd .chip.on');
+    if (!dOn || +dOn.dataset.k !== Math.sign(R)) msgs.push('방향을 다시 골라 보세요.');
+    const mOn = d.querySelector('.pm .chip.on');
+    if (!mOn || +mOn.dataset.k !== (R !== 0 ? 1 : 0)) msgs.push('합력이 0인지 아닌지에 따라 물체가 어떻게 될지 생각해 보세요.');
+    probState[i] = !msgs.length;
+    fb.className = 'fb ' + (msgs.length ? 'no' : 'ok');
+    fb.innerHTML = msgs.length ? msgs.map(m => '✘ ' + m).join('<br>') :
+      (R === 0 ? '✔ 정답! 두 힘이 같은 크기로 반대 방향이라 합력이 0이에요. 어떤 특징이 있는지 기억해 두세요.' : `✔ 정답! 합력은 ${dirName(R)} ${Math.abs(R)} N이에요.`);
+    const ok = probState.filter(Boolean).length;
+    document.getElementById('probScore').textContent = `${PROBS.length}문제 중 ${ok}문제 해결`;
+  };
+});
+
+/* ---------- 3. 합력 0 조건 ---------- */
+function caseSvg(l, r) { // l, r: 왼쪽·오른쪽 화살표 길이(px), r 음수면 오른쪽 손이 왼쪽에서 같은 방향
+  const arrow = (x1, x2, y, c) => {
+    const s = Math.sign(x2 - x1), hx = x2 - s * 12;
+    return `<line x1="${x1}" y1="${y}" x2="${hx}" y2="${y}" stroke="${c}" stroke-width="6" stroke-linecap="round"/><polygon points="${x2},${y} ${hx},${y - 8} ${hx},${y + 8}" fill="${c}"/>`;
+  };
+  return `<rect x="0" y="0" width="200" height="140" fill="#F1F5FB"/><rect x="0" y="110" width="200" height="30" fill="#D9DEE6"/>
+    <rect x="75" y="60" width="50" height="50" fill="#C98B57" stroke="#8A5A32" stroke-width="2"/>
+    <path d="M82 72 q18 6 36 0 M82 86 q18 -6 36 0 M82 100 q18 6 36 0" stroke="rgba(90,55,25,.4)" fill="none"/>
+    ${l}`;
+}
+const CASES = [
+  ['다른 크기의 힘이 반대 방향으로 작용할 때 (왼쪽 3 N, 오른쪽 1 N)', false, '두 힘의 크기가 달라서 합력이 2 N이에요. 왼쪽으로 움직여요.',
+    caseSvg(`<line x1="75" y1="78" x2="22" y2="78" stroke="#1BA97A" stroke-width="6" stroke-linecap="round"/><polygon points="10,78 22,70 22,86" fill="#1BA97A"/><line x1="125" y1="92" x2="138" y2="92" stroke="#2563C9" stroke-width="6" stroke-linecap="round"/><polygon points="150,92 138,84 138,100" fill="#2563C9"/>`)],
+  ['같은 크기의 힘이 반대 방향으로 작용할 때 (왼쪽 2 N, 오른쪽 2 N)', true, '크기가 같고 방향이 반대라서 합력이 0이에요.',
+    caseSvg(`<line x1="75" y1="85" x2="47" y2="85" stroke="#1BA97A" stroke-width="6" stroke-linecap="round"/><polygon points="35,85 47,77 47,93" fill="#1BA97A"/><line x1="125" y1="85" x2="153" y2="85" stroke="#2563C9" stroke-width="6" stroke-linecap="round"/><polygon points="165,85 153,77 153,93" fill="#2563C9"/>`)],
+  ['같은 크기의 힘이 같은 방향으로 작용할 때 (오른쪽 2 N, 오른쪽 2 N)', false, '방향이 같아서 두 힘이 더해져 합력이 4 N이에요.',
+    caseSvg(`<line x1="125" y1="76" x2="153" y2="76" stroke="#1BA97A" stroke-width="6" stroke-linecap="round"/><polygon points="165,76 153,68 153,84" fill="#1BA97A"/><line x1="125" y1="96" x2="153" y2="96" stroke="#2563C9" stroke-width="6" stroke-linecap="round"/><polygon points="165,96 153,88 153,104" fill="#2563C9"/>`)],
+];
+const casesEl = document.getElementById('cases');
+CASES.forEach((c, i) => {
+  const d = document.createElement('div'); d.className = 'item';
+  d.innerHTML = `<svg viewBox="0 0 200 140" role="img" aria-label="${c[0]}">${c[3]}</svg><p>${'가나다'[i]}. ${c[0]}</p>
+    <div class="chips"><button class="chip" data-k="1">합력 = 0</button><button class="chip" data-k="0">합력 ≠ 0</button></div><div class="fb"></div>`;
+  casesEl.appendChild(d);
+});
+document.getElementById('caseCheck').onclick = () => {
+  let right = 0;
+  [...casesEl.children].forEach((d, i) => {
+    const on = d.querySelector('.chip.on'), fb = d.querySelector('.fb');
+    if (!on) { fb.className = 'fb no'; fb.textContent = '아직 고르지 않았어요.'; return; }
+    if ((+on.dataset.k === 1) === CASES[i][1]) { right++; fb.className = 'fb ok'; fb.textContent = '✔ ' + CASES[i][2]; }
+    else { fb.className = 'fb no'; fb.textContent = '✘ 두 힘의 합력을 직접 계산해 보세요.'; }
+  });
+  document.getElementById('caseScore').textContent = `3개 중 ${right}개 맞음`;
+};
+
+/* ---------- 4. 계산하기 ---------- */
+document.getElementById('q1c').onclick = () => {
+  const n = +document.getElementById('q1n').value, on = document.querySelector('#q1d .chip.on'), r = document.getElementById('q1r');
+  const ok = document.getElementById('q1n').value !== '' && n === 4 && on && +on.dataset.k === 1;
+  r.className = 'result ' + (ok ? 'ok' : 'no');
+  r.textContent = ok ? '정답! 7 N − 3 N = 4 N, 큰 힘인 오른쪽 방향이에요.' :
+    (n === 10 ? '반대 방향의 두 힘은 더하지 않아요. 다시 계산해 보세요.' : '큰 힘과 작은 힘을 찾아 계산하고, 방향도 확인해 보세요.');
+};
+
+/* ---------- 4. 고리 자석 보드 (2칸 = 1 N) ---------- */
+const MC = 25, MDOT = [350, 125];
+const magRes = document.getElementById('magResult');
+const mag = makeBoard(document.getElementById('magBoard'), {
+  cell: MC, cellsPerN: 2, color: BLUE, single: true, label: false,
+  background(ctx) {
+    ctx.fillStyle = '#E8C9A0'; ctx.strokeStyle = '#8A5A32'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(350, 300, 170, 20, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#E8C9A0'; ctx.fillRect(342, 15, 16, 285); ctx.strokeRect(342, 15, 16, 285);
+    const ring = (y, c) => { ctx.fillStyle = c; ctx.strokeStyle = '#1E2A44'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(285, y - 13, 130, 26, 10) : ctx.rect(285, y - 13, 130, 26); ctx.fill(); ctx.stroke(); };
+    ring(262, '#E85A9A'); ring(125, '#1BA97A');
+    ctx.font = 'bold 15px "Gothic A1", sans-serif'; ctx.fillStyle = '#1E2A44'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText('초록색 고리 자석', 430, 125); ctx.fillText('분홍색 고리 자석', 430, 262);
+    drawArrow(ctx, MDOT[0], MDOT[1], MDOT[0], MDOT[1] - 4 * MC, RED, '2 N');
+  },
+  onChange(items) {
+    if (!items.length) { magRes.textContent = ''; return; }
+    const a = items[0], dx = (a.x2 - a.x1) / MC, dy = (a.y2 - a.y1) / MC;
+    let msg, ok = false;
+    if (a.x1 !== MDOT[0] || a.y1 !== MDOT[1]) msg = '화살표는 힘이 작용하는 점(•)에서 시작해야 해요.';
+    else if (dx !== 0 || dy <= 0) msg = '방향을 다시 보세요. 위로 미는 힘과 평형을 이루려면 어느 쪽이어야 할까요?';
+    else if (dy === 4) { msg = '정답! 위로 미는 힘과 크기가 같고(2 N) 방향이 반대(아래)인 힘이에요.'; ok = true; }
+    else msg = '길이를 다시 보세요. 평형을 이루려면 두 힘의 크기가 어떠해야 할까요?';
+    magRes.className = 'result ' + (ok ? 'ok' : 'no'); magRes.textContent = msg;
+  }
+});
+document.querySelector('[data-board="magnet"] [data-act="clear"]').onclick = () => mag.clear();
+
+/* ---------- 5. 블록 ---------- */
+document.getElementById('blkC').onclick = () => {
+  const on = document.querySelector('#blk .chip.on'), r = document.getElementById('blkR');
+  const ok = on && on.dataset.k === '1';
+  r.className = 'result ' + (ok ? 'ok' : 'no');
+  r.textContent = !on ? '하나를 골라 보세요.' : ok ? '정답! 아래로 작용하는 힘이 더 크면 합력이 아래 방향이 되어 내려가요.' : '다시 생각해 보세요. 합력의 방향이 아래가 되려면?';
+};
+
+/* ---------- 이미지로 저장 ---------- */
+const overlay = document.getElementById('overlay');
+document.getElementById('closeShot').onclick = () => overlay.style.display = 'none';
+// 저장 방식: 샤를 법칙 활동지와 동일
+let shotBlob = null, shotName = 'report.png', downloadsNS = null;
+if (window.claude && typeof window.claude.use === 'function') {
+  window.claude.use('downloads').then(ns => { downloadsNS = ns; }).catch(() => {});
+}
+const ovMsg = document.getElementById('ovMsg');
+document.getElementById('saveBtn').onclick = async () => {
+  const name = document.getElementById('sname').value.trim(), sid = document.getElementById('sid').value.trim();
+  if (!name || !sid) { alert('학번과 이름을 먼저 적어 주세요.'); document.getElementById(sid ? 'sname' : 'sid').focus(); return; }
+  if (typeof html2canvas !== 'function') { alert('이미지 도구를 불러오지 못했어요. 페이지를 새로 고친 뒤 다시 눌러 주세요.'); return; }
+  const btn = document.getElementById('saveBtn'); btn.textContent = '이미지 만드는 중…'; btn.disabled = true;
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const canvas = await html2canvas(document.getElementById('sheet'), { scale: 2, backgroundColor: '#FBFCFE', useCORS: true });
+    const url = canvas.toDataURL('image/png');
+    shotBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    shotName = `force2_${(sid.replace(/[^0-9A-Za-z-]/g, '') || 'report')}_${Date.now().toString().slice(-6)}.png`;
+    document.getElementById('shot').src = url;
+    document.getElementById('galleryBtn').textContent = '갤러리에 저장';
+    ovMsg.innerHTML = "미리 보기예요. <b>갤러리에 저장</b>을 누른 뒤 <b>패들렛 바로가기</b>로 올려 주세요.<br>저장이 안 되면 그림을 길게 눌러 이미지 저장(사진에 추가)을 고르거나 화면을 캡처하세요.";
+    overlay.style.display = 'flex';
+  } catch (err) { alert('이미지를 만들지 못했어요. 잠시 뒤 다시 눌러 주세요.'); }
+  btn.textContent = '이미지로 저장하기'; btn.disabled = false;
+};
+function anchorDownload() {
+  const u = URL.createObjectURL(shotBlob);
+  const a = document.createElement('a'); a.href = u; a.download = shotName; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 60000);
+}
+document.getElementById('galleryBtn').onclick = async () => {
+  if (!shotBlob) return;
+  // 1) Claude 안에서 열었을 때
+  if (downloadsNS) {
+    try { await downloadsNS.save({ filename: shotName, data: shotBlob }); ovMsg.textContent = '저장했어요. 패들렛 바로가기를 눌러 올려 주세요.'; return; }
+    catch (e) {
+      if (e && e.code === 'declined') { ovMsg.textContent = '저장을 취소했어요. 다시 누르면 저장할 수 있어요.'; return; }
+      if (e && e.code === 'rate_limited') { ovMsg.textContent = '저장 창이 이미 열려 있어요. 잠시 뒤 다시 눌러 주세요.'; return; }
+    }
+  }
+  // 2) 아이패드·아이폰만 공유 창 사용 (안드로이드는 바로 내려받으면 갤러리에 자동 저장)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS) {
+    try {
+      const file = new File([shotBlob], shotName, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: '합력과 평형 활동지' });
+        ovMsg.textContent = "공유 창에서 '이미지 저장'을 골랐다면 사진에 저장됐어요. 패들렛 바로가기로 올려 주세요.";
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') { ovMsg.textContent = '저장을 취소했어요. 다시 누르면 저장할 수 있어요.'; return; }
+    }
+  }
+  // 3) 그 밖의 기기: 파일로 내려받기
+  try { anchorDownload(); ovMsg.textContent = '저장했어요! 갤러리에서 확인한 뒤 패들렛 바로가기로 올려 주세요.'; }
+  catch (e) { ovMsg.textContent = '바로 저장할 수 없어요. 위 그림을 길게 눌러 이미지 저장을 고르거나 화면을 캡처하세요.'; }
+};
+</script>
+</body>
+</html>
