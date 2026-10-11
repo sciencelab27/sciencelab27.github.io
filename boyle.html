@@ -195,6 +195,37 @@ footer{margin-top:24px;display:flex;justify-content:flex-end}
 .s-lead{stroke:var(--ink-soft);stroke-width:1.5}
 .s-arrow{stroke:var(--ink-soft);stroke-width:3;fill:none}
 .f-arrow{fill:var(--ink-soft)}
+
+/* ---------- 교사 공유화면 ---------- */
+.btn.tvbtn{background:#c8432f;border-color:#c8432f;color:#fff}
+#tv{position:fixed;inset:0;z-index:40;background:var(--paper);display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 16px calc(10px + env(safe-area-inset-bottom,0px))}
+#tv[hidden],#tvBig[hidden],#pwBox[hidden]{display:none}
+.tv-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-bottom:10px;border-bottom:2px solid var(--line)}
+.tv-bar h2{margin:0 6px 0 0;font-family:"Do Hyeon",sans-serif;font-weight:400;font-size:1.7rem;color:var(--ink)}
+.tv-bar select{font:inherit;font-weight:700;color:var(--ink);background:var(--surface);border:2px solid var(--ink);border-radius:10px;padding:6px 10px;min-height:44px}
+.tv-seg{display:flex;gap:6px}
+.tv-cnt{font-weight:700;color:var(--ink-soft)}
+.tv-sp{flex:1}
+.tv-body{flex:1;overflow:auto;padding-top:12px}
+.tv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tv-grid.m{grid-template-columns:repeat(auto-fill,minmax(400px,1fr))}
+.tv-card{font:inherit;color:var(--ink);text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:border-color .3s,box-shadow .3s}
+.tv-card img{width:100%;border-radius:8px;background:#fff;display:block}
+.tv-card .who2{font-weight:700;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.tv-card .tm{color:var(--ink-soft);font-weight:400;font-size:.85rem}
+.tv-card.new{border-color:var(--accent);box-shadow:0 0 0 4px var(--ok-bg)}
+.tv-empty{grid-column:1/-1;color:var(--ink-soft);text-align:center;padding:48px 10px;font-weight:700}
+#tvBig{position:fixed;inset:0;z-index:45;background:rgba(8,16,26,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
+#tvBig img{max-width:96vw;max-height:78vh;background:#fff;border-radius:10px}
+#tvBig .cap{color:#fff;font-weight:700;font-size:1.35rem;text-align:center}
+#tvBig .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#tvBig .btn{background:#fff;color:#17324d;border-color:#fff}
+#pwBox{position:fixed;inset:0;z-index:50;background:rgba(8,16,26,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.pw-card{background:var(--surface);color:var(--ink);border:2px solid var(--ink);border-radius:16px;padding:20px 22px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px}
+.pw-card h3{margin:0;font-family:"Do Hyeon",sans-serif;font-weight:400;font-size:1.5rem}
+.pw-card input{font:inherit;font-size:1.8rem;letter-spacing:.5em;text-align:center;color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:8px;min-height:52px}
+.pw-msg{color:var(--bad);font-weight:700;min-height:1.2em;margin:0}
+.pw-row{display:flex;gap:8px;justify-content:flex-end}
 </style>
 </head>
 <body>
@@ -206,6 +237,7 @@ footer{margin-top:24px;display:flex;justify-content:flex-end}
       <p class="lead">가상 주사기로 직접 측정하고, 그래프를 그리고, 입자 모형으로 설명해 봅시다.</p>
     </div>
     <div class="who">
+      <button type="button" class="btn tvbtn" id="tvOpen" hidden>공유화면 보기</button>
       <a class="btn ghost padlink" href="https://padlet.com/pad228_2/padlet-s0247ev2w1zhudn3a4c0" target="_blank" rel="noopener">패들렛 열기 ↗</a>
       <label>반<select id="cls"><option value="">선택</option><option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option><option value="5">5반</option></select></label>
       <label>번호<input id="num" inputmode="numeric" maxlength="3" autocomplete="off"></label>
@@ -506,6 +538,39 @@ footer{margin-top:24px;display:flex;justify-content:flex-end}
   </section>
 
   <footer><button type="button" class="btn ghost" id="resetAll">모든 기록 지우기</button></footer>
+</div>
+<div id="tv" hidden role="dialog" aria-modal="true" aria-label="학생 공유화면">
+  <div class="tv-bar">
+    <h2>공유화면</h2>
+    <select id="tvCls" aria-label="반 고르기"><option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option><option value="5">5반</option><option value="all">전체 반</option></select>
+    <div class="tv-seg" role="group" aria-label="답안 종류">
+      <button type="button" class="btn on" data-tvs="0">그래프</button>
+      <button type="button" class="btn" data-tvs="1">입자 모형</button>
+    </div>
+    <span class="tv-cnt" id="tvCnt"></span>
+    <span class="tv-sp"></span>
+    <button type="button" class="btn" id="tvHide" aria-pressed="false">이름 가리기</button>
+    <button type="button" class="btn primary" id="tvClose">활동 화면으로 ✕</button>
+  </div>
+  <div class="tv-body"><div class="tv-grid" id="tvGrid"></div></div>
+</div>
+<div id="tvBig" hidden role="dialog" aria-modal="true" aria-label="답안 크게 보기">
+  <img id="tvBigImg" alt="">
+  <div class="cap" id="tvBigCap"></div>
+  <div class="row">
+    <button type="button" class="btn" id="tvPrev">◀ 이전</button>
+    <button type="button" class="btn" id="tvBigClose">목록으로</button>
+    <button type="button" class="btn" id="tvNext">다음 ▶</button>
+  </div>
+</div>
+<div id="pwBox" hidden role="dialog" aria-modal="true" aria-labelledby="pwTitle">
+  <div class="pw-card">
+    <h3 id="pwTitle">교사 확인</h3>
+    <p class="small" style="margin:0">비밀번호 숫자 4자리를 입력하세요.</p>
+    <input id="pwIn" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" aria-label="비밀번호">
+    <p class="pw-msg" id="pwMsg" aria-live="polite"></p>
+    <div class="pw-row"><button type="button" class="btn ghost" id="pwCancel">취소</button><button type="button" class="btn primary" id="pwOk">확인</button></div>
+  </div>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -1044,6 +1109,90 @@ const mq=window.matchMedia('(prefers-color-scheme: dark)');if(mq.addEventListene
 new MutationObserver(redrawAll).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 })();
 </script>
+<script>
+/* ---------- 교사 공유화면 (주소 끝에 ?teacher=1 일 때만) ---------- */
+(()=>{
+const TEACHER_PW='2026';           // ← 비밀번호를 바꾸려면 여기 숫자만 고치세요
+if(new URLSearchParams(location.search).get('teacher')!=='1')return;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const ss={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}};
+let unlocked=ss.get('boyleTV')==='ok',cls=ss.get('boyleTVcls')||'1',scene=0,hide=false,docs=[],unsub=null,first=true,bigIdx=-1;
+const seen=new Map(),fresh=new Map(),imgCache=new Map();
+$('#tvOpen').hidden=false;
+$('#tvOpen').addEventListener('click',()=>unlocked?openTV():openPW());
+
+/* 비밀번호 */
+function openPW(){$('#pwBox').hidden=false;$('#pwIn').value='';$('#pwMsg').textContent='';setTimeout(()=>$('#pwIn').focus(),60);}
+function closePW(){$('#pwBox').hidden=true;}
+function checkPW(){const i=$('#pwIn');
+  if(i.value===TEACHER_PW){unlocked=true;ss.set('boyleTV','ok');closePW();openTV();}
+  else{$('#pwMsg').textContent='비밀번호가 맞지 않아요.';i.value='';i.focus();}}
+$('#pwIn').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);if(e.target.value.length===4)checkPW();});
+$('#pwIn').addEventListener('keydown',e=>{if(e.key==='Enter')checkPW();});
+$('#pwOk').addEventListener('click',checkPW);$('#pwCancel').addEventListener('click',closePW);
+
+/* 공유화면 열고 닫기 */
+function openTV(){$('#tv').hidden=false;document.body.style.overflow='hidden';$('#tvCls').value=cls;syncBar();subscribe();}
+function closeTV(){closeBig();$('#tv').hidden=true;document.body.style.overflow='';if(unsub){unsub();unsub=null;}}
+$('#tvClose').addEventListener('click',closeTV);
+$('#tvCls').addEventListener('change',e=>{cls=e.target.value;ss.set('boyleTVcls',cls);subscribe();});
+$$('[data-tvs]').forEach(b=>b.addEventListener('click',()=>{scene=+b.dataset.tvs;syncBar();closeBig();render();}));
+$('#tvHide').addEventListener('click',()=>{hide=!hide;syncBar();render();});
+function syncBar(){$$('[data-tvs]').forEach(b=>b.classList.toggle('on',+b.dataset.tvs===scene));
+  const h=$('#tvHide');h.setAttribute('aria-pressed',String(hide));h.classList.toggle('on',hide);h.textContent=hide?'이름 보이기':'이름 가리기';}
+
+/* 실시간 불러오기 */
+function subscribe(){if(unsub){unsub();unsub=null;}docs=[];first=true;seen.clear();fresh.clear();render('답안을 불러오는 중…');
+  const api=window.shareAPI;
+  if(!api||!api.ready){
+    if(!api||api.reason==='loading'){setTimeout(()=>{if(!$('#tv').hidden&&!unsub)subscribe();},700);return;}
+    render(api.reason==='noconfig'?'firebase-config.js 설정이 없어 답안을 불러올 수 없어요.':'공유 기능을 불러오지 못했어요. 페이지를 새로 고쳐 주세요.');return;}
+  if(typeof api.watch!=='function'){render('공유화면 기능을 불러오지 못했어요.');return;}
+  unsub=api.watch(cls==='all'?'':cls,list=>{const now=Date.now();
+    list.forEach(d=>{const t=d.at&&d.at.toMillis?d.at.toMillis():0;if(!first&&seen.get(d.id)!==t)fresh.set(d.id,now);seen.set(d.id,t);});
+    first=false;docs=list;render();
+    setTimeout(()=>{if(!$('#tv').hidden)render();},6500);
+  },e=>render('답안을 불러오지 못했어요. 인터넷 연결이나 파이어베이스 규칙을 확인해 주세요.'));}
+
+const isNew=id=>fresh.has(id)&&Date.now()-fresh.get(id)<6000;
+function cur(){return docs.filter(d=>+d.scene===scene).sort((a,b)=>(+a.cls- +b.cls)||((parseInt(a.sid,10)||0)-(parseInt(b.sid,10)||0)));}
+function label(d,i){return hide?'답안 '+(i+1):(cls==='all'?d.cls+'반 ':'')+d.sid+'번 '+(d.name||'');}
+function info(d){const t=d.at&&d.at.toDate?d.at.toDate():null;
+  const tm=t?String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0'):'';
+  const n=scene===0?(d.pts!=null?'점 '+d.pts+'개':''):(d.na!=null?'(가) '+d.na+'개 · (나) '+d.nb+'개':'');
+  return [n,tm].filter(Boolean).join(' · ');}
+function imgFor(d){const c=imgCache.get(d.id);if(c&&c.src===d.img)return c.el;
+  const el=new Image();el.src=d.img;el.alt='';imgCache.set(d.id,{src:d.img,el});return el;}
+function render(msg){const g=$('#tvGrid'),L=cur();g.className='tv-grid'+(scene===1?' m':'');
+  $('#tvCnt').textContent=msg?'':L.length+'명 공유';g.textContent='';
+  if(msg||!L.length){const p=document.createElement('p');p.className='tv-empty';
+    p.textContent=msg||'아직 공유된 답안이 없어요. 학생이 「선생님께 공유하기」를 누르면 여기에 바로 나타나요.';g.appendChild(p);
+    if(bigIdx>=0)closeBig();return;}
+  L.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.className='tv-card'+(isNew(d.id)?' new':'');
+    const im=imgFor(d);im.alt=label(d,i)+' 답안';
+    const w=document.createElement('div');w.className='who2';
+    const a=document.createElement('span');a.textContent=label(d,i);
+    const t=document.createElement('span');t.className='tm';t.textContent=info(d);
+    w.append(a,t);b.append(im,w);b.addEventListener('click',()=>openBig(i));g.appendChild(b);});
+  if(bigIdx>=0)showBig();}
+
+/* 크게 보기 */
+function openBig(i){bigIdx=i;$('#tvBig').hidden=false;showBig();}
+function closeBig(){bigIdx=-1;$('#tvBig').hidden=true;}
+function showBig(){const L=cur();if(!L.length){closeBig();return;}
+  bigIdx=Math.max(0,Math.min(bigIdx,L.length-1));const d=L[bigIdx];
+  $('#tvBigImg').src=d.img;$('#tvBigImg').alt=label(d,bigIdx)+' 답안';
+  $('#tvBigCap').textContent=label(d,bigIdx)+'   ('+(bigIdx+1)+' / '+L.length+')';
+  $('#tvPrev').disabled=bigIdx===0;$('#tvNext').disabled=bigIdx===L.length-1;}
+$('#tvPrev').addEventListener('click',()=>{bigIdx--;showBig();});
+$('#tvNext').addEventListener('click',()=>{bigIdx++;showBig();});
+$('#tvBigClose').addEventListener('click',closeBig);
+document.addEventListener('keydown',e=>{
+  if(!$('#pwBox').hidden){if(e.key==='Escape')closePW();return;}
+  if(!$('#tvBig').hidden){if(e.key==='Escape')closeBig();else if(e.key==='ArrowLeft'&&bigIdx>0){bigIdx--;showBig();}else if(e.key==='ArrowRight'){bigIdx++;showBig();}return;}
+  if(!$('#tv').hidden&&e.key==='Escape')closeTV();});
+})();
+</script>
 <script type="module">
 /* ---------- 답안 공유 (파이어베이스) ---------- */
 const COL = 'boyle_share';
@@ -1054,7 +1203,7 @@ if (!cfg || !cfg.apiKey || /여기/.test(cfg.apiKey)) {
 } else {
   try {
     const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
-    const { getFirestore, doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    const { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
     const db = getFirestore(initializeApp(cfg));
     const safe = v => String(v).replace(/[^0-9A-Za-z가-힣-]/g, '');
     window.shareAPI = {
@@ -1063,6 +1212,10 @@ if (!cfg || !cfg.apiKey || /여기/.test(cfg.apiKey)) {
         const job = setDoc(doc(db, COL, `${d.cls}_${safe(d.sid)}_${d.scene}`), { ...d, at: serverTimestamp() });
         const timer = new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 10000));
         return Promise.race([job, timer]);
+      },
+      watch(cls, onData, onErr) {
+        const ref = cls ? query(collection(db, COL), where('cls', '==', cls)) : collection(db, COL);
+        return onSnapshot(ref, snap => onData(snap.docs.map(x => ({ id: x.id, ...x.data() }))), onErr);
       }
     };
   } catch (e) { window.shareAPI.reason = 'loadfail'; }
