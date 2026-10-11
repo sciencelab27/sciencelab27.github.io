@@ -220,9 +220,8 @@ table.rec td small{color:var(--soft)}
   <!-- 1 -->
   <section data-part="1">
     <div class="sec-head"><span class="num">1</span><h2>처음 보는 그림에서 중력의 방향 찾기</h2></div>
-    <p class="guide">교과서에서는 그림이 바로 서 있었지만, 이번엔 이리저리 돌아가 있어요. 화면의 '아래'는 믿지 마세요! 교과서에서 찾은 기준대로 그림 속 <b>단서</b>를 찾아, 노란 점(•)에서 끌어 <b>중력의 방향</b>을 빨간 화살표로 그려 보세요. 맞히면 <b>새 각도</b>를 눌러 한 번 더 도전해요.</p>
+    <p class="guide">교과서에서는 그림이 바로 서 있었지만, 이번엔 이리저리 돌아가 있어요. 화면의 '아래'는 믿지 마세요! 교과서에서 찾은 기준대로 그림 속 <b>단서</b>를 찾아, 노란 점(•)에서 끌어 <b>중력의 방향</b>을 빨간 화살표로 그려 보세요. 다 그리면 그림 아래 <b>이 답안 공유하기</b>를 눌러 선생님께 보내요. 정답은 친구들의 답안과 비교하며 함께 확인해요.</p>
     <div class="pgrid" id="dirGrid"></div>
-    <div class="row"><span id="dirScore" class="result"></span></div>
     <div class="card">
       <div class="tag">도전! 올라가는 공</div>
       <div class="penguin">
@@ -332,7 +331,7 @@ table.rec td small{color:var(--soft)}
     </div>
     <button class="btn" id="pickSave">선택한 활동 이미지로 저장하기</button>
   </div>
-  <div class="ver" data-html2canvas-ignore="true">확인 활동판 · 저장 방식 v5 · 답안 공유 v1</div>
+  <div class="ver" data-html2canvas-ignore="true">확인 활동판 · 저장 방식 v5 · 답안 공유 v1.1</div>
 </div>
 
 <div id="overlay">
@@ -505,7 +504,7 @@ SCENES.forEach((sc, i) => {
   const d = document.createElement('div'); d.className = 'prob dir';
   d.innerHTML = `<h3>${'가나다라'[i]}. ${sc.name}</h3>
     <div class="boardwrap"><canvas width="${DW}" height="${DH}"></canvas></div>
-    <div class="row"><button class="btn light dc">확인</button><button class="btn light dr">다시 그리기</button><button class="btn light drot">새 각도</button></div>
+    <div class="row"><button class="btn light dr">다시 그리기</button><button class="btn light drot">새 각도</button></div>
     <div class="fb"></div>
     <div class="share-row" data-html2canvas-ignore="true"><button class="btn share">이 답안 공유하기</button><span class="share-st"></span></div>`;
   dirGrid.appendChild(d);
@@ -525,22 +524,6 @@ SCENES.forEach((sc, i) => {
   d.querySelector('.drot').onclick = () => {
     let a; do { a = Math.round(Math.random() * 23) * 15; } while (Math.abs(a - st.ang) < 40 || a < 30 || a > 330);
     st.ang = a; board.clear(); fb.textContent = ''; markRedrawn();
-  };
-  d.querySelector('.dc').onclick = () => {
-    const a = board.items[0];
-    if (!a) { fb.className = 'fb no'; fb.textContent = '✘ 노란 점에서 끌어 화살표를 그려 보세요.'; return; }
-    const target = Math.atan2(Math.cos(st.ang * DEG), -Math.sin(st.ang * DEG));
-    const mine = Math.atan2(a.y2 - a.y1, a.x2 - a.x1), diff = angDiff(target, mine);
-    st.tries++;
-    if (diff <= 22 * DEG) {
-      dirState[i] = true; fb.className = 'fb ok';
-      fb.textContent = `✔ 정답! 단서: ${sc.clue}. '새 각도'로 한 번 더 해 볼까요?`;
-    } else {
-      fb.className = 'fb no';
-      fb.textContent = diff > 150 * DEG ? '✘ 거의 반대 방향이에요. 그림 속 물체가 늘어지거나 떨어지는 쪽을 보세요.' :
-        st.tries >= 2 ? `✘ 아직 아니에요. 힌트: ${sc.clue}을/를 살펴보세요.` : '✘ 방향을 다시 보세요. 화면의 아래쪽이 아니라 그림 속 단서를 찾아요.';
-    }
-    document.getElementById('dirScore').textContent = `4개 중 ${dirState.filter(Boolean).length}개 해결`;
   };
   shareBtn.onclick = async () => {
     const say = (cls, t) => { shareSt.className = 'share-st ' + cls; shareSt.textContent = t; };
