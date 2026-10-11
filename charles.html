@@ -270,12 +270,66 @@ table.mini tr.on td{background:#EAF8F2}
 .btn.share:disabled{opacity:.55;cursor:default}
 .share-st{font-weight:700;font-size:15px}.share-st.sent{color:var(--ok)}.share-st.warn{color:var(--warm)}.share-st.wait{color:var(--muted)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+/* ---------- 교사 공유화면 ---------- */
+.tvbtn{position:absolute;top:20px;right:0;border:2px solid var(--warm);background:var(--warm);color:#fff;border-radius:12px;padding:10px 18px;font-weight:700;cursor:pointer;min-height:44px}
+@media (max-width:700px){.tvbtn{position:static;margin-bottom:10px}}
+#tv{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 18px calc(10px + env(safe-area-inset-bottom,0px))}
+#tv[hidden],#tvCmp[hidden],#pwBox[hidden]{display:none}
+.tv-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-bottom:10px;border-bottom:3px solid var(--ink)}
+.tv-bar h2{font-size:28px;margin-right:6px}
+.tv-seg{display:flex;gap:4px;flex-wrap:wrap}
+.tv-b{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 13px;cursor:pointer;font-weight:700;min-height:44px}
+.tv-b[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.tv-b.close{background:var(--cold);border-color:var(--cold);color:#fff}
+.tv-b.danger{border-color:var(--warm);color:var(--warm);background:var(--card)}
+.tv-b:disabled{opacity:.45;cursor:default}
+.tv-live{font-size:14px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.tv-live i{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.tv-live.on i{background:var(--ok)}.tv-live.bad i{background:var(--warm)}
+.tv-sp{flex:1}
+.tv-sub{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 0}
+.tv-cnt{font-weight:700}.tv-cnt span{color:var(--muted);font-weight:400}
+.tv-body{flex:1;overflow:auto;padding:12px 0 8px 12px}
+.tv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tv-grid.m{grid-template-columns:repeat(auto-fill,minmax(400px,1fr))}
+.tv-card{position:relative;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:6px;color:var(--ink)}
+.tv-card img{width:100%;border-radius:8px;background:#fff;display:block}
+.tv-card .who2{font-weight:700;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.tv-card .tm{color:var(--muted);font-weight:400;font-size:14px}
+.tv-card.sel{border-color:var(--cold);box-shadow:0 0 0 4px color-mix(in srgb,var(--cold) 20%,transparent)}
+.tv-card.new{border-color:var(--ok)}
+.tv-card .badge{position:absolute;top:-10px;left:-10px;width:34px;height:34px;border-radius:50%;background:var(--cold);color:#fff;font-family:"Do Hyeon",sans-serif;font-size:20px;display:flex;align-items:center;justify-content:center;border:2.5px solid #fff}
+.tv-empty{grid-column:1/-1;color:var(--muted);text-align:center;padding:48px 10px;font-weight:700}
+.tv-tray{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-top:10px;border-top:1.5px solid var(--line)}
+.tv-tray .msg{font-weight:700;margin-right:auto}
+#tvCmp{position:fixed;inset:0;z-index:45;background:var(--paper);display:flex;flex-direction:column;gap:10px;padding:calc(14px + env(safe-area-inset-top,0px)) 18px calc(14px + env(safe-area-inset-bottom,0px));overflow:auto}
+.cmp-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cmp-head h2{font-size:26px;margin-right:auto}
+.cmp-qs{display:flex;flex-wrap:wrap;gap:8px}
+.cmp-qs p{margin:0;background:#FFF6D9;border-left:5px solid var(--yellow);border-radius:0 8px 8px 0;padding:6px 12px;font-weight:700}
+.cmp-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;align-items:start}
+.cmp-row.stack{grid-template-columns:1fr}
+.cmp-row.one{grid-template-columns:minmax(0,900px);justify-content:center}
+.cmp-item{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px}
+.cmp-item .lab{display:flex;align-items:center;gap:10px;margin-bottom:6px;font-weight:700}
+.cmp-item .L{width:34px;height:34px;border-radius:50%;background:var(--cold);color:#fff;font-family:"Do Hyeon",sans-serif;font-size:20px;display:inline-flex;align-items:center;justify-content:center}
+.cmp-item img{width:100%;background:#fff;border-radius:8px;display:block}
+.cmp-row.stack .cmp-item img{max-height:36vh;object-fit:contain}
+.cmp-legend{color:var(--muted);font-size:14px}
+#pwBox{position:fixed;inset:0;z-index:50;background:rgba(20,30,50,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.pw-card{background:var(--card);border:2.5px solid var(--ink);border-radius:16px;padding:20px 22px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px}
+.pw-card h3{font-size:24px}
+.pw-card input{font-size:28px;letter-spacing:.5em;text-align:center;background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:8px;min-height:52px}
+.pw-msg{color:var(--warm);font-weight:700;min-height:1.2em;margin:0}
+.pw-row{display:flex;gap:8px;justify-content:flex-end}
 </style>
 </head>
 <body>
 <div class="wrap">
 
 <header class="hero">
+  <button type="button" class="tvbtn" id="tvOpen" hidden>공유화면 보기</button>
   <div class="book">비상교육 중학 과학 1 · VI. 기체의 성질 · 210~213쪽</div>
   <h1>기체의 온도와 부피 관계</h1>
   <div class="thermal" aria-hidden="true"></div>
@@ -1341,6 +1395,166 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { dr
 renderLv();
 })();
 </script>
+<div id="tv" hidden role="dialog" aria-modal="true" aria-label="학생 공유화면">
+  <div class="tv-bar">
+    <h2>공유화면</h2>
+    <div class="tv-seg" id="tvCls" role="group" aria-label="반 선택"></div>
+    <span class="tv-live" id="tvLive"><i></i><span>연결 중</span></span>
+    <span class="tv-sp"></span>
+    <button type="button" class="tv-b close" id="tvClose">활동 화면으로 ✕</button>
+  </div>
+  <div class="tv-sub">
+    <div class="tv-seg" role="group" aria-label="답안 종류">
+      <button type="button" class="tv-b" data-tvs="0" aria-pressed="true">그래프</button>
+      <button type="button" class="tv-b" data-tvs="1" aria-pressed="false">입자 모형</button>
+    </div>
+    <span class="tv-cnt" id="tvCnt"></span>
+    <span class="tv-sp"></span>
+    <button type="button" class="tv-b" id="tvName" aria-pressed="false">이름 보이기</button>
+    <button type="button" class="tv-b" id="tvInfo" aria-pressed="false" hidden>입자 수 보이기</button>
+  </div>
+  <div class="tv-body"><div class="tv-grid" id="tvGrid"></div></div>
+  <div class="tv-tray">
+    <span class="msg" id="tvMsg">답안을 눌러 고르세요 (1개는 크게, 2~3개는 나란히)</span>
+    <button type="button" class="tv-b" id="tvClr" hidden>선택 풀기</button>
+    <button type="button" class="tv-b close" id="tvGo" disabled>크게 보기</button>
+    <button type="button" class="tv-b danger" id="tvWipe">이 반 답안 비우기</button>
+  </div>
+</div>
+<section id="tvCmp" hidden role="dialog" aria-modal="true" aria-labelledby="cmpTitle">
+  <div class="cmp-head">
+    <h2 id="cmpTitle"></h2>
+    <button type="button" class="tv-b" id="cmpName" aria-pressed="false">이름 보이기</button>
+    <button type="button" class="tv-b close" id="cmpClose">목록으로</button>
+  </div>
+  <div class="cmp-qs" id="cmpQs"></div>
+  <div class="cmp-row" id="cmpRow"></div>
+  <div class="cmp-legend" id="cmpLegend"></div>
+</section>
+<div id="pwBox" hidden role="dialog" aria-modal="true" aria-labelledby="pwTitle">
+  <div class="pw-card">
+    <h3 id="pwTitle">교사 확인</h3>
+    <p style="margin:0;color:var(--muted)">비밀번호 숫자 4자리를 입력하세요.</p>
+    <input id="pwIn" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" aria-label="비밀번호">
+    <p class="pw-msg" id="pwMsg" aria-live="polite"></p>
+    <div class="pw-row"><button type="button" class="btn ghost" id="pwCancel">취소</button><button type="button" class="btn" id="pwOk">확인</button></div>
+  </div>
+</div>
+<script>
+/* ---------- 교사 공유화면 (주소 끝에 ?teacher=1 일 때만) ---------- */
+(()=>{
+const TEACHER_PW='2026';           // ← 비밀번호를 바꾸려면 여기 숫자만 고치세요
+if(new URLSearchParams(location.search).get('teacher')!=='1')return;
+const CLASSES=['1','2','3','4','5'],LETTERS='ABC';
+const SCENES=['그래프로 나타내기','입자 모형 (가) 온도를 낮출 때 · (나) 온도를 높일 때'];
+const QS=[['출발 위치는 달라도 그래프 모양에 어떤 공통점이 있을까?','온도가 높아질 때 물방울의 위치(부피)는 어떻게 변할까?'],
+          ['입자의 개수·화살표 길이를 비교해 보자.','온도가 높아질 때 부피가 늘어나는 까닭을 입자의 운동으로 설명해 보자.']];
+const LEGEND=['파란 점: 학생이 찍은 측정값 · 빨간 선: 학생이 그린 경향선','처음 상태는 40 mL에 입자 8개 · 화살표가 길수록 입자가 빠르게 움직임'];
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const ss={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}};
+const ls={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+const st={cls:ls.get('ct_cls')||'1',scene:0,showName:false,showInfo:false,sel:[],docs:[]};
+let unlocked=ss.get('charlesTV')==='ok',unsub=null,first=true,flashT=0;
+const seen=new Map(),fresh=new Map(),imgCache=new Map();
+$('#tvOpen').hidden=false;
+$('#tvOpen').addEventListener('click',()=>unlocked?openTV():openPW());
+
+/* 비밀번호 */
+function openPW(){$('#pwBox').hidden=false;$('#pwIn').value='';$('#pwMsg').textContent='';setTimeout(()=>$('#pwIn').focus(),60);}
+function closePW(){$('#pwBox').hidden=true;}
+function checkPW(){const i=$('#pwIn');
+  if(i.value===TEACHER_PW){unlocked=true;ss.set('charlesTV','ok');closePW();openTV();}
+  else{$('#pwMsg').textContent='비밀번호가 맞지 않아요.';i.value='';i.focus();}}
+$('#pwIn').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);if(e.target.value.length===4)checkPW();});
+$('#pwIn').addEventListener('keydown',e=>{if(e.key==='Enter')checkPW();});
+$('#pwOk').addEventListener('click',checkPW);$('#pwCancel').addEventListener('click',closePW);
+
+/* 열고 닫기 */
+function openTV(){$('#tv').hidden=false;document.body.style.overflow='hidden';buildCls();syncToggles();listen();}
+function closeTV(){closeCmp();$('#tv').hidden=true;document.body.style.overflow='';if(unsub){unsub();unsub=null;}}
+$('#tvClose').addEventListener('click',closeTV);
+function buildCls(){const w=$('#tvCls');w.textContent='';
+  CLASSES.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='tv-b';b.textContent=c+'반';b.setAttribute('aria-pressed',String(c===st.cls));
+    b.addEventListener('click',()=>{if(c===st.cls)return;st.cls=c;ls.set('ct_cls',c);st.sel=[];buildCls();listen();});w.appendChild(b);});}
+$$('[data-tvs]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.tvs;if(i===st.scene)return;st.scene=i;st.sel=[];syncToggles();render();}));
+function syncToggles(){$$('[data-tvs]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.tvs===st.scene)));
+  [$('#tvName'),$('#cmpName')].forEach(b=>{b.setAttribute('aria-pressed',String(st.showName));b.textContent=st.showName?'이름 숨기기':'이름 보이기';});
+  const t=$('#tvInfo');t.hidden=st.scene!==1;t.setAttribute('aria-pressed',String(st.showInfo));t.textContent=st.showInfo?'입자 수 숨기기':'입자 수 보이기';}
+$('#tvName').addEventListener('click',()=>{st.showName=!st.showName;syncToggles();render();});
+$('#cmpName').addEventListener('click',()=>{st.showName=!st.showName;syncToggles();render();drawCmp();});
+$('#tvInfo').addEventListener('click',()=>{st.showInfo=!st.showInfo;syncToggles();render();});
+function setLive(c,t){const l=$('#tvLive');l.className='tv-live '+c;l.querySelector('span').textContent=t;}
+
+/* 실시간 연결 */
+function listen(){if(unsub){unsub();unsub=null;}st.docs=[];first=true;seen.clear();fresh.clear();setLive('','연결 중');render('답안을 불러오는 중…');
+  const api=window.shareAPI;
+  if(!api||!api.ready){
+    if(!api||api.reason==='loading'){setTimeout(()=>{if(!$('#tv').hidden&&!unsub)listen();},700);return;}
+    setLive('bad','연결 안 됨');render(api.reason==='noconfig'?'firebase-config.js 설정이 없어 답안을 불러올 수 없어요.':'공유 기능을 불러오지 못했어요. 페이지를 새로 고쳐 주세요.');return;}
+  unsub=api.watch(st.cls,list=>{const now=Date.now();
+    list.forEach(d=>{const t=d.at&&d.at.toMillis?d.at.toMillis():0;if(!first&&seen.get(d.id)!==t)fresh.set(d.id,now);seen.set(d.id,t);});
+    first=false;st.docs=list.sort((a,b)=>((a.at&&a.at.toMillis?a.at.toMillis():Date.now())-(b.at&&b.at.toMillis?b.at.toMillis():Date.now())));
+    setLive('on','실시간 받는 중');render();if(!$('#tvCmp').hidden)drawCmp();
+    setTimeout(()=>{if(!$('#tv').hidden)render();},6500);
+  },e=>{setLive('bad',e&&e.code==='permission-denied'?'규칙 확인 필요':'연결 끊김');render('답안을 불러오지 못했어요. 인터넷 연결이나 파이어베이스 규칙을 확인해 주세요.');});}
+
+/* 목록 */
+const isNew=id=>fresh.has(id)&&Date.now()-fresh.get(id)<6000;
+const cur=()=>st.docs.filter(d=>+d.scene===st.scene);
+const who=(d,k)=>st.showName?d.sid+'번 '+(d.name||''):'답안 '+(k+1);
+function info(d){return '(가) '+(d.na??'-')+'개'+(d.va?' · '+d.va+'mL':'')+' · (나) '+(d.nb??'-')+'개'+(d.vb?' · '+d.vb+'mL':'');}
+function imgFor(d){const c=imgCache.get(d.id);if(c&&c.src===d.img)return c.el;const el=new Image();el.src=d.img;imgCache.set(d.id,{src:d.img,el});return el;}
+function render(msg){const g=$('#tvGrid'),L=cur();g.className='tv-grid'+(st.scene===1?' m':'');g.textContent='';
+  const people=new Set(st.docs.map(d=>d.sid)).size;
+  $('#tvCnt').innerHTML=msg?'':(st.scene===0?'그래프':'입자 모형')+' '+L.length+'개 <span>· 이 반에서 공유한 학생 '+people+'명</span>';
+  st.sel=st.sel.filter(id=>L.some(d=>d.id===id));
+  if(msg||!L.length){const p=document.createElement('p');p.className='tv-empty';
+    p.textContent=msg||st.cls+'반 학생이 '+(st.scene===0?'그래프':'입자 모형')+' 아래 「선생님께 공유하기」를 누르면 여기에 바로 나타나요.';g.appendChild(p);syncTray();return;}
+  L.forEach((d,k)=>{const si=st.sel.indexOf(d.id);const b=document.createElement('button');b.type='button';
+    b.className='tv-card'+(si>=0?' sel':'')+(isNew(d.id)?' new':'');b.setAttribute('aria-pressed',String(si>=0));
+    if(si>=0){const s=document.createElement('span');s.className='badge';s.textContent=LETTERS[si];b.appendChild(s);}
+    const im=imgFor(d);im.alt=who(d,k)+'의 답안';
+    const w=document.createElement('div');w.className='who2';const a=document.createElement('span');a.textContent=who(d,k);w.appendChild(a);
+    if(st.scene===1&&st.showInfo){const m=document.createElement('span');m.className='tm';m.textContent=info(d);w.appendChild(m);}
+    b.append(im,w);b.addEventListener('click',()=>pick(d.id));g.appendChild(b);});
+  syncTray();}
+function pick(id){const i=st.sel.indexOf(id);
+  if(i>=0)st.sel.splice(i,1);else if(st.sel.length<3)st.sel.push(id);else{flash('3개까지 고를 수 있어요. 하나를 다시 눌러 빼 주세요.');return;}render();}
+function flash(t){$('#tvMsg').textContent=t;clearTimeout(flashT);flashT=setTimeout(syncTray,1800);}
+function syncTray(){const n=st.sel.length;
+  $('#tvMsg').textContent=n===0?'답안을 눌러 고르세요 (1개는 크게, 2~3개는 나란히)':n+'개 골랐어요';
+  $('#tvGo').disabled=n===0;$('#tvGo').textContent=n>=2?'나란히 보기':'크게 보기';$('#tvClr').hidden=n===0;}
+$('#tvClr').addEventListener('click',()=>{st.sel=[];render();});
+
+/* 크게·나란히 보기 */
+function drawCmp(){const picks=st.sel.map(id=>st.docs.find(d=>d.id===id)).filter(Boolean);
+  if(!picks.length){closeCmp();return;}
+  $('#cmpTitle').textContent=st.cls+'반 · '+SCENES[st.scene];
+  const q=$('#cmpQs');q.textContent='';QS[st.scene].forEach(t=>{const p=document.createElement('p');p.textContent=t;q.appendChild(p);});
+  const r=$('#cmpRow');r.className='cmp-row'+(picks.length===1?' one':st.scene===1?' stack':'');r.textContent='';
+  picks.forEach((d,k)=>{const it=document.createElement('div');it.className='cmp-item';
+    const lab=document.createElement('div');lab.className='lab';const L=document.createElement('span');L.className='L';L.textContent=LETTERS[k];
+    const nm=document.createElement('span');nm.textContent=st.showName?d.sid+'번 '+(d.name||''):'';lab.append(L,nm);
+    const im=new Image();im.src=d.img;im.alt='답안 '+LETTERS[k];it.append(lab,im);r.appendChild(it);});
+  $('#cmpLegend').textContent=LEGEND[st.scene];}
+function closeCmp(){$('#tvCmp').hidden=true;}
+$('#tvGo').addEventListener('click',()=>{$('#tvCmp').hidden=false;drawCmp();$('#cmpClose').focus();});
+$('#cmpClose').addEventListener('click',closeCmp);
+
+/* 비우기 */
+$('#tvWipe').addEventListener('click',async()=>{const api=window.shareAPI;if(!api||!api.ready)return;
+  const n=st.docs.length;if(!n){alert(st.cls+'반에는 비울 답안이 없어요.');return;}
+  if(!confirm(st.cls+'반 샤를 법칙 답안 '+n+'개를 모두 지울까요? 지운 답안은 되돌릴 수 없어요.'))return;
+  const b=$('#tvWipe');b.disabled=true;b.textContent='지우는 중…';
+  try{await api.wipe(st.docs.map(d=>d.id));st.sel=[];}catch(e){alert('지우지 못했어요. 파이어베이스 규칙에서 삭제가 허용돼 있는지 확인해 주세요.');}
+  b.disabled=false;b.textContent='이 반 답안 비우기';});
+
+document.addEventListener('keydown',e=>{
+  if(!$('#pwBox').hidden){if(e.key==='Escape')closePW();return;}
+  if(!$('#tvCmp').hidden){if(e.key==='Escape')closeCmp();return;}
+  if(!$('#tv').hidden&&e.key==='Escape')closeTV();});
+})();
+</script>
 <script type="module">
 /* ---------- 답안 공유 (파이어베이스) ---------- */
 const COL = 'charles_share';
@@ -1351,7 +1565,7 @@ if (!cfg || !cfg.apiKey || /여기/.test(cfg.apiKey)) {
 } else {
   try {
     const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
-    const { getFirestore, doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    const { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, onSnapshot, writeBatch } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
     const db = getFirestore(initializeApp(cfg));
     const safe = v => String(v).replace(/[^0-9A-Za-z가-힣-]/g, '');
     window.shareAPI = {
@@ -1360,6 +1574,17 @@ if (!cfg || !cfg.apiKey || /여기/.test(cfg.apiKey)) {
         const job = setDoc(doc(db, COL, `${d.cls}_${safe(d.sid)}_${d.scene}`), { ...d, at: serverTimestamp() });
         const timer = new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 10000));
         return Promise.race([job, timer]);
+      },
+      watch(cls, onData, onErr) {
+        const ref = cls ? query(collection(db, COL), where('cls', '==', cls)) : collection(db, COL);
+        return onSnapshot(ref, snap => onData(snap.docs.map(x => ({ id: x.id, ...x.data() }))), onErr);
+      },
+      async wipe(ids) {
+        for (let i = 0; i < ids.length; i += 400) {
+          const b = writeBatch(db);
+          ids.slice(i, i + 400).forEach(id => b.delete(doc(db, COL, id)));
+          await b.commit();
+        }
       }
     };
   } catch (e) { window.shareAPI.reason = 'loadfail'; }
