@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>보일 법칙 답안 모아보기 (교사용)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gothic+A1:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="firebase-config.js"></script>
+<style>
+:root{
+  --paper:#FBFCFE; --grid:#E3EAF5; --ink:#1E2A44; --soft:#5B6782;
+  --red:#E5383B; --blue:#2563C9; --mint:#1BA97A; --yellow:#FFC93C; --line:#C9D3E3;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0}
+body{
+  color:var(--ink); font-family:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",sans-serif; line-height:1.5;
+  background-color:#EEF2F8;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+h1,h2,.do{font-family:"Do Hyeon","Gothic A1",sans-serif; font-weight:400; margin:0}
+button{font:inherit; color:inherit}
+button:focus-visible{outline:3px solid var(--yellow); outline-offset:2px}
+#app{max-width:1280px; margin:0 auto; min-height:100vh; background:var(--paper); padding:18px 22px 120px}
+
+/* 머리 */
+.top{display:flex; align-items:center; gap:16px; flex-wrap:wrap; border-bottom:3px solid var(--ink); padding-bottom:14px}
+.top h1{font-size:34px; line-height:1.1; margin-right:auto}
+.top h1 small{display:block; font-family:"Gothic A1",sans-serif; font-size:13px; font-weight:600; color:var(--soft); margin-top:4px}
+.seg{display:flex; border:2px solid var(--ink); border-radius:10px; overflow:hidden; background:#fff}
+.seg button{border:none; background:none; padding:9px 16px; font-weight:800; font-size:16px; cursor:pointer}
+.seg button + button{border-left:2px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink); color:#fff}
+.live{display:inline-flex; align-items:center; gap:7px; font-size:13.5px; font-weight:700; color:var(--soft)}
+.live i{width:10px; height:10px; border-radius:50%; background:var(--line)}
+.live.on i{background:var(--mint)}
+.live.bad i{background:var(--red)}
+
+/* 그림 탭 */
+.tabs{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:16px 0 12px}
+.tab{border:2px solid var(--line); border-radius:10px; background:#fff; padding:10px 12px; text-align:left; cursor:pointer; display:flex; align-items:center; gap:10px}
+.tab .k{font-family:"Do Hyeon",sans-serif; font-size:30px; line-height:1; color:var(--yellow); -webkit-text-stroke:1.5px var(--ink)}
+.tab .t{font-weight:700; font-size:14.5px; line-height:1.3}
+.tab .n{margin-left:auto; font-weight:800; font-size:15px; min-width:2.2em; text-align:right; color:var(--soft)}
+.tab[aria-selected="true"]{border-color:var(--ink); box-shadow:inset 0 -4px 0 var(--ink)}
+.tab[aria-selected="true"] .n{color:var(--ink)}
+@media (max-width:820px){ .tabs{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+/* 도구 줄 */
+.tools{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px}
+.tools .count{font-weight:800; font-size:16px; margin-right:auto}
+.tools .count span{color:var(--soft); font-weight:600; font-size:14px}
+.tog{border:1.5px solid var(--ink); border-radius:999px; background:#fff; padding:7px 14px; font-weight:700; font-size:14.5px; cursor:pointer}
+.tog[aria-pressed="true"]{background:var(--ink); color:#fff}
+.filter{display:flex; gap:6px}
+.filter[hidden]{display:none}
+.filter .tog{border-color:var(--line)}
+.filter .tog[aria-pressed="true"]{border-color:var(--ink)}
+
+/* 답안 격자 */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px}
+.ans{position:relative; border:2px solid var(--line); border-radius:10px; background:#fff; padding:6px; cursor:pointer; text-align:left}
+.ans img{display:block; width:100%; height:auto; border-radius:6px; background:#F1F5FB}
+.ans .who{display:flex; justify-content:space-between; align-items:center; gap:6px; padding:6px 4px 2px; font-size:14px; font-weight:700}
+.ans .who .m{font-size:13px; font-weight:800}
+.ans .who .m.o{color:var(--mint)} .ans .who .m.x{color:var(--red)}
+.ans.sel{border-color:var(--red); box-shadow:0 0 0 3px var(--red)}
+.ans .badge{position:absolute; top:-12px; left:-10px; width:42px; height:42px; border-radius:50%; background:var(--yellow); border:2.5px solid var(--ink);
+  font-family:"Do Hyeon",sans-serif; font-size:26px; display:flex; align-items:center; justify-content:center}
+.empty{border:2px dashed var(--line); border-radius:12px; padding:36px 20px; text-align:center; color:var(--soft); font-weight:600}
+.empty b{color:var(--ink)}
+
+/* 아래 고정 줄 */
+.tray{position:fixed; left:0; right:0; bottom:0; padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px)); background:var(--ink); color:#fff;
+  display:flex; align-items:center; gap:12px; justify-content:center; flex-wrap:wrap; z-index:5}
+.tray .msg{font-weight:700}
+.tray .btn{border:none; border-radius:8px; padding:11px 20px; font-weight:800; font-size:16px; cursor:pointer}
+.tray .go{background:var(--yellow); color:var(--ink)}
+.tray .go:disabled{opacity:.45; cursor:default}
+.tray .clr{background:transparent; color:#fff; border:1.5px solid #fff}
+
+.danger{margin-top:36px; padding-top:16px; border-top:1.5px dashed var(--line); display:flex; align-items:center; gap:12px; flex-wrap:wrap; color:var(--soft); font-size:14px}
+.danger button{border:1.5px solid var(--red); color:var(--red); background:#fff; border-radius:8px; padding:8px 14px; font-weight:800; cursor:pointer}
+
+/* 비교 화면 */
+#cmp{position:fixed; inset:0; z-index:20; background:var(--paper); display:none; flex-direction:column; padding:16px 20px calc(16px + env(safe-area-inset-bottom,0px))}
+#cmp.open{display:flex}
+.cmp-head{display:flex; align-items:center; gap:14px; flex-wrap:wrap; border-bottom:3px solid var(--ink); padding-bottom:12px}
+.cmp-head h2{font-size:26px; margin-right:auto}
+.qs{display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 6px}
+.qs p{margin:0; font-size:20px; font-weight:800; background:#FFF6D9; border-left:6px solid var(--yellow); padding:6px 14px; border-radius:0 8px 8px 0}
+.cmp-row{flex:1; min-height:0; display:flex; gap:18px; align-items:center; justify-content:center; padding-top:12px}
+.cmp-item{flex:1; min-width:0; max-width:620px; display:flex; flex-direction:column; align-items:center; gap:8px; height:100%; justify-content:center}
+.cmp-item .lab{display:flex; align-items:baseline; gap:10px}
+.cmp-item .lab .L{font-family:"Do Hyeon",sans-serif; font-size:52px; line-height:1; color:var(--yellow); -webkit-text-stroke:2px var(--ink)}
+.cmp-item .lab .nm{font-size:20px; font-weight:800}
+.cmp-item canvas{display:block; width:100%; height:auto; max-height:calc(100% - 80px); object-fit:contain; border:2.5px solid var(--ink); border-radius:10px; background:#fff}
+.cmp-item .res{font-weight:800; font-size:17px; min-height:1.5em}
+.cmp-item .res.o{color:var(--mint)} .cmp-item .res.x{color:var(--red)}
+.cmp-btns{display:flex; gap:8px; flex-wrap:wrap}
+.cmp-btns .tog{font-size:15px; padding:9px 16px}
+.cmp-btns .close{background:var(--ink); color:#fff}
+.legend{text-align:center; font-size:14px; color:var(--soft); font-weight:600; margin-top:8px}
+@media (max-width:760px){ .cmp-row{flex-direction:column; overflow:auto} .cmp-item{height:auto} }
+
+/* 설정 안내 */
+.setup{max-width:760px; margin:30px auto; border:2px solid var(--ink); border-radius:12px; padding:20px 24px; background:#fff}
+.setup h2{font-size:26px; margin-bottom:8px}
+.setup ol{padding-left:22px; margin:8px 0 0}
+.setup li{margin:6px 0}
+.setup pre{background:#F1F5FB; border:1.5px solid var(--line); border-radius:8px; padding:12px; overflow-x:auto; font-size:13px; line-height:1.5}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(420px,1fr))}
+.cmp-row.stack{flex-direction:column; overflow:auto; justify-content:flex-start}
+.cmp-row.stack .cmp-item{max-width:1100px; width:100%; height:auto; flex:none}
+.cmp-item img{display:block; width:100%; height:auto; max-height:calc(100% - 80px); object-fit:contain; border:2.5px solid var(--ink); border-radius:10px; background:#fff}
+.cmp-row.stack .cmp-item img{max-height:none}
+.cmp-row.stack .cmp-item .lab .L{font-size:38px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <h1>보일 법칙 답안 모아보기<small>기체의 압력과 부피 관계 · 그래프와 입자 모형 · 교사용</small></h1>
+    <div class="seg" id="clsSeg" role="group" aria-label="반 선택"></div>
+    <span class="live" id="live"><i></i><span>연결 중</span></span>
+  </header>
+
+  <div id="main">
+    <nav class="tabs" id="tabs" role="tablist" aria-label="활동 선택"></nav>
+    <div class="tools">
+      <div class="count" id="count"></div>
+      <button class="tog" id="tName" aria-pressed="false">이름 보이기</button>
+      <button class="tog" id="tInfo" aria-pressed="false">입자 수 보이기</button>
+    </div>
+    <div id="grid"></div>
+    <div class="danger">
+      <span>수업이 끝나면 다음 수업을 위해 이 반 답안을 비워 두세요.</span>
+      <button id="wipe">이 반 답안 비우기</button>
+    </div>
+  </div>
+</div>
+
+<div class="tray" id="tray">
+  <span class="msg" id="trayMsg">비교할 답안을 2~3개 눌러 고르세요</span>
+  <button class="btn go" id="goCmp" disabled>나란히 보기</button>
+  <button class="btn clr" id="clrSel" hidden>선택 풀기</button>
+</div>
+
+<section id="cmp" aria-modal="true" role="dialog" aria-labelledby="cmpTitle">
+  <div class="cmp-head">
+    <h2 id="cmpTitle"></h2>
+    <div class="cmp-btns">
+      <button class="tog" id="cName" aria-pressed="false">이름 보이기</button>
+      <button class="tog close" id="cClose">닫기</button>
+    </div>
+  </div>
+  <div class="qs" id="cmpQs"></div>
+  <div class="cmp-row" id="cmpRow"></div>
+  <div class="legend" id="cmpLegend"></div>
+</section>
+
+<script type="module">
+const COL = 'boyle_share';
+const CLASSES = ['1', '2', '3', '4', '5'];
+const SCENES = ['측정 결과 그래프', '입자 모형 (가) 당길 때 · (나) 누를 때'];
+const KEYS = '12', LETTERS = 'ABC';
+const QS = [
+  ['두 그래프는 어디가 다를까?', '압력이 커질 때 부피는 어떻게 변할까? 그래프 모양으로 설명해 보자.'],
+  ['입자의 개수·입자 사이의 거리를 비교해 보자.', '입자가 벽에 충돌하는 횟수는 어느 쪽이 많을까? 그 까닭은?']
+];
+const LEGEND = ['점: 학생이 찍은 측정값 · 선: 학생이 그린 그래프', '처음 상태는 40 mL에 입자 8개 · (가) 60 mL, (나) 20 mL'];
+
+const $ = id => document.getElementById(id);
+const state = { cls: localStorage.getItem('bt_cls') || '1', scene: 0, showName: false, showInfo: false, sel: [], docs: [] };
+let db = null, fs = null, unsub = null;
+
+/* ---------- 설정 확인 ---------- */
+const cfg = window.FIREBASE_CONFIG;
+const RULES = `rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{col}/{id} {
+      allow read, delete: if true;
+      allow create, update: if request.resource.data.size() <= 20
+        && (!('img' in request.resource.data) || request.resource.data.img.size() < 400000);
+    }
+  }
+}`;
+function showSetup(why) {
+  $('main').innerHTML = `<div class="setup">
+    <h2>${why === 'noconfig' ? '파이어베이스 연결이 아직 안 됐어요' : '파이어베이스에 연결하지 못했어요'}</h2>
+    <ol>
+      <li>이 화면(<b>boyle_teacher.html</b>), 학생용 <b>boyle.html</b>, <b>firebase-config.js</b> 세 파일이 깃허브의 같은 폴더에 있는지 확인하세요.</li>
+      <li>파이어베이스 콘솔 → Firestore Database → <b>규칙</b> 탭이 아래 내용과 같은지 확인하고, 다르면 붙여 넣은 뒤 <b>게시</b>를 누르세요.</li>
+    </ol>
+    <pre>${RULES.replace(/</g, '&lt;')}</pre>
+    <p style="color:var(--soft);font-size:14px;margin:0">확인한 뒤 이 화면을 새로 고치면 연결돼요.</p>
+  </div>`;
+  $('tray').hidden = true;
+  setLive('bad', '연결 안 됨');
+}
+function setLive(cls, text) { const l = $('live'); l.className = 'live ' + cls; l.querySelector('span').textContent = text; }
+
+/* ---------- 화면 그리기 ---------- */
+function buildClassSeg() {
+  $('clsSeg').innerHTML = CLASSES.map(c => `<button data-c="${c}" aria-pressed="${c === state.cls}">${c}반</button>`).join('');
+  $('clsSeg').onclick = e => {
+    const b = e.target.closest('button'); if (!b || b.dataset.c === state.cls) return;
+    state.cls = b.dataset.c; localStorage.setItem('bt_cls', state.cls);
+    state.sel = []; buildClassSeg(); listen();
+  };
+}
+function buildTabs() {
+  const counts = SCENES.map((_, i) => state.docs.filter(d => d.scene === i).length);
+  $('tabs').innerHTML = SCENES.map((n, i) => `<button class="tab" role="tab" data-i="${i}" aria-selected="${i === state.scene}">
+    <span class="k">${KEYS[i]}</span><span class="t">${n}</span><span class="n">${counts[i]}</span></button>`).join('');
+  $('tInfo').hidden = state.scene !== 1;
+}
+$('tabs').onclick = e => {
+  const b = e.target.closest('.tab'); if (!b) return;
+  const i = +b.dataset.i; if (i === state.scene) return;
+  state.scene = i; state.sel = []; render();
+};
+function info(d) {
+  if (d.scene === 1) return `(가) ${d.na ?? '-'}개 · (나) ${d.nb ?? '-'}개`;
+  return '';
+}
+function render() {
+  buildTabs();
+  const list = state.docs.filter(d => d.scene === state.scene);
+  const people = new Set(state.docs.map(d => d.sid)).size;
+  $('count').innerHTML = `${SCENES[state.scene]} ${list.length}개 <span>· 이 반에서 공유한 학생 ${people}명</span>`;
+  state.sel = state.sel.filter(id => list.some(d => d.id === id));
+  if (!list.length) {
+    $('grid').innerHTML = `<div class="empty">${state.cls}반 학생이 <b>${state.scene === 0 ? '그래프' : '입자 모형'}</b> 아래 <b>선생님께 공유하기</b>를 누르면 여기에 바로 나타나요.</div>`;
+  } else {
+    $('grid').innerHTML = `<div class="grid${state.scene === 1 ? ' wide' : ''}">${list.map((d, k) => {
+      const si = state.sel.indexOf(d.id);
+      const label = state.showName ? `${esc(d.sid)}번 ${esc(d.name)}` : `답안 ${k + 1}`;
+      const m = state.scene === 1 && state.showInfo ? `<span class="m">${info(d)}</span>` : '';
+      return `<button class="ans${si >= 0 ? ' sel' : ''}" data-id="${d.id}" aria-pressed="${si >= 0}">
+        ${si >= 0 ? `<span class="badge">${LETTERS[si]}</span>` : ''}
+        <img src="${d.img}" alt="${esc(label)}의 답안"><span class="who"><span>${label}</span>${m}</span></button>`;
+    }).join('')}</div>`;
+  }
+  syncTray();
+}
+$('grid').onclick = e => {
+  const b = e.target.closest('.ans'); if (!b) return;
+  const id = b.dataset.id, i = state.sel.indexOf(id);
+  if (i >= 0) state.sel.splice(i, 1);
+  else if (state.sel.length < 3) state.sel.push(id);
+  else { flashTray('3개까지 고를 수 있어요. 하나를 다시 눌러 빼 주세요.'); return; }
+  render();
+};
+let flashT = 0;
+function flashTray(t) { $('trayMsg').textContent = t; clearTimeout(flashT); flashT = setTimeout(syncTray, 1800); }
+function syncTray() {
+  const n = state.sel.length;
+  $('trayMsg').textContent = n === 0 ? '비교할 답안을 2~3개 눌러 고르세요' : n === 1 ? '1개 골랐어요. 하나 더 고르세요' : `${n}개 골랐어요`;
+  $('goCmp').disabled = n < 2;
+  $('clrSel').hidden = n === 0;
+}
+$('clrSel').onclick = () => { state.sel = []; render(); };
+function setName(v) {
+  state.showName = v;
+  [$('cName'), $('tName')].forEach(b => { b.setAttribute('aria-pressed', v); b.textContent = v ? '이름 숨기기' : '이름 보이기'; });
+}
+$('tName').onclick = () => { setName(!state.showName); render(); };
+$('tInfo').onclick = () => { state.showInfo = !state.showInfo; $('tInfo').setAttribute('aria-pressed', state.showInfo); $('tInfo').textContent = state.showInfo ? '입자 수 숨기기' : '입자 수 보이기'; render(); };
+
+/* ---------- 비교 화면 ---------- */
+function drawCmp() {
+  const picks = state.sel.map(id => state.docs.find(d => d.id === id)).filter(Boolean);
+  $('cmpTitle').textContent = `${state.cls}반 · ${SCENES[state.scene]}`;
+  $('cmpQs').innerHTML = QS[state.scene].map(q => `<p>${q}</p>`).join('');
+  $('cmpRow').classList.toggle('stack', state.scene === 1);
+  $('cmpRow').innerHTML = picks.map((d, k) => `<div class="cmp-item">
+    <div class="lab"><span class="L">${LETTERS[k]}</span><span class="nm">${state.showName ? esc(d.sid) + '번 ' + esc(d.name) : ''}</span></div>
+    <img src="${d.img}" alt="답안 ${LETTERS[k]}"></div>`).join('');
+  $('cmpLegend').textContent = LEGEND[state.scene];
+}
+$('goCmp').onclick = () => { setName(state.showName); $('cmp').classList.add('open'); drawCmp(); $('cClose').focus(); };
+$('cClose').onclick = () => { $('cmp').classList.remove('open'); $('goCmp').focus(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('cmp').classList.contains('open')) $('cClose').click(); });
+$('cName').onclick = () => { setName(!state.showName); drawCmp(); render(); };
+
+/* ---------- 비우기 ---------- */
+$('wipe').onclick = async () => {
+  if (!db) return;
+  const n = state.docs.length;
+  if (!n) { alert(`${state.cls}반에는 비울 답안이 없어요.`); return; }
+  if (!confirm(`${state.cls}반 보일 법칙 답안 ${n}개를 모두 지울까요? 지운 답안은 되돌릴 수 없어요.`)) return;
+  const btn = $('wipe'); btn.disabled = true; btn.textContent = '지우는 중…';
+  try {
+    const ids = state.docs.map(d => d.id);
+    for (let i = 0; i < ids.length; i += 400) {
+      const b = fs.writeBatch(db);
+      ids.slice(i, i + 400).forEach(id => b.delete(fs.doc(db, COL, id)));
+      await b.commit();
+    }
+    state.sel = [];
+  } catch (e) { alert('지우지 못했어요. 파이어베이스 규칙에서 삭제가 허용돼 있는지 확인해 주세요.'); }
+  btn.disabled = false; btn.textContent = '이 반 답안 비우기';
+};
+
+/* ---------- 실시간 연결 ---------- */
+function listen() {
+  if (unsub) unsub();
+  state.docs = []; render(); setLive('', '연결 중');
+  const q = fs.query(fs.collection(db, COL), fs.where('cls', '==', state.cls));
+  unsub = fs.onSnapshot(q, snap => {
+    state.docs = snap.docs.map(s => ({ id: s.id, ...s.data() }))
+      .sort((a, b) => (a.at?.toMillis?.() ?? Date.now()) - (b.at?.toMillis?.() ?? Date.now()));
+    setLive('on', '실시간 받는 중');
+    render();
+    if ($('cmp').classList.contains('open')) drawCmp();
+  }, err => {
+    setLive('bad', err.code === 'permission-denied' ? '규칙 확인 필요' : '연결 끊김');
+    if (err.code === 'permission-denied') showSetup('rules');
+  });
+}
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+buildClassSeg();
+render();
+if (!cfg || !cfg.apiKey || /여기/.test(cfg.apiKey)) {
+  showSetup('noconfig');
+} else {
+  try {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+    fs = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    db = fs.getFirestore(initializeApp(cfg));
+    listen();
+  } catch (e) { showSetup('loadfail'); }
+}
+</script>
+</body>
+</html>
