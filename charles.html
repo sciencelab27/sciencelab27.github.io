@@ -289,6 +289,7 @@ table.mini tr.on td{background:#EAF8F2}
 .tv-live.on i{background:var(--ok)}.tv-live.bad i{background:var(--warm)}
 .tv-sp{flex:1}
 .tv-sub{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 0}
+.tv-b.newin{background:var(--ok);border-color:var(--ok);color:#fff}
 .tv-cnt{font-weight:700}.tv-cnt span{color:var(--muted);font-weight:400}
 .tv-body{flex:1;overflow:auto;padding:12px 0 8px 12px}
 .tv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
@@ -1409,6 +1410,7 @@ renderLv();
       <button type="button" class="tv-b" data-tvs="1" aria-pressed="false">입자 모형</button>
     </div>
     <span class="tv-cnt" id="tvCnt"></span>
+    <button type="button" class="tv-b newin" id="tvNew" hidden></button>
     <span class="tv-sp"></span>
     <button type="button" class="tv-b" id="tvName" aria-pressed="false">이름 보이기</button>
     <button type="button" class="tv-b" id="tvInfo" aria-pressed="false" hidden>입자 수 보이기</button>
@@ -1453,9 +1455,9 @@ const LEGEND=['파란 점: 학생이 찍은 측정값 · 빨간 선: 학생이 �
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const ss={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}};
 const ls={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
-const st={cls:ls.get('ct_cls')||'1',scene:0,showName:false,showInfo:false,sel:[],docs:[]};
+const st={cls:ls.get('ct_cls')||'1',scene:0,showName:false,showInfo:false,sel:[],docs:[],live:[]};
 let unlocked=ss.get('charlesTV')==='ok',unsub=null,first=true,flashT=0;
-const seen=new Map(),fresh=new Map(),imgCache=new Map();
+const order=new Map(),fresh=new Set(),imgCache=new Map();
 $('#tvOpen').hidden=false;
 $('#tvOpen').addEventListener('click',()=>unlocked?openTV():openPW());
 
@@ -1476,7 +1478,7 @@ $('#tvClose').addEventListener('click',closeTV);
 function buildCls(){const w=$('#tvCls');w.textContent='';
   CLASSES.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='tv-b';b.textContent=c+'반';b.setAttribute('aria-pressed',String(c===st.cls));
     b.addEventListener('click',()=>{if(c===st.cls)return;st.cls=c;ls.set('ct_cls',c);st.sel=[];buildCls();listen();});w.appendChild(b);});}
-$$('[data-tvs]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.tvs;if(i===st.scene)return;st.scene=i;st.sel=[];syncToggles();render();}));
+$$('[data-tvs]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.tvs;if(i===st.scene)return;st.scene=i;st.sel=[];syncToggles();render();syncNew();}));
 function syncToggles(){$$('[data-tvs]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.tvs===st.scene)));
   [$('#tvName'),$('#cmpName')].forEach(b=>{b.setAttribute('aria-pressed',String(st.showName));b.textContent=st.showName?'이름 숨기기':'이름 보이기';});
   const t=$('#tvInfo');t.hidden=st.scene!==1;t.setAttribute('aria-pressed',String(st.showInfo));t.textContent=st.showInfo?'입자 수 숨기기':'입자 수 보이기';}
@@ -1486,20 +1488,29 @@ $('#tvInfo').addEventListener('click',()=>{st.showInfo=!st.showInfo;syncToggles(
 function setLive(c,t){const l=$('#tvLive');l.className='tv-live '+c;l.querySelector('span').textContent=t;}
 
 /* 실시간 연결 */
-function listen(){if(unsub){unsub();unsub=null;}st.docs=[];first=true;seen.clear();fresh.clear();setLive('','연결 중');render('답안을 불러오는 중…');
+function listen(){if(unsub){unsub();unsub=null;}st.docs=[];st.live=[];first=true;order.clear();fresh.clear();syncNew();setLive('','연결 중');render('답안을 불러오는 중…');
   const api=window.shareAPI;
   if(!api||!api.ready){
     if(!api||api.reason==='loading'){setTimeout(()=>{if(!$('#tv').hidden&&!unsub)listen();},700);return;}
     setLive('bad','연결 안 됨');render(api.reason==='noconfig'?'firebase-config.js 설정이 없어 답안을 불러올 수 없어요.':'공유 기능을 불러오지 못했어요. 페이지를 새로 고쳐 주세요.');return;}
-  unsub=api.watch(st.cls,list=>{const now=Date.now();
-    list.forEach(d=>{const t=d.at&&d.at.toMillis?d.at.toMillis():0;if(!first&&seen.get(d.id)!==t)fresh.set(d.id,now);seen.set(d.id,t);});
-    first=false;st.docs=list.sort((a,b)=>((a.at&&a.at.toMillis?a.at.toMillis():Date.now())-(b.at&&b.at.toMillis?b.at.toMillis():Date.now())));
-    setLive('on','실시간 받는 중');render();if(!$('#tvCmp').hidden)drawCmp();
-    setTimeout(()=>{if(!$('#tv').hidden)render();},6500);
+  /* 새 답안은 바로 화면에 넣지 않고 모아 두었다가, 선생님이 「새 답안 보기」를 누를 때만 반영 */
+  unsub=api.watch(st.cls,list=>{st.live=list;setLive('on','실시간 받는 중');
+    if(first){first=false;applyNew(false);}else syncNew();
   },e=>{setLive('bad',e&&e.code==='permission-denied'?'규칙 확인 필요':'연결 끊김');render('답안을 불러오지 못했어요. 인터넷 연결이나 파이어베이스 규칙을 확인해 주세요.');});}
 
+const stamp=d=>d.at&&d.at.toMillis?d.at.toMillis():0;
+function diffIds(sceneOnly){const shown=new Map(st.docs.filter(d=>!sceneOnly||+d.scene===st.scene).map(d=>[d.id,stamp(d)]));let n=0;
+  st.live.filter(d=>!sceneOnly||+d.scene===st.scene).forEach(d=>{if(shown.get(d.id)!==stamp(d))n++;shown.delete(d.id);});return n+shown.size;}
+function syncNew(){const b=$('#tvNew'),n=diffIds(true),all=diffIds(false);
+  b.hidden=all===0;b.textContent=n>0?'새 답안 '+n+'개 보기':'다른 화면에 새 답안 있음 · 반영하기';}
+function applyNew(mark){const prev=new Map(st.docs.map(d=>[d.id,stamp(d)]));fresh.clear();
+  if(mark)st.live.forEach(d=>{if(prev.get(d.id)!==stamp(d))fresh.add(d.id);});
+  [...st.live].sort((a,b)=>stamp(a)-stamp(b)).forEach(d=>{if(!order.has(d.id))order.set(d.id,order.size);});
+  st.docs=[...st.live].sort((a,b)=>order.get(a.id)-order.get(b.id));render();syncNew();}
+$('#tvNew').addEventListener('click',()=>applyNew(true));
+
 /* 목록 */
-const isNew=id=>fresh.has(id)&&Date.now()-fresh.get(id)<6000;
+const isNew=id=>fresh.has(id);
 const cur=()=>st.docs.filter(d=>+d.scene===st.scene);
 const who=(d,k)=>st.showName?d.sid+'번 '+(d.name||''):'답안 '+(k+1);
 function info(d){return '(가) '+(d.na??'-')+'개'+(d.va?' · '+d.va+'mL':'')+' · (나) '+(d.nb??'-')+'개'+(d.vb?' · '+d.vb+'mL':'');}
@@ -1543,10 +1554,10 @@ $('#cmpClose').addEventListener('click',closeCmp);
 
 /* 비우기 */
 $('#tvWipe').addEventListener('click',async()=>{const api=window.shareAPI;if(!api||!api.ready)return;
-  const n=st.docs.length;if(!n){alert(st.cls+'반에는 비울 답안이 없어요.');return;}
+  const ids=[...new Set([...st.docs,...st.live].map(d=>d.id))],n=ids.length;if(!n){alert(st.cls+'반에는 비울 답안이 없어요.');return;}
   if(!confirm(st.cls+'반 샤를 법칙 답안 '+n+'개를 모두 지울까요? 지운 답안은 되돌릴 수 없어요.'))return;
   const b=$('#tvWipe');b.disabled=true;b.textContent='지우는 중…';
-  try{await api.wipe(st.docs.map(d=>d.id));st.sel=[];}catch(e){alert('지우지 못했어요. 파이어베이스 규칙에서 삭제가 허용돼 있는지 확인해 주세요.');}
+  try{await api.wipe(ids);st.sel=[];order.clear();applyNew(false);}catch(e){alert('지우지 못했어요. 파이어베이스 규칙에서 삭제가 허용돼 있는지 확인해 주세요.');}
   b.disabled=false;b.textContent='이 반 답안 비우기';});
 
 document.addEventListener('keydown',e=>{
