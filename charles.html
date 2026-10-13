@@ -90,11 +90,11 @@ table.data input.check{border-color:var(--warn)}
 
 .q{margin:14px 0}
 .q .qt{font-weight:700}
-.book{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;margin-top:8px;padding:12px 14px;border:2px dashed var(--warn);border-radius:12px;background:var(--soft);cursor:pointer}
-.book .bk-t{font-size:15px}
-.book .bk-c{display:inline-flex;align-items:center;gap:8px;font-weight:800;white-space:nowrap;padding:6px 12px;border-radius:10px;background:var(--card);border:1.5px solid var(--line);min-height:44px}
-.book input{width:22px;height:22px;accent-color:var(--ok)}
-.book:has(input:checked){border-style:solid;border-color:var(--ok)}
+.tbook{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;margin-top:8px;padding:12px 14px;border:2px dashed var(--warn);border-radius:12px;background:var(--soft);cursor:pointer}
+.tbook .bk-t{font-size:15px}
+.tbook .bk-c{display:inline-flex;align-items:center;gap:8px;font-weight:800;white-space:nowrap;padding:6px 12px;border-radius:10px;background:var(--card);border:1.5px solid var(--line);min-height:44px}
+.tbook input{width:22px;height:22px;accent-color:var(--ok)}
+.tbook:has(input:checked){border-style:solid;border-color:var(--ok)}
 /* 발표 학생 뽑기 */
 #pick{position:fixed;inset:0;z-index:50;background:var(--paper);display:flex;flex-direction:column;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) 18px calc(14px + env(safe-area-inset-bottom,0px));overflow:auto}
 #pick[hidden]{display:none}
@@ -297,8 +297,11 @@ table.mini tr.on td{background:#EAF8F2}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 
 /* ---------- 교사 공유화면 ---------- */
-.tvbtn{position:absolute;top:20px;right:0;border:2px solid var(--warm);background:var(--warm);color:#fff;border-radius:12px;padding:10px 18px;font-weight:700;cursor:pointer;min-height:44px}
-@media (max-width:700px){.tvbtn{position:static;margin-bottom:10px}}
+.tvbtns{position:absolute;top:20px;right:0;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.tvbtn{border:2px solid var(--warm);background:var(--warm);color:#fff;border-radius:12px;padding:10px 18px;font-weight:700;cursor:pointer;min-height:44px}
+@media (max-width:700px){.tvbtns{position:static;justify-content:flex-start;margin-bottom:10px}}
+.tvbtn.alt{background:var(--card);color:var(--warm)}
+.tvbtn[hidden]{display:none}
 #tv{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 18px calc(10px + env(safe-area-inset-bottom,0px))}
 #tv[hidden],#tvCmp[hidden],#pwBox[hidden]{display:none}
 .tv-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-bottom:10px;border-bottom:3px solid var(--ink)}
@@ -361,7 +364,7 @@ table.mini tr.on td{background:#EAF8F2}
 <div class="wrap">
 
 <header class="hero">
-  <button type="button" class="tvbtn" id="tvOpen" hidden>공유화면 보기</button>
+  <div class="tvbtns"><button type="button" class="tvbtn alt" id="pkOpen" hidden>🎯 발표 학생 뽑기</button><button type="button" class="tvbtn" id="tvOpen" hidden>공유화면 보기</button></div>
   <div class="book">비상교육 중학 과학 1 · VI. 기체의 성질 · 210~213쪽</div>
   <h1>기체의 온도와 부피 관계</h1>
   <div class="thermal" aria-hidden="true"></div>
@@ -442,11 +445,11 @@ table.mini tr.on td{background:#EAF8F2}
   <div class="q">
     <div class="qt">1. 온도가 높아지면 스포이트 속 공기의 부피는 어떻게 되는가?</div>
     <select id="q1sel"><option value="">골라 주세요</option><option>늘어난다</option><option>줄어든다</option><option>변하지 않는다</option></select>
-    <label class="book"><span class="bk-t">📖 그렇게 판단한 근거(물방울의 움직임)를 교과서 211쪽에 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="q1book"> 교과서에 썼어요</span></label>
+    <label class="tbook"><span class="bk-t">📖 그렇게 판단한 근거(물방울의 움직임)를 교과서 211쪽에 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="q1book"> 교과서에 썼어요</span></label>
   </div>
   <div class="q">
     <div class="qt">2. 결과 해석 및 결론 도출: 실험 결과를 바탕으로 기체의 온도와 부피 관계를 이야기해 보자.</div>
-    <label class="book"><span class="bk-t">📖 교과서 211쪽에 답을 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="q2book"> 교과서에 썼어요</span></label>
+    <label class="tbook"><span class="bk-t">📖 교과서 211쪽에 답을 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="q2book"> 교과서에 썼어요</span></label>
   </div>
 </section>
 
@@ -487,7 +490,7 @@ table.mini tr.on td{background:#EAF8F2}
   <div class="share-row"><button type="button" class="btn share" data-share="m">선생님께 공유하기</button><span class="share-st" id="shareSt-m"></span></div>
   <div class="q">
     <div class="qt">기체의 온도와 부피 관계를 입자 모형으로 이야기해 보자.</div>
-    <label class="book"><span class="bk-t">📖 교과서 212쪽에 답을 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="pmBook"> 교과서에 썼어요</span></label>
+    <label class="tbook"><span class="bk-t">📖 교과서 212쪽에 답을 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="pmBook"> 교과서에 썼어요</span></label>
   </div>
 </section>
 
@@ -1459,10 +1462,11 @@ renderLv();
 <section id="pick" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">
   <div class="pk-top">
     <h2 id="pkTitle">발표 학생 뽑기</h2>
+    <div class="tv-seg" id="pkCls" role="group" aria-label="반 선택"></div>
     <label>번호 1 ~ <input id="pkMax" type="number" inputmode="numeric" min="1" max="60" aria-label="마지막 번호">번</label>
     <span class="tv-sp"></span>
     <button type="button" class="tv-b" id="pkReset">다시 섞기</button>
-    <button type="button" class="tv-b close" id="pkClose">공유화면으로 ✕</button>
+    <button type="button" class="tv-b close" id="pkClose">닫기 ✕</button>
   </div>
   <div class="pk-main">
     <div class="pk-num" id="pkNum" aria-live="polite">?</div>
@@ -1508,8 +1512,10 @@ const ls={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set
 const st={cls:ls.get('ct_cls')||'1',scene:0,showName:false,showInfo:false,sel:[],docs:[],live:[]};
 let unlocked=ss.get('charlesTV')==='ok',unsub=null,first=true,flashT=0;
 const order=new Map(),fresh=new Set(),imgCache=new Map();
-$('#tvOpen').hidden=false;
-$('#tvOpen').addEventListener('click',()=>unlocked?openTV():openPW());
+$('#tvOpen').hidden=false;$('#pkOpen').hidden=false;
+let pwNext='tv';
+$('#tvOpen').addEventListener('click',()=>{pwNext='tv';unlocked?openTV():openPW();});
+$('#pkOpen').addEventListener('click',()=>{pwNext='pick';unlocked?openPick():openPW();});
 
 /* 비밀번호 */
 /* 미러링 중에도 비밀번호가 보이지 않도록: 태블릿 키보드를 쓰지 않고 화면 숫자판으로 입력.
@@ -1527,7 +1533,7 @@ function pwKey(n){if(pwVal.length>=4)return;pwVal+=n;pwDots();if(pwVal.length===
 function openPW(){pwVal='';pwDots();pwPad();$('#pwMsg').textContent='';$('#pwBox').hidden=false;}
 function closePW(){$('#pwBox').hidden=true;pwVal='';}
 function checkPW(){
-  if(pwVal===TEACHER_PW){unlocked=true;ss.set('charlesTV','ok');closePW();openTV();}
+  if(pwVal===TEACHER_PW){unlocked=true;ss.set('charlesTV','ok');closePW();if(pwNext==='pick')openPick();else openTV();}
   else{$('#pwMsg').textContent='비밀번호가 맞지 않아요.';pwVal='';pwDots();pwPad();}}
 document.addEventListener('keydown',e=>{if($('#pwBox').hidden)return;
   if(/^[0-9]$/.test(e.key))pwKey(e.key);else if(e.key==='Backspace'){pwVal=pwVal.slice(0,-1);pwDots();}else if(e.key==='Enter')checkPW();});
@@ -1640,7 +1646,11 @@ function pkDraw(){const g=$('#pkGrid');g.textContent='';
     g.appendChild(b);}
   const left=pkPool().length;$('#pkGo').disabled=pk.rolling||!left;
   if(!pk.rolling)$('#pkSub').textContent=left?'남은 학생 '+left+'명':'모두 뽑았어요! 「다시 섞기」를 누르면 처음부터 뽑아요.';}
-function openPick(){pkLoad();$('#pkTitle').textContent=st.cls+'반 발표 학생 뽑기';$('#pkMax').value=pk.max;
+function pkClsBar(){const w=$('#pkCls');w.textContent='';
+  CLASSES.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='tv-b';b.textContent=c+'반';b.setAttribute('aria-pressed',String(c===st.cls));
+    b.addEventListener('click',()=>{if(pk.rolling||c===st.cls)return;st.cls=c;ls.set('ct_cls',c);
+      if(!$('#tv').hidden){st.sel=[];buildCls();listen();}openPick();});w.appendChild(b);});}
+function openPick(){pkLoad();pkClsBar();$('#pkTitle').textContent='발표 학생 뽑기';$('#pkMax').value=pk.max;
   const n=$('#pkNum');n.className='pk-num';n.textContent=pk.picked.length?pk.picked[pk.picked.length-1]:'?';
   $('#pick').hidden=false;pkDraw();$('#pkGo').focus();}
 function closePick(){if(pk.rolling)return;$('#pick').hidden=true;}
