@@ -90,6 +90,31 @@ table.data input.check{border-color:var(--warn)}
 
 .q{margin:14px 0}
 .q .qt{font-weight:700}
+.book{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;margin-top:8px;padding:12px 14px;border:2px dashed var(--warn);border-radius:12px;background:var(--soft);cursor:pointer}
+.book .bk-t{font-size:15px}
+.book .bk-c{display:inline-flex;align-items:center;gap:8px;font-weight:800;white-space:nowrap;padding:6px 12px;border-radius:10px;background:var(--card);border:1.5px solid var(--line);min-height:44px}
+.book input{width:22px;height:22px;accent-color:var(--ok)}
+.book:has(input:checked){border-style:solid;border-color:var(--ok)}
+/* 발표 학생 뽑기 */
+#pick{position:fixed;inset:0;z-index:50;background:var(--paper);display:flex;flex-direction:column;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) 18px calc(14px + env(safe-area-inset-bottom,0px));overflow:auto}
+#pick[hidden]{display:none}
+.pk-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-bottom:10px;border-bottom:3px solid var(--ink)}
+.pk-top h2{margin:0;font-size:22px}
+.pk-top label{display:inline-flex;align-items:center;gap:6px;font-weight:700}
+.pk-top input{width:64px;min-height:40px;font:inherit;text-align:center;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+.pk-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:260px}
+.pk-num{font-size:clamp(110px,24vw,220px);font-weight:900;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+.pk-num.roll{color:var(--muted)}
+.pk-num.hit{color:var(--warm);animation:pkpop .35s ease-out}
+@keyframes pkpop{0%{transform:scale(.7)}70%{transform:scale(1.08)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.pk-num.hit{animation:none}}
+.pk-sub{font-size:18px;font-weight:700;color:var(--muted);min-height:1.4em;text-align:center}
+.pk-go{font-size:22px;padding:14px 40px;min-height:60px}
+.pk-help{font-size:14px;color:var(--muted);margin:0}
+.pk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px}
+.pk-grid button{min-height:46px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
+.pk-grid button.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.pk-grid button.out{background:var(--paper);color:var(--muted);text-decoration:line-through;border-style:dashed}
 .q textarea,.q input[type=text]{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);resize:vertical;min-height:64px;margin-top:6px}
 .q input[type=text]{min-height:auto}
 .q select{padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper)}
@@ -321,7 +346,13 @@ table.mini tr.on td{background:#EAF8F2}
 #pwBox{position:fixed;inset:0;z-index:50;background:rgba(20,30,50,.55);display:flex;align-items:center;justify-content:center;padding:16px}
 .pw-card{background:var(--card);border:2.5px solid var(--ink);border-radius:16px;padding:20px 22px;width:min(340px,100%);display:flex;flex-direction:column;gap:12px}
 .pw-card h3{font-size:24px}
-.pw-card input{font-size:28px;letter-spacing:.5em;text-align:center;background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:8px;min-height:52px}
+.pw-dots{display:flex;justify-content:center;gap:14px;padding:10px 0;background:var(--paper);border:2px solid var(--line);border-radius:10px;min-height:52px;align-items:center}
+.pw-dots i{width:18px;height:18px;border-radius:50%;border:2px solid var(--ink)}
+.pw-dots i.on{background:var(--ink)}
+.pw-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pw-pad button{min-height:56px;font:inherit;font-size:24px;font-weight:800;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.pw-pad button:active,.pw-pad button:focus,.pw-pad button:hover{background:var(--card);outline:none;box-shadow:none}
+.pw-pad button.fn{font-size:16px}
 .pw-msg{color:var(--warm);font-weight:700;min-height:1.2em;margin:0}
 .pw-row{display:flex;gap:8px;justify-content:flex-end}
 </style>
@@ -411,11 +442,11 @@ table.mini tr.on td{background:#EAF8F2}
   <div class="q">
     <div class="qt">1. 온도가 높아지면 스포이트 속 공기의 부피는 어떻게 되는가?</div>
     <select id="q1sel"><option value="">골라 주세요</option><option>늘어난다</option><option>줄어든다</option><option>변하지 않는다</option></select>
-    <textarea id="q1why" placeholder="그렇게 판단한 근거(물방울의 움직임)를 적어 보세요"></textarea>
+    <label class="book"><span class="bk-t">📖 그렇게 판단한 근거(물방울의 움직임)를 교과서 211쪽에 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="q1book"> 교과서에 썼어요</span></label>
   </div>
   <div class="q">
     <div class="qt">2. 결과 해석 및 결론 도출: 실험 결과를 바탕으로 기체의 온도와 부피 관계를 이야기해 보자.</div>
-    <textarea id="q2" placeholder="일정한 압력에서 기체의 온도가 높아지면 …, 낮아지면 …"></textarea>
+    <label class="book"><span class="bk-t">📖 교과서 211쪽에 답을 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="q2book"> 교과서에 썼어요</span></label>
   </div>
 </section>
 
@@ -456,7 +487,7 @@ table.mini tr.on td{background:#EAF8F2}
   <div class="share-row"><button type="button" class="btn share" data-share="m">선생님께 공유하기</button><span class="share-st" id="shareSt-m"></span></div>
   <div class="q">
     <div class="qt">기체의 온도와 부피 관계를 입자 모형으로 이야기해 보자.</div>
-    <textarea id="pmTalk" placeholder="온도가 낮아지면 입자의 운동이 … 부피가 …"></textarea>
+    <label class="book"><span class="bk-t">📖 교과서 212쪽에 답을 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="pmBook"> 교과서에 썼어요</span></label>
   </div>
 </section>
 
@@ -1220,6 +1251,7 @@ function renderLv(){ buildQ('c', $('#qc')); [1,2,3].forEach(k => { buildQ(k, $('
 
 /* ---------------- 탐구 보고서 이미지 ---------------- */
 const val = s => ($(s)?.value || '').trim();
+const bookTxt = s => $(s)?.checked ? '📖 교과서에 작성함 ✔' : '📖 교과서에 작성 (확인 안 함)';
 let downloadsNS = null, repBlob = null, repName = 'charles.png';
 if (window.claude && typeof window.claude.use === 'function') {
   window.claude.use('downloads').then(ns => { downloadsNS = ns; }).catch(() => {});
@@ -1247,8 +1279,8 @@ const PART = {
           <div class="q">물방울의 위치로 알 수 있는 것</div><div class="ans">${esc(val('#qMeaningX'))}</div></div>
         <div><img src="${snap($('#graph'))}"></div>
       </div>
-      <div class="q">정리 1. 온도가 높아지면 스포이트 속 공기의 부피는? ${esc(val('#q1sel'))}</div><div class="ans">${esc(val('#q1why'))}</div>
-      <div class="q">정리 2. 기체의 온도와 부피 관계</div><div class="ans">${esc(val('#q2'))}</div>`;
+      <div class="q">정리 1. 온도가 높아지면 스포이트 속 공기의 부피는? ${esc(val('#q1sel'))}</div><div class="ans">근거: ${bookTxt('#q1book')}</div>
+      <div class="q">정리 2. 기체의 온도와 부피 관계</div><div class="ans">${bookTxt('#q2book')}</div>`;
   },
   2(){
     const A = pm.pmA, B = pm.pmB;
@@ -1257,7 +1289,7 @@ const PART = {
         <div><div class="q">(가) 온도를 낮출 때 · ${A.vol} mL · 입자 ${A.parts.length}개</div><img src="${snap(A.canvas)}"></div>
         <div><div class="q">(나) 온도를 높일 때 · ${B.vol} mL · 입자 ${B.parts.length}개</div><img src="${snap(B.canvas)}"></div>
       </div>
-      <div class="q">입자 모형으로 이야기해 보기</div><div class="ans">${esc(val('#pmTalk'))}</div>`;
+      <div class="q">입자 모형으로 이야기해 보기</div><div class="ans">${bookTxt('#pmBook')}</div>`;
   },
   3(){
     const figRows = ['low','high'].map(r => { const tr = document.querySelector(`#figTable tr[data-row="${r}"]`);
@@ -1402,6 +1434,7 @@ renderLv();
     <div class="tv-seg" id="tvCls" role="group" aria-label="반 선택"></div>
     <span class="tv-live" id="tvLive"><i></i><span>연결 중</span></span>
     <span class="tv-sp"></span>
+    <button type="button" class="tv-b" id="tvPick">🎯 발표 학생 뽑기</button>
     <button type="button" class="tv-b close" id="tvClose">활동 화면으로 ✕</button>
   </div>
   <div class="tv-sub">
@@ -1423,6 +1456,22 @@ renderLv();
     <button type="button" class="tv-b danger" id="tvWipe">이 반 답안 비우기</button>
   </div>
 </div>
+<section id="pick" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">
+  <div class="pk-top">
+    <h2 id="pkTitle">발표 학생 뽑기</h2>
+    <label>번호 1 ~ <input id="pkMax" type="number" inputmode="numeric" min="1" max="60" aria-label="마지막 번호">번</label>
+    <span class="tv-sp"></span>
+    <button type="button" class="tv-b" id="pkReset">다시 섞기</button>
+    <button type="button" class="tv-b close" id="pkClose">공유화면으로 ✕</button>
+  </div>
+  <div class="pk-main">
+    <div class="pk-num" id="pkNum" aria-live="polite">?</div>
+    <div class="pk-sub" id="pkSub"></div>
+    <button type="button" class="btn primary pk-go" id="pkGo">🎯 뽑기</button>
+  </div>
+  <p class="pk-help">번호를 누르면 <b>결석·제외</b>(줄 그어짐)로 바뀌고 다시 누르면 돌아와요. 초록색은 이번 시간에 이미 뽑힌 번호예요. 오늘 하루 동안 이 태블릿이 기억해요.</p>
+  <div class="pk-grid" id="pkGrid"></div>
+</section>
 <section id="tvCmp" hidden role="dialog" aria-modal="true" aria-labelledby="cmpTitle">
   <div class="cmp-head">
     <h2 id="cmpTitle"></h2>
@@ -1436,8 +1485,9 @@ renderLv();
 <div id="pwBox" hidden role="dialog" aria-modal="true" aria-labelledby="pwTitle">
   <div class="pw-card">
     <h3 id="pwTitle">교사 확인</h3>
-    <p style="margin:0;color:var(--muted)">비밀번호 숫자 4자리를 입력하세요.</p>
-    <input id="pwIn" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" aria-label="비밀번호">
+    <p style="margin:0;color:var(--muted)">비밀번호 숫자 4자리를 누르세요.</p>
+    <div class="pw-dots" id="pwDots" role="img" aria-label="입력한 자리 수"><i></i><i></i><i></i><i></i></div>
+    <div class="pw-pad" id="pwPad"></div>
     <p class="pw-msg" id="pwMsg" aria-live="polite"></p>
     <div class="pw-row"><button type="button" class="btn ghost" id="pwCancel">취소</button><button type="button" class="btn" id="pwOk">확인</button></div>
   </div>
@@ -1462,18 +1512,30 @@ $('#tvOpen').hidden=false;
 $('#tvOpen').addEventListener('click',()=>unlocked?openTV():openPW());
 
 /* 비밀번호 */
-function openPW(){$('#pwBox').hidden=false;$('#pwIn').value='';$('#pwMsg').textContent='';setTimeout(()=>$('#pwIn').focus(),60);}
-function closePW(){$('#pwBox').hidden=true;}
-function checkPW(){const i=$('#pwIn');
-  if(i.value===TEACHER_PW){unlocked=true;ss.set('charlesTV','ok');closePW();openTV();}
-  else{$('#pwMsg').textContent='비밀번호가 맞지 않아요.';i.value='';i.focus();}}
-$('#pwIn').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);if(e.target.value.length===4)checkPW();});
-$('#pwIn').addEventListener('keydown',e=>{if(e.key==='Enter')checkPW();});
+/* 미러링 중에도 비밀번호가 보이지 않도록: 태블릿 키보드를 쓰지 않고 화면 숫자판으로 입력.
+   입력한 숫자는 ●로만 표시하고, 숫자판 배열은 열 때마다 섞이며 누른 버튼도 색이 변하지 않음 */
+let pwVal='';
+function pwDots(){$$('#pwDots i').forEach((d,k)=>d.classList.toggle('on',k<pwVal.length));}
+function pwPad(){const p=$('#pwPad'),ds=[0,1,2,3,4,5,6,7,8,9];
+  for(let k=ds.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[ds[k],ds[j]]=[ds[j],ds[k]];}
+  p.textContent='';
+  const add=(t,fn,cls)=>{const b=document.createElement('button');b.type='button';b.textContent=t;if(cls)b.className=cls;
+    b.addEventListener('pointerdown',e=>{e.preventDefault();fn();});b.addEventListener('click',e=>{if(e.detail===0)fn();});p.appendChild(b);};
+  ds.slice(0,9).forEach(n=>add(String(n),()=>pwKey(String(n))));
+  add('지우기',()=>{pwVal='';pwDots();},'fn');add(String(ds[9]),()=>pwKey(String(ds[9])));add('⌫',()=>{pwVal=pwVal.slice(0,-1);pwDots();},'fn');}
+function pwKey(n){if(pwVal.length>=4)return;pwVal+=n;pwDots();if(pwVal.length===4)setTimeout(checkPW,120);}
+function openPW(){pwVal='';pwDots();pwPad();$('#pwMsg').textContent='';$('#pwBox').hidden=false;}
+function closePW(){$('#pwBox').hidden=true;pwVal='';}
+function checkPW(){
+  if(pwVal===TEACHER_PW){unlocked=true;ss.set('charlesTV','ok');closePW();openTV();}
+  else{$('#pwMsg').textContent='비밀번호가 맞지 않아요.';pwVal='';pwDots();pwPad();}}
+document.addEventListener('keydown',e=>{if($('#pwBox').hidden)return;
+  if(/^[0-9]$/.test(e.key))pwKey(e.key);else if(e.key==='Backspace'){pwVal=pwVal.slice(0,-1);pwDots();}else if(e.key==='Enter')checkPW();});
 $('#pwOk').addEventListener('click',checkPW);$('#pwCancel').addEventListener('click',closePW);
 
 /* 열고 닫기 */
 function openTV(){$('#tv').hidden=false;document.body.style.overflow='hidden';buildCls();syncToggles();listen();}
-function closeTV(){closeCmp();$('#tv').hidden=true;document.body.style.overflow='';if(unsub){unsub();unsub=null;}}
+function closeTV(){closeCmp();$('#pick').hidden=true;$('#tv').hidden=true;document.body.style.overflow='';if(unsub){unsub();unsub=null;}}
 $('#tvClose').addEventListener('click',closeTV);
 function buildCls(){const w=$('#tvCls');w.textContent='';
   CLASSES.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='tv-b';b.textContent=c+'반';b.setAttribute('aria-pressed',String(c===st.cls));
@@ -1560,8 +1622,46 @@ $('#tvWipe').addEventListener('click',async()=>{const api=window.shareAPI;if(!ap
   try{await api.wipe(ids);st.sel=[];order.clear();applyNew(false);}catch(e){alert('지우지 못했어요. 파이어베이스 규칙에서 삭제가 허용돼 있는지 확인해 주세요.');}
   b.disabled=false;b.textContent='이 반 답안 비우기';});
 
+/* 발표 학생 뽑기 — 반별로 뽑힌 번호·제외 번호를 오늘 하루 기억 */
+const pk={max:26,picked:[],out:[],rolling:false};
+const pkDay=()=>{const d=new Date();return d.getFullYear()+''+(d.getMonth()+1)+''+d.getDate();};
+const pkKey=()=>'ct_pick_'+st.cls+'_'+pkDay();
+function pkLoad(){pk.max=Math.max(1,Math.min(60,parseInt(ls.get('ct_pick_max_'+st.cls),10)||26));
+  let o={};try{o=JSON.parse(ls.get(pkKey())||'{}')||{};}catch(e){}
+  pk.picked=Array.isArray(o.picked)?o.picked:[];pk.out=Array.isArray(o.out)?o.out:[];}
+function pkSave(){ls.set(pkKey(),JSON.stringify({picked:pk.picked,out:pk.out}));}
+const pkPool=()=>{const a=[];for(let i=1;i<=pk.max;i++)if(!pk.picked.includes(i)&&!pk.out.includes(i))a.push(i);return a;};
+function pkDraw(){const g=$('#pkGrid');g.textContent='';
+  for(let i=1;i<=pk.max;i++){const b=document.createElement('button');b.type='button';b.textContent=i;
+    const out=pk.out.includes(i),done=pk.picked.includes(i);b.className=out?'out':done?'done':'';
+    b.setAttribute('aria-label',i+'번'+(out?' (제외)':done?' (뽑힘)':''));
+    b.addEventListener('click',()=>{if(pk.rolling)return;
+      if(out)pk.out=pk.out.filter(n=>n!==i);else{pk.out.push(i);pk.picked=pk.picked.filter(n=>n!==i);}pkSave();pkDraw();});
+    g.appendChild(b);}
+  const left=pkPool().length;$('#pkGo').disabled=pk.rolling||!left;
+  if(!pk.rolling)$('#pkSub').textContent=left?'남은 학생 '+left+'명':'모두 뽑았어요! 「다시 섞기」를 누르면 처음부터 뽑아요.';}
+function openPick(){pkLoad();$('#pkTitle').textContent=st.cls+'반 발표 학생 뽑기';$('#pkMax').value=pk.max;
+  const n=$('#pkNum');n.className='pk-num';n.textContent=pk.picked.length?pk.picked[pk.picked.length-1]:'?';
+  $('#pick').hidden=false;pkDraw();$('#pkGo').focus();}
+function closePick(){if(pk.rolling)return;$('#pick').hidden=true;}
+function pkGo(){const pool=pkPool();if(!pool.length||pk.rolling)return;
+  const win=pool[Math.floor(Math.random()*pool.length)],n=$('#pkNum');
+  const finish=()=>{pk.rolling=false;pk.picked.push(win);pkSave();n.className='pk-num hit';n.textContent=win;pkDraw();$('#pkSub').textContent=win+'번 발표해 볼까요?';};
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches||pool.length===1){finish();return;}
+  pk.rolling=true;pkDraw();$('#pkSub').textContent='두구두구…';n.className='pk-num roll';
+  let t=0,delay=45;const tick=()=>{n.textContent=pool[Math.floor(Math.random()*pool.length)];t+=delay;
+    if(t>1400){finish();return;}delay=Math.min(delay*1.12,220);setTimeout(tick,delay);};tick();}
+$('#tvPick').addEventListener('click',openPick);
+$('#pkClose').addEventListener('click',closePick);
+$('#pkGo').addEventListener('click',pkGo);
+$('#pkReset').addEventListener('click',()=>{if(pk.rolling)return;if(pk.picked.length&&!confirm('뽑힌 번호를 모두 풀고 처음부터 다시 뽑을까요? (결석·제외 표시는 그대로예요)'))return;
+  pk.picked=[];pkSave();const n=$('#pkNum');n.className='pk-num';n.textContent='?';pkDraw();});
+$('#pkMax').addEventListener('change',e=>{const v=Math.max(1,Math.min(60,parseInt(e.target.value,10)||26));e.target.value=v;pk.max=v;
+  ls.set('ct_pick_max_'+st.cls,String(v));pk.picked=pk.picked.filter(n=>n<=v);pk.out=pk.out.filter(n=>n<=v);pkSave();pkDraw();});
+
 document.addEventListener('keydown',e=>{
   if(!$('#pwBox').hidden){if(e.key==='Escape')closePW();return;}
+  if(!$('#pick').hidden){if(e.key==='Escape')closePick();return;}
   if(!$('#tvCmp').hidden){if(e.key==='Escape')closeCmp();return;}
   if(!$('#tv').hidden&&e.key==='Escape')closeTV();});
 })();
