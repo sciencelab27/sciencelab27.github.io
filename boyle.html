@@ -1116,7 +1116,7 @@ const TEACHER_PW='2026';           // ← 비밀번호를 바꾸려면 여기 �
 if(new URLSearchParams(location.search).get('teacher')!=='1')return;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const ss={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}};
-let unlocked=ss.get('boyleTV')==='ok',cls=ss.get('boyleTVcls')||'1',scene=0,hide=false,docs=[],unsub=null,first=true,bigIdx=-1;
+let unlocked=ss.get('boyleTV')==='ok',cls=ss.get('boyleTVcls')||'1',scene=0,hide=false,docs=[],unsub=null,first=true,bigDoc=null;
 const seen=new Map(),fresh=new Map(),imgCache=new Map();
 $('#tvOpen').hidden=false;
 $('#tvOpen').addEventListener('click',()=>unlocked?openTV():openPW());
@@ -1167,29 +1167,33 @@ function render(msg){const g=$('#tvGrid'),L=cur();g.className='tv-grid'+(scene==
   $('#tvCnt').textContent=msg?'':L.length+'명 공유';g.textContent='';
   if(msg||!L.length){const p=document.createElement('p');p.className='tv-empty';
     p.textContent=msg||'아직 공유된 답안이 없어요. 학생이 「선생님께 공유하기」를 누르면 여기에 바로 나타나요.';g.appendChild(p);
-    if(bigIdx>=0)closeBig();return;}
+    if(bigDoc&&msg)closeBig();return;}
   L.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.className='tv-card'+(isNew(d.id)?' new':'');
     const im=imgFor(d);im.alt=label(d,i)+' 답안';
     const w=document.createElement('div');w.className='who2';
     const a=document.createElement('span');a.textContent=label(d,i);
     const t=document.createElement('span');t.className='tm';t.textContent=info(d);
     w.append(a,t);b.append(im,w);b.addEventListener('click',()=>openBig(i));g.appendChild(b);});
-  if(bigIdx>=0)showBig();}
+  if(bigDoc)showBig();}
 
-/* 크게 보기 */
-function openBig(i){bigIdx=i;$('#tvBig').hidden=false;showBig();}
-function closeBig(){bigIdx=-1;$('#tvBig').hidden=true;}
-function showBig(){const L=cur();if(!L.length){closeBig();return;}
-  bigIdx=Math.max(0,Math.min(bigIdx,L.length-1));const d=L[bigIdx];
-  $('#tvBigImg').src=d.img;$('#tvBigImg').alt=label(d,bigIdx)+' 답안';
-  $('#tvBigCap').textContent=label(d,bigIdx)+'   ('+(bigIdx+1)+' / '+L.length+')';
-  $('#tvPrev').disabled=bigIdx===0;$('#tvNext').disabled=bigIdx===L.length-1;}
-$('#tvPrev').addEventListener('click',()=>{bigIdx--;showBig();});
-$('#tvNext').addEventListener('click',()=>{bigIdx++;showBig();});
+/* 크게 보기 — 번호(순서)가 아니라 '고른 학생'을 기억해서, 새 답안이 들어와 목록이 밀려도 화면이 바뀌지 않음.
+   그 학생이 다시 공유해도 크게 보기 중에는 그림을 바꾸지 않고, 목록으로 돌아갔다가 다시 열면 새 답안이 보임 */
+function openBig(i){bigDoc=cur()[i]||null;if(!bigDoc)return;$('#tvBig').hidden=false;showBig();}
+function closeBig(){bigDoc=null;$('#tvBig').hidden=true;$('#tvBigImg').dataset.id='';}
+function showBig(){if(!bigDoc){closeBig();return;}
+  const L=cur(),k=L.findIndex(d=>d.id===bigDoc.id),d=bigDoc,im=$('#tvBigImg');
+  if(im.dataset.id!==d.id){im.src=d.img;im.dataset.id=d.id;}
+  im.alt=label(d,Math.max(k,0))+' 답안';
+  $('#tvBigCap').textContent=label(d,Math.max(k,0))+(k>=0?'   ('+(k+1)+' / '+L.length+')':'');
+  $('#tvPrev').disabled=k<=0;$('#tvNext').disabled=k<0||k>=L.length-1;}
+function stepBig(dir){if(!bigDoc)return;const L=cur(),k=L.findIndex(d=>d.id===bigDoc.id),n=k+dir;
+  if(k<0||n<0||n>=L.length)return;bigDoc=L[n];showBig();}
+$('#tvPrev').addEventListener('click',()=>stepBig(-1));
+$('#tvNext').addEventListener('click',()=>stepBig(1));
 $('#tvBigClose').addEventListener('click',closeBig);
 document.addEventListener('keydown',e=>{
   if(!$('#pwBox').hidden){if(e.key==='Escape')closePW();return;}
-  if(!$('#tvBig').hidden){if(e.key==='Escape')closeBig();else if(e.key==='ArrowLeft'&&bigIdx>0){bigIdx--;showBig();}else if(e.key==='ArrowRight'){bigIdx++;showBig();}return;}
+  if(!$('#tvBig').hidden){if(e.key==='Escape')closeBig();else if(e.key==='ArrowLeft')stepBig(-1);else if(e.key==='ArrowRight')stepBig(1);return;}
   if(!$('#tv').hidden&&e.key==='Escape')closeTV();});
 })();
 </script>
