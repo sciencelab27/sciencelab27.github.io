@@ -1519,7 +1519,7 @@ const order=new Map(),fresh=new Set(),imgCache=new Map();
 $('#tvOpen').hidden=false;$('#pkOpen').hidden=false;document.querySelectorAll('.qpick').forEach(x=>{x.hidden=false;x.addEventListener('click',()=>$('#pkOpen').click());});
 let pwNext='tv';
 $('#tvOpen').addEventListener('click',()=>{pwNext='tv';unlocked?openTV():openPW();});
-$('#pkOpen').addEventListener('click',()=>{pwNext='pick';unlocked?openPick():openPW();});
+$('#pkOpen').addEventListener('click',()=>{openPick();}); /* 발표 학생 뽑기는 비밀번호 없이 바로 열림 */
 
 /* 비밀번호 */
 /* 미러링 중에도 비밀번호가 보이지 않도록: 태블릿 키보드를 쓰지 않고 화면 숫자판으로 입력.

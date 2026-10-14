@@ -1175,7 +1175,7 @@ const seen=new Map(),fresh=new Map(),imgCache=new Map();
 $('#tvOpen').hidden=false;$('#pkOpen').hidden=false;document.querySelectorAll('.qpick').forEach(x=>{x.hidden=false;x.addEventListener('click',()=>$('#pkOpen').click());});
 let pwNext='tv';
 $('#tvOpen').addEventListener('click',()=>{pwNext='tv';unlocked?openTV():openPW();});
-$('#pkOpen').addEventListener('click',()=>{pwNext='pick';unlocked?openPick():openPW();});
+$('#pkOpen').addEventListener('click',()=>{openPick();}); /* 발표 학생 뽑기는 비밀번호 없이 바로 열림 */
 
 /* 비밀번호 */
 function openPW(){$('#pwBox').hidden=false;$('#pwIn').value='';$('#pwMsg').textContent='';setTimeout(()=>$('#pwIn').focus(),60);}
