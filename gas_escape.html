@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>기체 실험실 탈출</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --tile:#e4ece9; --grout:#d0dbd7; --paper:#fffdf5; --ink:#1f2a2e; --muted:#5b6a6f;
+  --steel:#2f5d73; --steel-d:#234859; --steel-l:#4b7d94; --hazard:#f4c430;
+  --danger:#c9452f; --ok:#2b8f60; --line:#ddd5bf; --soft:#f3efe2;
+  --wheel:#f7f4ea; --wheel-ink:#1f2a2e; --on-steel:#f2f6f7;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --tile:#172023; --grout:#202c30; --paper:#242e32; --ink:#edf1f0; --muted:#a6b3b7;
+    --steel:#2a5265; --steel-d:#1d3d4b; --steel-l:#3e6e85; --line:#3a474c; --soft:#2c373b;
+    --danger:#ef7a62; --ok:#3fae7c;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{
+  font-family:'Gowun Dodum','Noto Sans KR','Apple SD Gothic Neo',sans-serif;
+  color:var(--ink); background-color:var(--tile);
+  background-image:linear-gradient(var(--grout) 2px,transparent 2px),linear-gradient(90deg,var(--grout) 2px,transparent 2px);
+  background-size:56px 56px; font-size:17px; line-height:1.55;
+}
+h1,h2,h3{font-family:'Jua','Gowun Dodum',sans-serif;font-weight:400;margin:0}
+button{font-family:inherit;font-size:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--hazard);outline-offset:2px}
+
+/* 상단 바 */
+.bar{display:flex;align-items:center;gap:18px;padding:10px 22px;background:var(--steel-d);color:var(--on-steel);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.bar h1{font-size:23px}
+.doors{display:flex;gap:8px;list-style:none;margin:0 auto;padding:0}
+.doors li{width:38px;height:46px;border-radius:6px 6px 2px 2px;background:var(--steel-l);display:grid;place-items:center;font-family:'Jua',sans-serif;font-size:18px;color:var(--on-steel);opacity:.5}
+.doors li.now{opacity:1;background:var(--hazard);color:#1f2a2e}
+.doors li.done{opacity:1;background:var(--ok)}
+.power{display:flex;align-items:center;gap:10px}
+.cell{width:96px;height:22px;border:2px solid var(--on-steel);border-radius:4px;padding:2px;position:relative}
+.cell::after{content:"";position:absolute;right:-7px;top:5px;width:4px;height:8px;background:var(--on-steel);border-radius:0 2px 2px 0}
+.cell i{display:block;height:100%;width:100%;background:var(--hazard);border-radius:2px}
+.cell.low i{background:#ff6b52}
+.timer{font-family:'Jua',sans-serif;font-size:22px;min-width:78px}
+.timer.over{color:#ff9d88}
+.power.blink .cell{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+.net{font-size:13px;padding:4px 10px;border-radius:20px;background:var(--steel-l)}
+.net.on{background:var(--ok)}.net.offline{background:#7a5a52}
+.team{margin:18px 0 0;padding:16px 18px;background:var(--soft);border-radius:8px;text-align:left}
+.team h3{font-size:22px;margin-bottom:6px}
+.team ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px}
+.team li{padding:6px 10px;border-radius:6px;background:var(--paper)}
+.team li.done{color:var(--ok)}
+.team .rule{margin:10px 0 0;color:var(--danger)}
+.mute{background:none;border:2px solid var(--steel-l);color:var(--on-steel);border-radius:20px;padding:4px 12px;font-size:14px}
+
+main{max-width:1240px;margin:0 auto;padding:22px}
+.paper{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:22px 26px;box-shadow:0 2px 0 var(--line)}
+.room-name{color:var(--muted);font-size:15px;margin:0}
+.paper h2{font-size:30px;margin-bottom:8px}
+.story{margin:0 0 14px}
+
+/* 시작 */
+.start{max-width:780px;margin:24px auto}
+.start h2{font-size:46px}
+.alarm-strip{background:var(--danger);color:#fff;font-family:'Jua',sans-serif;font-size:20px;padding:8px 14px;border-radius:4px;margin:10px 0 14px;animation:blink 1.4s steps(2) 3}
+.fields{display:grid;grid-template-columns:100px 100px 110px 1fr;gap:14px;margin:18px 0}
+.fields label{display:flex;flex-direction:column;gap:4px;font-size:15px;color:var(--muted)}
+input,select,textarea{font-family:inherit;font-size:18px;padding:10px 12px;border:2px solid var(--line);border-radius:6px;background:var(--soft);color:var(--ink)}
+.rules{margin:0 0 18px;padding-left:20px}
+.rules li{margin:4px 0}
+
+.btn{border:none;border-radius:8px;padding:14px 26px;font-family:'Jua',sans-serif;font-size:21px;background:var(--hazard);color:#1f2a2e;box-shadow:0 4px 0 #b48c14}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b48c14}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);box-shadow:none}
+.btn:disabled{opacity:.5}
+
+/* 방 */
+.room{display:grid;grid-template-columns:1.6fr 1fr;gap:22px;align-items:start}
+.door{background:var(--steel);border-radius:10px 10px 4px 4px;color:var(--on-steel);overflow:hidden;position:relative;box-shadow:inset 0 0 0 6px var(--steel-d);min-height:360px}
+.hazard{height:22px;background:repeating-linear-gradient(45deg,var(--hazard) 0 16px,#1f2a2e 16px 32px)}
+.door-in{padding:22px 22px 26px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.door-in h3{font-size:24px}
+.lock-guide{margin:0;text-align:center;font-size:15px;opacity:.9}
+.wheels{display:flex;gap:10px;padding:14px 16px;background:var(--steel-d);border-radius:12px}
+.wheel{display:flex;flex-direction:column;align-items:center;gap:4px}
+.wheel button{width:58px;height:40px;border:none;border-radius:8px;background:var(--steel-l);color:var(--on-steel);font-size:20px}
+.wheel .val{width:58px;height:70px;border-radius:8px;background:var(--wheel);color:var(--wheel-ink);display:grid;place-items:center;font-family:'Jua',sans-serif;font-size:42px;box-shadow:inset 0 6px 8px rgba(0,0,0,.18),inset 0 -6px 8px rgba(0,0,0,.18)}
+.wheel-sep{align-self:center;font-family:'Jua',sans-serif;font-size:26px;opacity:.7}
+.msg{min-height:26px;margin:0;text-align:center;font-size:17px}
+.msg.bad{color:#ffd0c4}
+.off{position:absolute;inset:0;background:rgba(18,32,38,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;font-family:'Jua',sans-serif;font-size:21px;color:var(--on-steel);padding:20px}
+.off b{font-weight:400;font-size:48px;color:var(--hazard)}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.opened{position:absolute;inset:0;background:var(--ok);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;animation:open .5s ease-out;z-index:2}
+.opened h3{font-size:38px}
+@keyframes open{from{clip-path:inset(0 50% 0 50%)}to{clip-path:inset(0 0 0 0)}}
+.flash{animation:flash .6s}
+@keyframes flash{0%,100%{box-shadow:inset 0 0 0 6px var(--steel-d)}30%{box-shadow:inset 0 0 0 14px #ff5a3c}}
+
+/* 실험 장치 */
+.lab{display:grid;grid-template-columns:minmax(220px,330px) 1fr;gap:18px;align-items:start}
+.lab canvas,.cv{display:block;border-radius:8px}
+.readouts{display:flex;gap:10px;margin-bottom:10px}
+.readout{flex:1;background:var(--steel-d);color:var(--on-steel);border-radius:8px;padding:8px 12px}
+.readout span{font-size:13px;opacity:.85;display:block}
+.readout b{font-family:'Jua',sans-serif;font-weight:400;font-size:30px}
+.ctrls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tool{border:2px solid var(--steel);background:var(--paper);color:var(--ink);border-radius:8px;padding:10px 14px;font-family:'Jua',sans-serif;font-size:18px}
+.tool.main{background:var(--steel);color:var(--on-steel)}
+.tool:disabled{opacity:.35}
+.note{font-size:14px;color:var(--muted);margin:0 0 8px}
+.setT{display:flex;align-items:center;gap:10px}
+.setT b{font-family:'Jua',sans-serif;font-weight:400;font-size:34px;min-width:90px;text-align:center}
+.data{border-collapse:collapse;margin:6px 0;font-size:17px}
+.data th,.data td{border:2px solid var(--line);padding:5px 12px;text-align:center}
+.data th{background:var(--soft);font-weight:400}
+
+.bulbs{display:flex;flex-direction:column;gap:10px;width:100%}
+.bulb{display:flex;align-items:center;gap:12px;background:var(--steel-d);padding:10px 14px;border-radius:8px;font-size:17px}
+.bulb i{flex:none;width:26px;height:26px;border-radius:50%;background:#55666c}
+.bulb.on i{background:#ffe066;box-shadow:0 0 18px #ffe066}
+.bulb.now{outline:2px dashed var(--hazard)}
+
+/* 카드 */
+.stage{display:flex;flex-direction:column;align-items:center;gap:16px;padding:6px 0}
+.card{width:min(100%,560px);min-height:160px;background:var(--soft);border:3px solid var(--line);border-radius:14px;padding:22px;font-size:25px;display:grid;place-items:center;text-align:center;font-family:'Jua',sans-serif;line-height:1.45}
+.card.in{animation:cardin .3s ease-out}
+@keyframes cardin{from{transform:translateY(-36px) rotate(-4deg);opacity:0}}
+.choose{display:flex;gap:16px;width:min(100%,560px)}
+.choose button{flex:1;padding:16px;border:none;border-radius:12px;font-family:'Jua',sans-serif;font-size:28px;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.25)}
+.choose button:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.choose .b{background:#2f6fa0}.choose .c{background:#cf5f27}
+.choose small{display:block;font-size:14px;font-family:'Gowun Dodum',sans-serif}
+.choose button:disabled{opacity:.6}
+.why{min-height:54px;text-align:center;margin:0;font-size:18px}
+.why.bad{color:var(--danger)}
+.big{font-family:'Jua',sans-serif;font-size:58px;line-height:1;color:var(--hazard)}
+
+/* 현미경 */
+.scope{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:8px 0}
+.opt{border:3px solid var(--line);border-radius:10px;padding:6px;text-align:center;background:var(--soft);color:var(--ink)}
+.opt b{font-family:'Jua',sans-serif;font-weight:400;font-size:20px;display:block}
+.opt canvas{width:100%;height:auto}
+button.opt:hover{border-color:var(--steel-l)}
+.opt.ref{border-style:dashed}
+button.opt.good{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--soft))}
+button.opt.nope{border-color:var(--danger);opacity:.6}
+.q{font-size:19px;margin:6px 0}
+
+/* 탈출구·증명서 */
+.final{max-width:860px;margin:0 auto}
+.final textarea{width:100%;min-height:130px;resize:vertical}
+.final label{display:block;margin:14px 0 6px}
+.final select{width:100%}
+.count{font-size:14px;color:var(--muted);text-align:right}
+.hints{margin-top:16px;border-top:2px dashed var(--line);padding-top:12px}
+.hint-btn{background:none;border:2px solid var(--line);border-radius:20px;padding:6px 16px;color:var(--ink);font-size:15px}
+.hint{margin:10px 0 0;padding:10px 14px;background:var(--soft);border-left:5px solid var(--hazard);border-radius:4px}
+.cert{max-width:900px;margin:0 auto;text-align:center}
+.cert canvas{width:100%;height:auto;border-radius:6px;border:1px solid var(--line);margin:10px 0 18px}
+.cert .actions{display:flex;gap:14px;justify-content:center}
+
+@media (max-width:960px){
+  .room{grid-template-columns:1fr}
+  .lab{grid-template-columns:1fr}
+  .scope{grid-template-columns:repeat(3,1fr)}
+  .fields{grid-template-columns:1fr 1fr}
+  .fields label:last-child{grid-column:1/-1}
+  .bar{flex-wrap:wrap;gap:10px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <h1>기체 실험실 탈출</h1>
+  <ol class="doors" id="doors"></ol>
+  <div class="power" id="power" title="비상 전원"><div class="cell" id="cell"><i id="cellIn"></i></div><span class="timer" id="timer">15:00</span></div>
+  <span class="net" id="net">순위판 연결 중</span>
+  <button class="mute" id="mute">소리 켬</button>
+</header>
+<main id="app"></main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+/* ===== 파이어베이스 연결 (firebase-config.js 사용) ===== */
+const Net={ok:false,mode:'',db:null,err:'',
+  init(){
+    try{
+      if(typeof firebase==='undefined'){this.err='SDK 없음';return}
+      if(!firebase.apps.length){
+        const cfg=(typeof firebaseConfig!=='undefined')?firebaseConfig:window.firebaseConfig;
+        if(!cfg){this.err='설정 파일 없음';return}
+        firebase.initializeApp(cfg);
+      }
+      const opt=firebase.app().options;
+      if(opt.databaseURL&&firebase.database){this.mode='rtdb';this.db=firebase.database()}
+      else if(firebase.firestore){this.mode='fs';this.db=firebase.firestore()}
+      this.ok=!!this.db;
+    }catch(e){this.err=e.message;console.warn(e)}
+  },
+  col(session){return this.db.collection('gasEscape').doc(session).collection('players')},
+  save(session,id,data){
+    if(!this.ok)return Promise.resolve();
+    return this.mode==='rtdb'?this.db.ref(`gasEscape/${session}/players/${id}`).update(data):this.col(session).doc(String(id)).set(data,{merge:true});
+  },
+  remove(session,id){
+    if(!this.ok)return Promise.resolve();
+    return this.mode==='rtdb'?this.db.ref(`gasEscape/${session}/players/${id}`).remove():this.col(session).doc(String(id)).delete();
+  },
+  watch(session,cb,onErr){
+    if(!this.ok)return()=>{};
+    if(this.mode==='rtdb'){const r=this.db.ref(`gasEscape/${session}/players`);const f=s=>cb(Object.values(s.val()||{}));r.on('value',f,onErr);return()=>r.off('value',f)}
+    return this.col(session).onSnapshot(q=>cb(q.docs.map(d=>d.data())),onErr);
+  }
+};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const sessionId=(cls,date=today())=>`${date}_${cls}반`;
+
+const $=id=>document.getElementById(id);
+const app=$('app');
+const ROOM_NAMES=['주사기 금고실','풍선 센서실','사건 카드 보관실','입자 현미경실','탈출구'];
+const LIMIT=15*60*1000;
+const S={cls:'',team:'',num:'',name:'',start:0,end:0,room:-1,wrong:[0,0,0,0],hints:[0,0,0,0],caseText:'',explain:'',hardest:''};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=ms=>{const t=Math.floor(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ===== 소리 ===== */
+let muted=false,AC=null;
+function tone(f,d,type='sine',v=.07,delay=0){
+  if(muted)return;
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const t=AC.currentTime+delay,o=AC.createOscillator(),g=AC.createGain();
+    o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.03)}catch(e){}
+}
+const sfx={
+  click:()=>tone(520,.05,'square',.025),
+  good:(n=0)=>{tone(600+n*70,.1);tone(900+n*70,.16,'sine',.07,.09)},
+  bad:()=>tone(140,.3,'sawtooth',.05),
+  alarm:()=>{for(let i=0;i<3;i++){tone(880,.12,'square',.035,i*.26);tone(620,.12,'square',.035,i*.26+.13)}},
+  open:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.2,'triangle',.07,i*.09))
+};
+$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'소리 끔':'소리 켬'};
+
+/* ===== 애니메이션 ===== */
+let loops=[],raf=null;
+function frame(){loops.forEach(f=>f());raf=requestAnimationFrame(frame)}
+function setLoops(a){loops=a;if(!raf)raf=requestAnimationFrame(frame)}
+function setup(el,w,h){const d=Math.min(window.devicePixelRatio||1,2);el.width=w*d;el.height=h*d;el.style.width='100%';el.style.maxWidth=w+'px';el.style.height='auto';const c=el.getContext('2d');c.scale(d,d);return c}
+class Gas{
+  constructor(n,b,speed){this.p=[];for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2;this.p.push({x:b.x0+Math.random()*(b.x1-b.x0),y:b.y0+Math.random()*(b.y1-b.y0),vx:Math.cos(a)*speed,vy:Math.sin(a)*speed})}}
+  step(b,r,mul=1){for(const p of this.p){p.x+=p.vx*mul;p.y+=p.vy*mul;
+    if(p.x<b.x0+r){p.x=b.x0+r;p.vx=Math.abs(p.vx)}if(p.x>b.x1-r){p.x=b.x1-r;p.vx=-Math.abs(p.vx)}
+    if(p.y<b.y0+r){p.y=b.y0+r;p.vy=Math.abs(p.vy)}if(p.y>b.y1-r){p.y=b.y1-r;p.vy=-Math.abs(p.vy)}}}
+  draw(c,r,col='#2f5d73'){c.fillStyle=col;for(const p of this.p){c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill()}}
+}
+
+/* ===== 공통 ===== */
+function renderDoors(){$('doors').innerHTML=ROOM_NAMES.map((n,i)=>`<li class="${i<S.room?'done':i===S.room?'now':''}" title="${n}">${i+1}</li>`).join('')}
+renderDoors();
+let tick=null;
+function updateTimer(){
+  const left=LIMIT-(Date.now()-S.start);
+  if(left>=0){$('timer').textContent=fmt(left);$('timer').classList.remove('over');$('cellIn').style.width=(left/LIMIT*100)+'%';$('cell').classList.toggle('low',left<3*60*1000)}
+  else{$('timer').textContent='+'+fmt(-left);$('timer').classList.add('over');$('cellIn').style.width='0%';$('power').classList.add('blink')}
+}
+function scaffold(i,left,right,hints){
+  S.room=i;renderDoors();window.scrollTo(0,0);setLoops([]);sync();
+  app.innerHTML=`<section class="room"><div class="paper"><p class="room-name">${i+1}번 방</p><h2>${ROOM_NAMES[i]}</h2>${left}
+    <div class="hints"><button class="hint-btn" id="hintBtn">힌트 보기 (0/2)</button><div id="hintBox"></div></div></div>
+    <div class="door" id="door"><div class="hazard"></div><div class="door-in">${right}</div></div></section>`;
+  let shown=0;
+  $('hintBtn').onclick=()=>{
+    if(shown>=2)return;
+    $('hintBox').insertAdjacentHTML('beforeend',`<p class="hint">힌트 ${shown+1}. ${hints[shown]}</p>`);
+    shown++;S.hints[i]=shown;$('hintBtn').textContent=`힌트 보기 (${shown}/2)`;if(shown>=2)$('hintBtn').disabled=true;
+  };
+}
+function setMsg(t,bad){const m=$('msg');if(!m)return;m.textContent=t;m.className='msg'+(bad?' bad':'')}
+function hit(el,cls='shake'){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls)}
+function openDoor(i){
+  sfx.open();
+  $('door').insertAdjacentHTML('beforeend',`<div class="opened"><h3>문이 열렸어요!</h3><button class="btn" id="next">${i===3?'탈출구로':'다음 방으로'}</button></div>`);
+  $('next').onclick=()=>ROOMS[i+1]();$('next').focus();
+}
+
+/* ===== 1번 방: 주사기 금고실 ===== */
+function room1(){
+  scaffold(0,`<p class="story">비상 전원 금고에는 “4기압일 때 부피, 6기압일 때 부피”라는 메모만 붙어 있어요. 주사기 위에 추를 올려 직접 실험하고, 규칙을 찾아 비밀번호를 알아내세요.</p>
+   <div class="lab"><canvas id="c1"></canvas><div>
+    <div class="readouts"><div class="readout"><span>압력</span><b id="rP">1기압</b></div><div class="readout"><span>공기의 부피</span><b id="rV">120 mL</b></div></div>
+    <div class="ctrls"><button class="tool" id="up">추 올리기</button><button class="tool" id="dn" disabled>추 내리기</button><button class="tool main" id="rec">실험 기록하기</button></div>
+    <p class="note">온도는 일정해요. 추를 1개 올릴 때마다 압력이 1기압씩 커져요. 추는 2개까지 있어요.</p>
+    <canvas id="g1"></canvas></div></div>`,
+   `<h3>비상 전원 금고</h3><p class="lock-guide">4기압일 때 부피, 6기압일 때 부피를<br>순서대로 맞추세요.</p><div class="wheels" id="wheels"></div><button class="btn" id="check">금고 열기</button><p class="msg" id="msg"></p>
+    <div class="off" id="off">실험 기록을 3개 모으면<br>금고 전원이 켜져요<b id="recN">0 / 3</b></div>`,
+   ['추를 올려 압력을 1, 2, 3기압으로 바꾸며 기록해 보세요. 압력이 2배, 3배가 되면 부피는 어떻게 되나요?','압력 × 부피가 항상 120이에요. 4기압이면 120 ÷ 4를 계산해 보세요.']);
+  const c=setup($('c1'),300,370),g=setup($('g1'),320,200);
+  let P=1,h=240;const X0=100,X1=200,BOT=340,rec={};
+  const gas=new Gas(10,{x0:X0,x1:X1,y0:100,y1:BOT},1.4);
+  function draw(){
+    h+=(240/P-h)*.07;const top=BOT-h;
+    c.fillStyle='#eef3f1';c.fillRect(0,0,300,370);
+    c.font='12px "Gowun Dodum",sans-serif';c.fillStyle='#5b6a6f';c.strokeStyle='#9aa7ab';c.lineWidth=1.5;
+    for(let m=0;m<=120;m+=20){const y=BOT-m*2;c.beginPath();c.moveTo(X1,y);c.lineTo(X1+10,y);c.stroke();c.fillText(m+' mL',X1+14,y+4)}
+    c.fillStyle='#ffffff';c.fillRect(X0,40,X1-X0,BOT-40);
+    gas.step({x0:X0,x1:X1,y0:top,y1:BOT},5);gas.draw(c,5);
+    c.strokeStyle='#7d8b90';c.lineWidth=3;c.strokeRect(X0,40,X1-X0,BOT-40);
+    c.fillStyle='#c9452f';c.fillRect(140,BOT+1,20,16);
+    c.fillStyle='#8a979c';c.fillRect(X0+2,top-14,X1-X0-4,14);
+    c.fillStyle='#b3bec2';c.fillRect(146,top-74,8,60);
+    const pf=top-74;c.fillStyle='#5b6a6f';c.fillRect(105,pf-6,90,6);
+    for(let k=0;k<P-1;k++){const y=pf-6-(k+1)*25;c.fillStyle='#2f5d73';c.fillRect(115,y,70,23);c.fillStyle='#fff';c.font='15px Jua,sans-serif';c.fillText('추',143,y+17)}
+  }
+  function graph(){
+    g.fillStyle='#eef3f1';g.fillRect(0,0,320,200);
+    const px=p=>44+p*44,py=v=>172-v*1.1;
+    g.strokeStyle='#5b6a6f';g.lineWidth=2;g.beginPath();g.moveTo(44,20);g.lineTo(44,172);g.lineTo(312,172);g.stroke();
+    g.font='12px "Gowun Dodum",sans-serif';g.fillStyle='#5b6a6f';
+    for(let p=1;p<=6;p++)g.fillText(p,px(p)-3,188);
+    for(let v=0;v<=120;v+=40)g.fillText(v,v<100?24:16,py(v)+4);
+    g.fillText('부피(mL)',50,16);g.fillText('압력(기압)',250,160);
+    g.fillStyle='#c9452f';Object.keys(rec).forEach(p=>{g.beginPath();g.arc(px(+p),py(rec[p]),6,0,Math.PI*2);g.fill()});
+  }
+  function readout(){$('rP').textContent=P+'기압';$('rV').textContent=Math.round(120/P)+' mL';$('up').disabled=P>=3;$('dn').disabled=P<=1}
+  $('up').onclick=()=>{if(P<3){P++;sfx.click();readout()}};
+  $('dn').onclick=()=>{if(P>1){P--;sfx.click();readout()}};
+  $('rec').onclick=()=>{
+    if(rec[P]){setMsg('');sfx.click();return}
+    rec[P]=120/P;graph();const n=Object.keys(rec).length;sfx.good(n);
+    if($('recN'))$('recN').textContent=n+' / 3';
+    if(n>=3&&$('off')){$('off').remove();setMsg('금고 전원이 켜졌어요!');sfx.open()}
+  };
+  graph();readout();
+  setupLock([DIG,DIG,'|',DIG,DIG],'3020',0);
+  setLoops([draw]);
+}
+const DIG=['0','1','2','3','4','5','6','7','8','9'];
+function setupLock(wheels,answer,i){
+  const vals=[],sets=[],wrap=$('wheels');
+  wheels.forEach(set=>{
+    if(set==='|'){wrap.insertAdjacentHTML('beforeend','<span class="wheel-sep">-</span>');return}
+    const idx=vals.length;vals.push(0);sets.push(set);
+    const w=document.createElement('div');w.className='wheel';
+    w.innerHTML=`<button aria-label="위로">▲</button><div class="val">${set[0]}</div><button aria-label="아래로">▼</button>`;
+    const v=w.children[1];
+    w.children[0].onclick=()=>{vals[idx]=(vals[idx]+1)%set.length;v.textContent=set[vals[idx]];sfx.click()};
+    w.children[2].onclick=()=>{vals[idx]=(vals[idx]-1+set.length)%set.length;v.textContent=set[vals[idx]];sfx.click()};
+    wrap.appendChild(w);
+  });
+  $('check').onclick=()=>{
+    if(vals.map((v,k)=>sets[k][v]).join('')===answer)openDoor(i);
+    else{S.wrong[i]++;sfx.bad();setMsg('딸깍… 열리지 않아요. 실험 결과를 다시 살펴보세요.',true);hit($('door'))}
+  };
+}
+
+/* ===== 2번 방: 풍선 센서실 ===== */
+function room2(){
+  const targets=[54,58,51];
+  scaffold(1,`<p class="story">이 문은 레이저 센서 3개를 차례로 켜야 열려요. 풍선 꼭대기가 빨간 레이저에 딱 닿으면 센서가 켜져요. 온도를 먼저 정하고 실행하세요. 엉뚱한 온도로 실행하면 경보가 울려요!</p>
+   <div class="lab"><canvas id="c2"></canvas><div>
+    <div class="readouts"><div class="readout"><span>지금 온도</span><b id="rT">0°C</b></div><div class="readout"><span>풍선 속 기체 부피</span><b id="rV2">50 mL</b></div></div>
+    <div class="setT"><span>맞출 온도</span><button class="tool" id="tDn">▼</button><b id="tSet">0°C</b><button class="tool" id="tUp">▲</button></div>
+    <button class="tool main" id="run" style="width:100%;margin:12px 0">이 온도로 맞추기</button>
+    <p class="note">선배가 남긴 실험 기록지 (압력 일정)</p>
+    <table class="data"><tr><th>온도(°C)</th><td>0</td><td>10</td></tr><tr><th>부피(mL)</th><td>50</td><td>52</td></tr></table>
+   </div></div>`,
+   `<h3>레이저 센서판</h3><div class="bulbs" id="bulbs"></div><p class="msg" id="msg"></p>`,
+   ['기록지를 보면 온도가 10°C 올라갈 때마다 부피가 2 mL씩 늘어나요.','54 mL는 50 mL보다 4 mL 커요. 2 mL에 10°C이니, 4 mL면 몇 °C를 올려야 할까요? 부피를 줄이려면 온도를 낮추면 돼요.']);
+  const c=setup($('c2'),340,372);
+  let T=0,tSet=0,running=false,idx=0;
+  const gas=new Gas(10,{x0:134,x1:206,y0:232,y1:304},1);
+  const vol=t=>50+t*.2,R=v=>16+(v-48)*5,NECK=170;
+  function bulbs(){$('bulbs').innerHTML=targets.map((t,k)=>`<div class="bulb ${k<idx?'on':''} ${k===idx?'now':''}"><i></i>센서 ${k+1}: 부피 ${t} mL</div>`).join('')}
+  function finish(){
+    const v=vol(T);
+    if(Math.abs(v-targets[idx])<.01){idx++;sfx.good(idx);bulbs();
+      if(idx>=3){setMsg('');setTimeout(()=>openDoor(1),500)}else setMsg(`센서 ${idx} 켜짐! 다음 레이저로 이동했어요.`)}
+    else{S.wrong[1]++;sfx.alarm();hit($('door'),'flash');setMsg(`경보! 풍선 부피가 ${Math.round(v)} mL라 레이저에 맞지 않아요.`,true)}
+    $('run').disabled=false;
+  }
+  function draw(){
+    if(running){const d=tSet-T;if(Math.abs(d)<=.25){T=tSet;running=false;finish()}else T+=Math.sign(d)*.25;
+      $('rT').textContent=Math.round(T)+'°C';$('rV2').textContent=(Math.round(vol(T)*10)/10)+' mL'}
+    c.fillStyle='#eef3f1';c.fillRect(0,0,340,372);
+    const v=vol(T),r=R(v);
+    if(idx<3){const ly=NECK-1.9*R(targets[idx]);c.setLineDash([8,6]);c.strokeStyle='#e0312b';c.lineWidth=3;c.beginPath();c.moveTo(22,ly);c.lineTo(318,ly);c.stroke();c.setLineDash([]);
+      c.fillStyle='#e0312b';c.fillRect(8,ly-9,14,18);c.fillRect(318,ly-9,14,18);c.font='13px Jua,sans-serif';c.fillText(`센서 ${idx+1}`,10,ly-14)}
+    c.fillStyle='#e85d75';c.beginPath();c.ellipse(170,NECK-r*.95,r*.88,r*.95,0,0,Math.PI*2);c.fill();
+    c.fillStyle='rgba(255,255,255,.35)';c.beginPath();c.ellipse(170-r*.35,NECK-r*1.3,r*.18,r*.3,-.4,0,Math.PI*2);c.fill();
+    c.strokeStyle='#7d8b90';c.lineWidth=3;c.fillStyle='#fff';
+    c.fillRect(158,NECK,24,50);c.strokeRect(158,NECK,24,50);
+    c.beginPath();c.arc(170,268,52,0,Math.PI*2);c.fill();c.stroke();
+    gas.step({x0:134,x1:206,y0:230,y1:306},5,.4+T/18);gas.draw(c,5);
+    const k=T/60;c.fillStyle=`rgba(${Math.round(110+135*k)},${Math.round(175-70*k)},${Math.round(235-150*k)},.45)`;c.fillRect(40,272,260,76);
+    c.strokeStyle='#7d8b90';c.lineWidth=3;c.strokeRect(40,272,260,76);
+    if(running&&tSet>T){c.fillStyle='#ff8a1f';for(let x=90;x<=250;x+=40){const f=8+Math.random()*8;c.beginPath();c.moveTo(x-8,370);c.lineTo(x,370-f-6);c.lineTo(x+8,370);c.fill()}}
+    if(running&&tSet<T){c.fillStyle='#cfe9f7';c.strokeStyle='#8fbfd8';c.lineWidth=1.5;[[60,284],[262,290],[230,280]].forEach(([x,y])=>{c.fillRect(x,y,18,18);c.strokeRect(x,y,18,18)})}
+  }
+  function showSet(){$('tSet').textContent=tSet+'°C'}
+  $('tUp').onclick=()=>{if(tSet<60){tSet+=5;showSet();sfx.click()}};
+  $('tDn').onclick=()=>{if(tSet>0){tSet-=5;showSet();sfx.click()}};
+  $('run').onclick=()=>{if(running||idx>=3)return;running=true;$('run').disabled=true;setMsg('')};
+  bulbs();setLoops([draw]);
+}
+
+/* ===== 3번 방: 사건 카드 보관실 ===== */
+const CASES=[
+  ['높은 산에 올라갔더니 과자 봉지가 빵빵하게 부풀었다.','B','높이 올라가면 공기가 누르는 압력이 작아져요. 압력 변화예요.'],
+  ['잠수부가 내뿜은 공기 방울이 수면으로 올라갈수록 커졌다.','B','물속 깊은 곳일수록 압력이 커요. 올라오면 압력이 작아져요.'],
+  ['하늘 높이 날아간 헬륨 풍선이 점점 커지다가 터졌다.','B','높이 올라갈수록 바깥 압력이 작아져서 생긴 일이에요.'],
+  ['비행기 안에서 마개를 닫은 빈 페트병이 착륙 후 찌그러졌다.','B','비행기 안보다 땅 위의 압력이 커서 생긴 일이에요.'],
+  ['찌그러진 탁구공을 뜨거운 물에 넣었더니 펴졌다.','C','뜨거운 물로 공 속 기체의 온도가 높아졌어요.'],
+  ['열기구 속 공기를 버너로 데우자 열기구가 떠올랐다.','C','버너로 데워 온도를 높인 일이에요.'],
+  ['겨울철 바깥에 둔 풍선이 쪼그라들었다.','C','추운 바깥에서 온도가 낮아져 생긴 일이에요.'],
+  ['냉장고에 넣어 둔 빈 페트병이 찌그러졌다.','C','냉장고 속에서 온도가 낮아져 생긴 일이에요.']
+];
+function room3(){
+  let deck=shuffle(CASES.map((_,i)=>i)),combo=0,best=0,lock=false;
+  scaffold(2,`<p class="story">사건 기록 카드가 쏟아졌어요! 압력이 변해서 생긴 일이면 <b>보일</b>, 온도가 변해서 생긴 일이면 <b>샤를</b>을 누르세요. 틀린 카드는 맨 뒤로 돌아가요.</p>
+   <div class="stage"><div class="card" id="card"></div>
+    <div class="choose"><button class="b" id="bB">보일<small>압력이 변했다</small></button><button class="c" id="bC">샤를<small>온도가 변했다</small></button></div>
+    <p class="why" id="why"></p></div>`,
+   `<h3>분류 상자</h3><p class="lock-guide">남은 카드</p><div class="big" id="left">8</div><p class="lock-guide">연속 정답</p><div class="big" id="combo">0</div><p class="lock-guide" id="best">최고 기록 0</p>`,
+   ['사건에서 무엇이 달라졌는지 찾아보세요. 높이나 깊이가 달라졌나요, 뜨겁고 차가움이 달라졌나요?','산·하늘·물속·비행기처럼 높이나 깊이가 바뀌면 압력(보일), 데우거나 식히면 온도(샤를)예요.']);
+  function show(){const el=$('card');el.textContent=CASES[deck[0]][0];el.classList.remove('in');void el.offsetWidth;el.classList.add('in');$('left').textContent=deck.length}
+  function choose(v){
+    if(lock)return;const id=deck[0];
+    if(CASES[id][1]===v){deck.shift();combo++;best=Math.max(best,combo);sfx.good(combo);
+      $('why').className='why';$('why').textContent=combo>=3?`${combo}연속 정답!`:'정답!';
+      $('combo').textContent=combo;$('best').textContent='최고 기록 '+best;
+      if(!deck.length){$('left').textContent=0;$('card').textContent='모든 카드를 분류했어요!';setTimeout(()=>openDoor(2),400)}else show()}
+    else{S.wrong[2]++;combo=0;sfx.bad();$('combo').textContent=0;hit($('card'));
+      $('why').className='why bad';$('why').textContent='틀렸어요. '+CASES[id][2];
+      lock=true;$('bB').disabled=$('bC').disabled=true;
+      setTimeout(()=>{if(!$("bB"))return;deck.push(deck.shift());lock=false;$('bB').disabled=$('bC').disabled=false;show()},2200)}
+  }
+  $('bB').onclick=()=>choose('B');$('bC').onclick=()=>choose('C');
+  show();
+}
+
+/* ===== 4번 방: 입자 현미경실 ===== */
+const ROUNDS=[
+ {q:'주사기 입구를 막고 피스톤을 눌러 압력을 높였어요. 진짜 입자 모습은 몇 번일까요?',
+  start:{top:18,n:10,r:6,s:1},
+  opts:[{top:66,n:5,r:6,s:1,why:'누른다고 입자가 사라지지 않아요. 입자 수는 그대로예요.'},
+        {top:66,n:10,r:3,s:1,why:'입자의 크기는 변하지 않아요. 변하는 건 입자 사이의 거리예요.'},
+        {top:66,n:10,r:6,s:1,ok:true},
+        {top:66,n:10,r:6,s:1,corner:true,why:'기체 입자는 한쪽에 몰리지 않고 공간 전체를 고르게 돌아다녀요.'}]},
+ {q:'이번엔 압력을 일정하게 두고 기체를 데웠어요. 진짜 입자 모습은 몇 번일까요?',
+  start:{top:66,n:10,r:6,s:.7},
+  opts:[{top:18,n:10,r:10,s:.7,why:'데워도 입자의 크기는 커지지 않아요. 입자 사이의 거리가 멀어져요.'},
+        {top:18,n:10,r:6,s:2.4,ok:true},
+        {top:18,n:18,r:6,s:.7,why:'데운다고 입자가 새로 생기지 않아요. 입자 수는 그대로예요.'},
+        {top:18,n:10,r:6,s:.25,why:'데우면 입자 운동이 느려지는 게 아니라 빨라져요.'}]}
+];
+function room4(){
+  let round=0;
+  scaffold(3,`<p class="story">입자 현미경 화면 4개 중 3개는 가짜예요. 진짜 입자 모습을 찾아내면 범인이 검거돼요.</p><div id="scopeArea"></div><p class="why" id="why"></p>`,
+   `<h3>범인 검거 현황</h3><div class="bulbs" id="bulbs"></div><p class="msg" id="msg"></p>`,
+   ['기체를 누르거나 데워도 입자의 수와 크기는 변하지 않아요.','누르면 입자 사이 거리가 가까워지고, 데우면 입자 운동이 빨라져 거리가 멀어져요.']);
+  function bulbs(){$('bulbs').innerHTML=['압력을 높였을 때','기체를 데웠을 때'].map((t,k)=>`<div class="bulb ${k<round?'on':''} ${k===round?'now':''}"><i></i>${t}</div>`).join('')}
+  function makeView(cv,o){
+    const c=setup(cv,150,140),b=o.corner?{x0:12,x1:64,y0:90,y1:132}:{x0:12,x1:138,y0:o.top,y1:132};
+    const gas=new Gas(o.n,b,o.s);
+    return()=>{c.fillStyle='#eef3f1';c.fillRect(0,0,150,140);c.fillStyle='#fff';c.fillRect(12,o.top,126,132-o.top);
+      gas.step(b,o.r);gas.draw(c,o.r);
+      c.strokeStyle='#7d8b90';c.lineWidth=2;c.strokeRect(12,o.top,126,132-o.top);
+      c.fillStyle='#8a979c';c.fillRect(12,o.top-7,126,7);c.fillStyle='#b3bec2';c.fillRect(71,0,8,o.top-7)};
+  }
+  function build(){
+    const R=ROUNDS[round];bulbs();$('why').textContent='';
+    $('scopeArea').innerHTML=`<p class="q">${R.q}</p><div class="scope"><div class="opt ref"><b>처음</b><canvas id="v0"></canvas></div>
+      ${R.opts.map((o,k)=>`<button class="opt" data-k="${k}"><b>${'①②③④'[k]}</b><canvas id="v${k+1}"></canvas></button>`).join('')}</div>`;
+    const fns=[makeView($('v0'),R.start),...R.opts.map((o,k)=>makeView($('v'+(k+1)),o))];setLoops(fns);
+    document.querySelectorAll('button.opt').forEach(b=>b.onclick=()=>{
+      const o=R.opts[+b.dataset.k];if(b.classList.contains('nope'))return;
+      if(o.ok){b.classList.add('good');sfx.good(round+1);$('why').className='why';$('why').textContent='검거 성공! 입자의 수와 크기는 그대로예요.';
+        round++;bulbs();document.querySelectorAll('button.opt').forEach(x=>x.disabled=true);
+        setTimeout(()=>round>=2?openDoor(3):build(),1500)}
+      else{S.wrong[3]++;sfx.bad();b.classList.add('nope');hit(b);$('why').className='why bad';$('why').textContent='가짜예요! '+o.why}
+    });
+  }
+  build();
+}
+
+/* ===== 5번 방: 탈출구 ===== */
+function room5(){
+  S.room=4;renderDoors();window.scrollTo(0,0);setLoops([]);sync();
+  app.innerHTML=`<section class="final paper"><p class="room-name">5번 방</p><h2>탈출구</h2>
+    <p class="story">마지막 문은 비밀번호 대신 설명을 넣어야 열려요. 사건 카드 하나를 골라, 입자가 어떻게 되었는지 넣어서 까닭을 설명해 보세요.</p>
+    <label for="pickCase">설명할 사건</label>
+    <select id="pickCase">${CASES.map((c,k)=>`<option value="${k}">${esc(c[0])}</option>`).join('')}</select>
+    <label for="ex">입자로 설명하기 (무엇이 변해서 → 입자가 어떻게 되어 → 부피가 어떻게 되었다)</label>
+    <textarea id="ex" maxlength="200"></textarea><div class="count"><span id="cnt">0</span>/200</div>
+    <label for="hard">가장 어려웠던 방</label>
+    <select id="hard">${ROOM_NAMES.slice(0,4).map((n,k)=>`<option>${k+1}번 방 ${n}</option>`).join('')}</select>
+    <p class="msg" id="fmsg" style="color:var(--danger)"></p>
+    <button class="btn" id="escape">설명 넣고 탈출하기</button></section>`;
+  const ex=$('ex');ex.oninput=()=>$('cnt').textContent=ex.value.length;
+  $('escape').onclick=()=>{
+    if(ex.value.trim().length<15){$('fmsg').textContent='설명을 15자 이상 써 주세요. 입자가 어떻게 되는지 꼭 넣어 보세요.';sfx.bad();return}
+    S.caseText=CASES[+$('pickCase').value][0];S.explain=ex.value.trim();S.hardest=$('hard').value;
+    S.end=Date.now();clearInterval(tick);updateTimer();S.room=5;renderDoors();sfx.open();sync(true);certificate();
+  };
+}
+const ROOMS=[room1,room2,room3,room4,room5];
+
+/* ===== 기록 보내기 ===== */
+function sync(escaped=false){
+  if(!Net.ok||!S.num)return;
+  const d={num:+S.num,name:S.name,team:+S.team,room:escaped?6:S.room+1,escaped,
+    wrong:S.wrong.reduce((a,b)=>a+b,0),hints:S.hints.reduce((a,b)=>a+b,0),start:S.start,updated:Date.now()};
+  if(escaped)Object.assign(d,{end:S.end,time:S.end-S.start,caseText:S.caseText,explain:S.explain,hardest:S.hardest,wrongByRoom:S.wrong,hintsByRoom:S.hints});
+  Net.save(sessionId(S.cls),S.num,d).then(()=>netState(true)).catch(e=>{console.warn(e);netState(false,'저장 실패')});
+}
+function netState(on,txt){const n=$('net');n.className='net '+(on?'on':'offline');n.textContent=txt||(on?'순위판 연결됨':'순위판 미연결')}
+let unTeam=()=>{};
+function stopTeam(){unTeam();unTeam=()=>{}}
+function watchTeam(){
+  const box=$('teamBox');
+  if(!Net.ok){box.innerHTML='<h3>우리 모둠 현황</h3><p>순위판에 연결되지 않아 모둠 현황을 볼 수 없어요.</p>';return}
+  unTeam=Net.watch(sessionId(S.cls),list=>{
+    if(!$('teamBox'))return stopTeam();
+    const mem=list.filter(p=>p.team==+S.team).sort((a,b)=>a.num-b.num);
+    const left=mem.filter(p=>!p.escaped);
+    box.innerHTML=`<h3>${S.team}모둠 현황 (${mem.length-left.length}/${mem.length}명 탈출)</h3>
+      <ul>${mem.map(p=>`<li class="${p.escaped?'done':''}">${p.num}번 ${esc(p.name)}: ${p.escaped?'탈출 완료':(p.room>=5?'탈출구':p.room+'번 방')}</li>`).join('')}</ul>
+      ${left.length?'<p class="rule">모둠원 전원이 탈출해야 모둠 기록이 인정돼요. 아직 못 나온 친구를 도와주세요. 단, 친구 화면은 만지지 말고 말로만 설명하기!</p>':'<p style="color:var(--ok);margin:10px 0 0">모둠원 모두 탈출했어요!</p>'}`;
+  },()=>{box.innerHTML='<h3>우리 모둠 현황</h3><p>모둠 현황을 불러오지 못했어요.</p>'});
+}
+
+/* ===== 시작 화면 ===== */
+function startScreen(){
+  S.room=-1;renderDoors();setLoops([]);clearInterval(tick);
+  $('timer').textContent='15:00';$('timer').classList.remove('over');$('cellIn').style.width='100%';$('cell').classList.remove('low');$('power').classList.remove('blink');
+  app.innerHTML=`<section class="start paper"><h2>기체 실험실 탈출</h2>
+   <div class="alarm-strip">정전! 실험실 문이 모두 잠겼어요</div>
+   <p>비상 전원은 15분 뒤에 꺼져요. 주사기, 풍선, 사건 카드, 입자 현미경에 숨은 보일 법칙과 샤를 법칙을 풀어 다섯 개의 문을 열고 탈출하세요.</p>
+   <div class="fields">
+    <label>반<select id="cls">${[1,2,3,4,5].map(n=>`<option>${n}</option>`).join('')}</select></label>
+    <label>모둠<select id="team">${[1,2,3,4,5,6,7,8].map(n=>`<option>${n}</option>`).join('')}</select></label>
+    <label>번호<input id="num" type="number" min="1" max="40" inputmode="numeric"></label>
+    <label>이름<input id="nm" type="text" maxlength="10"></label></div>
+   <ul class="rules">
+    <li>방마다 직접 실험하고 조작해야 단서가 나와요.</li>
+    <li>틀려도 계속 도전할 수 있지만, 오답과 힌트 수는 탈출 증명서에 남아요.</li>
+    <li>15분이 지나도 계속할 수 있어요. 대신 넘긴 시간이 기록돼요.</li></ul>
+   <p class="msg" id="startMsg" style="color:var(--danger)"></p>
+   <button class="btn" id="go">실험실 들어가기</button></section>`;
+  $('go').onclick=()=>{
+    const num=$('num').value.trim(),nm=$('nm').value.trim();
+    if(!num||!nm){$('startMsg').textContent='번호와 이름을 모두 써 주세요.';return}
+    Object.assign(S,{cls:$('cls').value,team:$('team').value,num,name:nm,start:Date.now(),end:0,wrong:[0,0,0,0],hints:[0,0,0,0]});
+    sfx.alarm();tick=setInterval(updateTimer,500);updateTimer();room1();
+  };
+}
+
+/* ===== 탈출 증명서 ===== */
+function wrapLines(x,text,maxW){const lines=[];let line='';for(const ch of text){if(ch==='\n'){lines.push(line);line='';continue}if(x.measureText(line+ch).width>maxW){lines.push(line);line=ch}else line+=ch}if(line)lines.push(line);return lines}
+function drawCert(){
+  const c=document.createElement('canvas');c.width=1200;c.height=880;const x=c.getContext('2d');
+  const used=S.end-S.start,inTime=used<=LIMIT;
+  x.fillStyle='#fffdf5';x.fillRect(0,0,1200,880);
+  for(let i=-40;i<1240;i+=40){x.fillStyle='#f4c430';x.beginPath();x.moveTo(i,0);x.lineTo(i+20,0);x.lineTo(i,28);x.lineTo(i-20,28);x.fill()}
+  x.fillStyle='#1f2a2e';x.fillRect(0,28,1200,4);
+  x.fillStyle='#2f5d73';x.font='56px Jua, sans-serif';x.fillText('기체 실험실 탈출 증명서',60,110);
+  x.fillStyle='#1f2a2e';x.font='30px "Gowun Dodum", sans-serif';x.fillText(`${S.cls}반 ${S.team}모둠 ${S.num}번 ${S.name}`,60,165);
+  x.fillText(`걸린 시간 ${fmt(used)}`,60,210);
+  x.fillStyle=inTime?'#2b8f60':'#c9452f';x.font='28px Jua, sans-serif';
+  x.fillText(inTime?'비상 전원이 꺼지기 전에 탈출!':`비상 전원 ${fmt(used-LIMIT)} 초과`,330,210);
+  x.font='24px "Gowun Dodum", sans-serif';x.fillStyle='#5b6a6f';x.fillText('방',60,268);x.fillText('오답',420,268);x.fillText('힌트',540,268);
+  x.strokeStyle='#ddd5bf';x.lineWidth=2;
+  ROOM_NAMES.slice(0,4).forEach((n,k)=>{const y=310+k*42;x.beginPath();x.moveTo(60,y-30);x.lineTo(640,y-30);x.stroke();
+    x.fillStyle='#1f2a2e';x.fillText(`${k+1}. ${n}`,60,y);x.fillText(S.wrong[k]+'번',420,y);x.fillText(S.hints[k]+'개',540,y)});
+  x.beginPath();x.moveTo(60,440);x.lineTo(640,440);x.stroke();
+  x.font='26px Jua, sans-serif';x.fillText('합계',60,476);x.fillText(S.wrong.reduce((a,b)=>a+b,0)+'번',420,476);x.fillText(S.hints.reduce((a,b)=>a+b,0)+'개',540,476);
+  x.save();x.translate(930,350);x.rotate(-.18);x.strokeStyle='#c9452f';x.lineWidth=7;x.beginPath();x.arc(0,0,120,0,Math.PI*2);x.stroke();
+  x.lineWidth=3;x.beginPath();x.arc(0,0,104,0,Math.PI*2);x.stroke();x.fillStyle='#c9452f';x.textAlign='center';
+  x.font='54px Jua, sans-serif';x.fillText('탈출',0,0);x.font='24px Jua, sans-serif';x.fillText('보일 · 샤를',0,40);x.restore();
+  x.fillStyle='#2f5d73';x.font='28px Jua, sans-serif';x.fillText('입자로 설명하기',60,545);
+  x.fillStyle='#5b6a6f';x.font='22px "Gowun Dodum", sans-serif';x.fillText('사건: '+S.caseText,60,584);
+  x.fillStyle='#f3efe2';x.fillRect(60,602,1080,172);
+  x.fillStyle='#1f2a2e';x.font='26px "Gowun Dodum", sans-serif';wrapLines(x,S.explain,1040).slice(0,4).forEach((l,k)=>x.fillText(l,80,646+k*38));
+  x.fillStyle='#5b6a6f';x.font='22px "Gowun Dodum", sans-serif';x.fillText('가장 어려웠던 방: '+S.hardest,60,830);
+  const d=new Date(S.end);x.textAlign='right';x.fillText(`${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`,1140,830);
+  return c;
+}
+async function certificate(){
+  try{await document.fonts.ready}catch(e){}
+  app.innerHTML=`<section class="cert"><h2 style="font-size:40px">탈출 성공!</h2><p>탈출 증명서를 저장해서 제출하세요.</p><div id="cv"></div>
+    <div class="actions"><button class="btn" id="save">이미지 저장하기</button><button class="btn ghost" id="again">처음부터 다시</button></div><p class="msg" id="smsg"></p><div class="team" id="teamBox"></div></section>`;
+  const c=drawCert();$('cv').appendChild(c);
+  $('save').onclick=()=>{try{const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download=`기체실험실탈출_${S.cls}반_${S.num}번_${S.name}.png`;document.body.appendChild(a);a.click();a.remove();$('smsg').textContent='저장했어요. 갤러리나 다운로드 폴더를 확인하세요.'}catch(e){$('smsg').textContent='저장하지 못했어요. 화면을 캡처해 제출하세요.'}};
+  $('again').onclick=()=>{if(confirm('기록이 지워져요. 처음부터 다시 할까요?')){stopTeam();startScreen()}};
+  watchTeam();
+}
+Net.init();netState(Net.ok,Net.ok?'순위판 연결됨':'순위판 미연결');
+startScreen();
+</script>
+</body>
+</html>
