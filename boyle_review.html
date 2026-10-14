@@ -254,6 +254,7 @@ footer{margin-top:24px;display:flex;justify-content:flex-end}
 .pw-card input{font:inherit;font-size:1.8rem;letter-spacing:.5em;text-align:center;color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:8px;min-height:52px}
 .pw-msg{color:var(--bad);font-weight:700;min-height:1.2em;margin:0}
 .pw-row{display:flex;gap:8px;justify-content:flex-end}
+.qpick-row{display:flex;justify-content:flex-end;margin-top:8px}.qpick-row .qpick[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -267,7 +268,6 @@ footer{margin-top:24px;display:flex;justify-content:flex-end}
     <div class="who">
       <button type="button" class="btn tvbtn alt" id="pkOpen" hidden>🎯 발표 학생 뽑기</button>
       <button type="button" class="btn tvbtn" id="tvOpen" hidden>공유화면 보기</button>
-      <a class="btn ghost padlink" href="https://padlet.com/pad228_2/padlet-s024gv0fruuyz4xggf64" target="_blank" rel="noopener">패들렛 열기 ↗</a>
       <label>반<select id="cls"><option value="">선택</option><option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option><option value="5">5반</option></select></label>
       <label>번호<input id="num" inputmode="numeric" maxlength="3" autocomplete="off"></label>
       <label>이름<input id="name" maxlength="12" autocomplete="off"></label>
@@ -374,6 +374,7 @@ footer{margin-top:24px;display:flex;justify-content:flex-end}
       <textarea id="nRule" placeholder="예: 압력이 1기압에서 2기압으로 2배가 되면 부피는 ..."></textarea>
       <p style="margin-top:14px"><b>정리해 볼까 2. 실험 결과를 바탕으로 기체의 압력과 부피 관계를 이야기해 보자.</b></p>
       <label class="tbook"><span class="bk-t">📖 교과서 207쪽에 답을 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="q2book"> 교과서에 썼어요</span></label>
+        <div class="qpick-row"><button type="button" class="btn tvbtn alt qpick" hidden>🎯 이 문제 발표 학생 뽑기</button></div>
     </div>
     <div class="next"><button type="button" class="btn primary" data-go="3">다음: 입자 모형</button></div>
   </section>
@@ -1171,7 +1172,7 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const ss={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}};
 let unlocked=ss.get('boyleTV')==='ok',cls=ss.get('boyleTVcls')||'1',scene=0,hide=false,docs=[],unsub=null,first=true,bigDoc=null;
 const seen=new Map(),fresh=new Map(),imgCache=new Map();
-$('#tvOpen').hidden=false;$('#pkOpen').hidden=false;
+$('#tvOpen').hidden=false;$('#pkOpen').hidden=false;document.querySelectorAll('.qpick').forEach(x=>{x.hidden=false;x.addEventListener('click',()=>$('#pkOpen').click());});
 let pwNext='tv';
 $('#tvOpen').addEventListener('click',()=>{pwNext='tv';unlocked?openTV():openPW();});
 $('#pkOpen').addEventListener('click',()=>{pwNext='pick';unlocked?openPick():openPW();});

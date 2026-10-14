@@ -358,6 +358,7 @@ table.mini tr.on td{background:#EAF8F2}
 .pw-pad button.fn{font-size:16px}
 .pw-msg{color:var(--warm);font-weight:700;min-height:1.2em;margin:0}
 .pw-row{display:flex;gap:8px;justify-content:flex-end}
+.qpick-row{display:flex;justify-content:flex-end;margin-top:8px}.qpick-row .qpick[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -446,10 +447,12 @@ table.mini tr.on td{background:#EAF8F2}
     <div class="qt">1. 온도가 높아지면 스포이트 속 공기의 부피는 어떻게 되는가?</div>
     <select id="q1sel"><option value="">골라 주세요</option><option>늘어난다</option><option>줄어든다</option><option>변하지 않는다</option></select>
     <label class="tbook"><span class="bk-t">📖 그렇게 판단한 근거(물방울의 움직임)를 교과서 211쪽에 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="q1book"> 교과서에 썼어요</span></label>
+      <div class="qpick-row"><button type="button" class="tvbtn alt qpick" hidden>🎯 이 문제 발표 학생 뽑기</button></div>
   </div>
   <div class="q">
     <div class="qt">2. 결과 해석 및 결론 도출: 실험 결과를 바탕으로 기체의 온도와 부피 관계를 이야기해 보자.</div>
     <label class="tbook"><span class="bk-t">📖 교과서 211쪽에 답을 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="q2book"> 교과서에 썼어요</span></label>
+      <div class="qpick-row"><button type="button" class="tvbtn alt qpick" hidden>🎯 이 문제 발표 학생 뽑기</button></div>
   </div>
 </section>
 
@@ -491,6 +494,7 @@ table.mini tr.on td{background:#EAF8F2}
   <div class="q">
     <div class="qt">기체의 온도와 부피 관계를 입자 모형으로 이야기해 보자.</div>
     <label class="tbook"><span class="bk-t">📖 교과서 212쪽에 답을 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="pmBook"> 교과서에 썼어요</span></label>
+      <div class="qpick-row"><button type="button" class="tvbtn alt qpick" hidden>🎯 이 문제 발표 학생 뽑기</button></div>
   </div>
 </section>
 
@@ -1512,7 +1516,7 @@ const ls={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set
 const st={cls:ls.get('ct_cls')||'1',scene:0,showName:false,showInfo:false,sel:[],docs:[],live:[]};
 let unlocked=ss.get('charlesTV')==='ok',unsub=null,first=true,flashT=0;
 const order=new Map(),fresh=new Set(),imgCache=new Map();
-$('#tvOpen').hidden=false;$('#pkOpen').hidden=false;
+$('#tvOpen').hidden=false;$('#pkOpen').hidden=false;document.querySelectorAll('.qpick').forEach(x=>{x.hidden=false;x.addEventListener('click',()=>$('#pkOpen').click());});
 let pwNext='tv';
 $('#tvOpen').addEventListener('click',()=>{pwNext='tv';unlocked?openTV():openPW();});
 $('#pkOpen').addEventListener('click',()=>{pwNext='pick';unlocked?openPick():openPW();});
