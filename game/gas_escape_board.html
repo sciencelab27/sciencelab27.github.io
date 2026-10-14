@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>기체 실험실 탈출 모둠 순위판</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --tile:#e4ece9; --grout:#d0dbd7; --paper:#fffdf5; --ink:#1f2a2e; --muted:#5b6a6f;
+  --steel:#2f5d73; --steel-d:#234859; --steel-l:#4b7d94; --hazard:#f4c430;
+  --danger:#c9452f; --ok:#2b8f60; --line:#ddd5bf; --soft:#f3efe2; --on-steel:#f2f6f7;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{--tile:#172023;--grout:#202c30;--paper:#242e32;--ink:#edf1f0;--muted:#a6b3b7;--steel:#2a5265;--steel-d:#1d3d4b;--steel-l:#3e6e85;--line:#3a474c;--soft:#2c373b;--danger:#ef7a62;--ok:#3fae7c;color-scheme:dark}
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{font-family:'Gowun Dodum','Noto Sans KR',sans-serif;color:var(--ink);background-color:var(--tile);
+  background-image:linear-gradient(var(--grout) 2px,transparent 2px),linear-gradient(90deg,var(--grout) 2px,transparent 2px);background-size:56px 56px;font-size:18px;line-height:1.5}
+h1,h2,h3{font-family:'Jua',sans-serif;font-weight:400;margin:0}
+button,select,input{font-family:inherit;font-size:16px}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--hazard);outline-offset:2px}
+.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 22px;background:var(--steel-d);color:var(--on-steel);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.bar h1{font-size:26px;margin-right:auto}
+.bar select,.bar input{padding:6px 10px;border-radius:6px;border:2px solid var(--steel-l);background:var(--steel);color:var(--on-steel)}
+.tabs{display:flex;gap:6px}
+.tabs button,.ctl{border:2px solid var(--steel-l);background:none;color:var(--on-steel);border-radius:20px;padding:6px 14px}
+.tabs button.on,.ctl.on{background:var(--hazard);border-color:var(--hazard);color:#1f2a2e}
+.net{font-size:13px;padding:4px 10px;border-radius:20px;background:var(--steel-l)}
+.net.on{background:var(--ok)}.net.offline{background:#7a5a52}
+.hazard{height:14px;background:repeating-linear-gradient(45deg,var(--hazard) 0 14px,#1f2a2e 14px 28px)}
+main{padding:20px 22px}
+.view{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+.teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.tcard{background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden;box-shadow:0 2px 0 var(--line)}
+.tcard.done{border-color:var(--ok);box-shadow:0 0 0 3px var(--ok)}
+.thead{display:flex;align-items:baseline;justify-content:space-between;padding:10px 14px;background:var(--soft)}
+.thead h2{font-size:30px}
+.badge{font-family:'Jua',sans-serif;font-size:18px;color:var(--muted)}
+.tcard.done .badge{color:var(--ok)}
+.mem{list-style:none;margin:0;padding:6px 14px 12px}
+.mem li{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.mem li:last-child{border-bottom:none}
+.mem .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pips{display:flex;gap:4px}
+.pips i{width:16px;height:20px;border-radius:4px 4px 1px 1px;background:var(--line)}
+.pips i.c{background:var(--ok)}
+.pips i.n{background:var(--hazard)}
+.esc-ok{font-family:'Jua',sans-serif;color:var(--ok);min-width:38px;text-align:right}
+.del{border:none;background:var(--danger);color:#fff;border-radius:50%;width:24px;height:24px;line-height:1;display:none}
+.manage .del{display:inline-block}
+.tfoot{padding:0 14px 10px;font-size:14px;color:var(--muted)}
+.rank{background:var(--steel);color:var(--on-steel);border-radius:10px 10px 4px 4px;overflow:hidden;position:sticky;top:80px}
+.rank-in{padding:16px 18px}
+.rank h2{font-size:28px;margin-bottom:10px}
+.rank ol{list-style:none;margin:0;padding:0}
+.rank li{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;border-radius:8px;background:var(--steel-d)}
+.rank li .no{font-family:'Jua',sans-serif;font-size:30px;text-align:center}
+.rank li.r1 .no{color:var(--hazard)}
+.rank li .tm{font-family:'Jua',sans-serif;font-size:24px}
+.rank li small{display:block;font-size:13px;opacity:.85}
+.rank li .sc{text-align:right;font-family:'Jua',sans-serif;font-size:20px}
+.rank li.ing{opacity:.75}
+.rank .sub{margin:14px 0 8px;font-size:15px;opacity:.85}
+.rule{font-size:14px;opacity:.85;margin:12px 0 0;border-top:1px dashed var(--steel-l);padding-top:10px}
+.empty{background:var(--paper);border:2px dashed var(--line);border-radius:8px;padding:40px;text-align:center;color:var(--muted)}
+/* 설명 */
+.exp-tools{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.exp-tools button{border:2px solid var(--line);background:var(--paper);color:var(--ink);border-radius:20px;padding:6px 14px}
+.group{margin-bottom:22px}
+.group h3{font-size:22px;margin-bottom:8px;background:var(--paper);display:inline-block;padding:4px 12px;border-radius:6px;border:1px solid var(--line)}
+.exps{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.exp{background:var(--paper);border:1px solid var(--line);border-left:6px solid var(--steel-l);border-radius:6px;padding:14px 16px;text-align:left;color:var(--ink);font-size:19px}
+.exp .who{display:block;font-size:14px;color:var(--muted);margin-top:8px}
+.modal{position:fixed;inset:0;background:rgba(10,20,24,.75);display:grid;place-items:center;padding:30px;z-index:20}
+.modal .box{background:var(--paper);color:var(--ink);border-radius:8px;max-width:1000px;width:100%;padding:34px 40px;font-size:34px;line-height:1.5}
+.modal .box p{margin:0 0 16px;font-size:20px;color:var(--muted)}
+.modal .box button{margin-top:20px;font-size:18px;border:2px solid var(--line);background:none;color:var(--ink);border-radius:20px;padding:6px 18px}
+.toast{position:fixed;left:50%;top:90px;transform:translateX(-50%);background:var(--ok);color:#fff;font-family:'Jua',sans-serif;font-size:40px;padding:18px 40px;border-radius:12px;z-index:30;animation:pop 4s forwards}
+@keyframes pop{0%{transform:translate(-50%,-30px);opacity:0}10%,85%{transform:translate(-50%,0);opacity:1}100%{opacity:0}}
+@media (max-width:1000px){.view{grid-template-columns:1fr}.rank{position:static}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <h1>기체 실험실 탈출 모둠 순위판</h1>
+  <select id="cls" aria-label="반"><option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option><option value="5">5반</option></select>
+  <input type="date" id="date" aria-label="날짜">
+  <div class="tabs"><button class="on" data-v="board">순위판</button><button data-v="exp">설명 모아보기</button></div>
+  <button class="ctl" id="manage">기록 관리</button>
+  <span class="net" id="net">연결 중</span>
+</header>
+<div class="hazard"></div>
+<main id="main"></main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+/* ===== 파이어베이스 연결 (firebase-config.js 사용) ===== */
+const Net={ok:false,mode:'',db:null,err:'',
+  async init(){
+    try{
+      if(typeof firebase==='undefined'){this.err='SDK 없음';return}
+      if(!firebase.apps.length){
+        let cfg=null;
+        for(const n of ['firebaseConfig','FIREBASE_CONFIG','firebase_config','fbConfig','firebaseCfg','config','CONFIG']){
+          try{const v=window[n]!==undefined?window[n]:(0,eval)(n);if(v&&v.apiKey){cfg=v;break}}catch(e){}
+        }
+        if(!cfg){
+          try{const m=await import('./firebase-config.js');
+            for(const v of [m.default,...Object.values(m)]){if(!v)continue;if(v.apiKey){cfg=v;break}if(v.options&&v.options.apiKey){cfg=v.options;break}}
+          }catch(e){this.err='설정 파일을 읽지 못함: '+e.message}
+        }
+        if(!cfg){this.err=this.err||'설정 파일에서 firebaseConfig를 찾지 못함';return}
+        firebase.initializeApp(cfg);
+      }
+      const opt=firebase.app().options;
+      if(opt.databaseURL&&firebase.database){this.mode='rtdb';this.db=firebase.database()}
+      else if(firebase.firestore){this.mode='fs';this.db=firebase.firestore()}
+      this.ok=!!this.db;
+    }catch(e){this.err=e.message;console.warn(e)}
+  },
+  col(session){return this.db.collection('gasEscape').doc(session).collection('players')},
+  save(session,id,data){
+    if(!this.ok)return Promise.resolve();
+    return this.mode==='rtdb'?this.db.ref(`gasEscape/${session}/players/${id}`).update(data):this.col(session).doc(String(id)).set(data,{merge:true});
+  },
+  remove(session,id){
+    if(!this.ok)return Promise.resolve();
+    return this.mode==='rtdb'?this.db.ref(`gasEscape/${session}/players/${id}`).remove():this.col(session).doc(String(id)).delete();
+  },
+  watch(session,cb,onErr){
+    if(!this.ok)return()=>{};
+    if(this.mode==='rtdb'){const r=this.db.ref(`gasEscape/${session}/players`);const f=s=>cb(Object.values(s.val()||{}));r.on('value',f,onErr);return()=>r.off('value',f)}
+    return this.col(session).onSnapshot(q=>cb(q.docs.map(d=>d.data())),onErr);
+  }
+};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const sessionId=(cls,date=today())=>`${date}_${cls}반`;
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=ms=>{const t=Math.max(0,Math.floor(ms/1000));return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
+const clock=ms=>{const d=new Date(ms);return [d.getHours(),d.getMinutes(),d.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':')};
+let view='board',players=[],un=()=>{},doneSet=null,showNames=false,manage=false;
+
+function tone(f,d,v=.08,delay=0){try{const A=window._ac||(window._ac=new (window.AudioContext||window.webkitAudioContext)());const t=A.currentTime+delay,o=A.createOscillator(),g=A.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(A.destination);o.start(t);o.stop(t+d+.03)}catch(e){}}
+const fanfare=()=>[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,.22,.08,i*.11));
+
+function teams(){
+  const m={};players.forEach(p=>{(m[p.team]=m[p.team]||[]).push(p)});
+  return Object.keys(m).map(k=>{
+    const mem=m[k].sort((a,b)=>a.num-b.num),n=mem.length,esc=mem.filter(p=>p.escaped).length;
+    const complete=n>0&&esc===n;
+    return {team:+k,mem,n,esc,complete,avg:mem.reduce((a,p)=>a+(p.wrong||0),0)/n,hints:mem.reduce((a,p)=>a+(p.hints||0),0),finish:complete?Math.max(...mem.map(p=>p.end||0)):0};
+  }).sort((a,b)=>a.team-b.team);
+}
+function pips(p){let h='';for(let k=1;k<=5;k++)h+=`<i class="${p.room>k?'c':p.room===k?'n':''}"></i>`;return `<span class="pips" aria-label="${p.escaped?'탈출':p.room+'번 방'}">${h}</span>`}
+
+function renderBoard(){
+  const T=teams();
+  if(!T.length){$('main').innerHTML='<div class="empty"><h2>아직 들어온 학생이 없어요</h2><p>학생들이 반과 모둠을 고르고 실험실에 들어가면 여기에 나타나요.</p></div>';return}
+  const ranked=T.filter(t=>t.complete).sort((a,b)=>a.avg-b.avg||a.finish-b.finish);
+  const ing=T.filter(t=>!t.complete).sort((a,b)=>b.esc/b.n-a.esc/a.n);
+  $('main').innerHTML=`<div class="view ${manage?'manage':''}"><div class="teams">${T.map(t=>`
+    <section class="tcard ${t.complete?'done':''}"><div class="thead"><h2>${t.team}모둠</h2><span class="badge">${t.complete?'전원 탈출':`${t.esc}/${t.n}명 탈출`}</span></div>
+    <ul class="mem">${t.mem.map(p=>`<li><span class="nm">${p.num}번 ${esc(p.name)}</span>${pips(p)}<span class="esc-ok">${p.escaped?fmt(p.time):''}</span><button class="del" data-id="${p.num}" aria-label="${p.num}번 기록 지우기">×</button></li>`).join('')}</ul>
+    <div class="tfoot">1인당 평균 오답 ${t.avg.toFixed(1)}번, 힌트 ${t.hints}개</div></section>`).join('')}</div>
+    <aside class="rank"><div class="hazard"></div><div class="rank-in"><h2>모둠 순위</h2>
+    <ol>${ranked.map((t,i)=>`<li class="r${i+1}"><span class="no">${i+1}</span><span class="tm">${t.team}모둠<small>${clock(t.finish)} 전원 탈출</small></span><span class="sc">오답 ${t.avg.toFixed(1)}<small>1인 평균</small></span></li>`).join('')||'<p>아직 전원 탈출한 모둠이 없어요.</p>'}</ol>
+    ${ing.length?`<p class="sub">탈출 중</p><ol>${ing.map(t=>`<li class="ing"><span class="no">-</span><span class="tm">${t.team}모둠</span><span class="sc">${t.esc}/${t.n}명</span></li>`).join('')}</ol>`:''}
+    <p class="rule">모둠원 전원이 탈출해야 순위에 올라요. 1인당 평균 오답이 적은 모둠이 앞서고, 같으면 먼저 전원 탈출한 모둠이 앞서요.</p></div></aside></div>`;
+  document.querySelectorAll('.del').forEach(b=>b.onclick=()=>{
+    const p=players.find(x=>String(x.num)===b.dataset.id);
+    if(confirm(`${p.num}번 ${p.name} 학생의 기록을 지울까요?`))Net.remove(session(),p.num).catch(e=>alert('지우지 못했어요: '+e.message));
+  });
+}
+function renderExp(){
+  const done=players.filter(p=>p.escaped&&p.explain);
+  if(!done.length){$('main').innerHTML='<div class="empty"><h2>아직 탈출한 학생이 없어요</h2><p>학생이 탈출구에서 쓴 입자 설명이 사건별로 모여요.</p></div>';return}
+  const g={};done.forEach(p=>{(g[p.caseText]=g[p.caseText]||[]).push(p)});
+  $('main').innerHTML=`<div class="exp-tools"><button id="nameBtn">${showNames?'이름 가리기':'이름 보기'}</button><span>설명을 누르면 크게 볼 수 있어요.</span></div>
+   ${Object.keys(g).map(k=>`<section class="group"><h3>${esc(k)} (${g[k].length}명)</h3><div class="exps">${g[k].map(p=>`<button class="exp" data-id="${p.num}">${esc(p.explain)}${showNames?`<span class="who">${p.team}모둠 ${p.num}번 ${esc(p.name)}</span>`:''}</button>`).join('')}</div></section>`).join('')}`;
+  $('nameBtn').onclick=()=>{showNames=!showNames;renderExp()};
+  document.querySelectorAll('.exp').forEach(b=>b.onclick=()=>{
+    const p=players.find(x=>String(x.num)===b.dataset.id);
+    document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal"><div class="box"><p>${esc(p.caseText)}${showNames?` (${p.team}모둠 ${p.num}번 ${esc(p.name)})`:''}</p>${esc(p.explain)}<br><button id="close">닫기</button></div></div>`);
+    $('close').onclick=()=>$('modal').remove();$('modal').onclick=e=>{if(e.target.id==='modal')$('modal').remove()};
+  });
+}
+function render(){if($('modal'))return;view==='board'?renderBoard():renderExp()}
+function checkDone(){
+  const now=new Set(teams().filter(t=>t.complete).map(t=>t.team));
+  if(doneSet)now.forEach(t=>{if(!doneSet.has(t)){fanfare();const d=document.createElement('div');d.className='toast';d.textContent=`${t}모둠 전원 탈출!`;document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}});
+  doneSet=now;
+}
+function session(){return sessionId($('cls').value,$('date').value||today())}
+function connect(){
+  un();players=[];doneSet=null;render();
+  if(!Net.ok){$('main').innerHTML=`<div class="empty"><h2>파이어베이스에 연결하지 못했어요</h2><p>이 파일이 firebase-config.js와 같은 폴더(깃허브 저장소 맨 위)에 있는지 확인하세요. (${esc(Net.err)})</p></div>`;return}
+  un=Net.watch(session(),list=>{players=list.filter(p=>p&&p.num);checkDone();render();net(true)},e=>{net(false);$('main').innerHTML=`<div class="empty"><h2>기록을 불러오지 못했어요</h2><p>${esc(e.message)}</p></div>`});
+}
+function net(on){$('net').className='net '+(on?'on':'offline');$('net').textContent=on?(Net.mode==='rtdb'?'실시간 연결됨 (Realtime DB)':'실시간 연결됨 (Firestore)'):'연결 안 됨'}
+
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{view=b.dataset.v;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));render()});
+$('manage').onclick=()=>{manage=!manage;$('manage').classList.toggle('on',manage);render()};
+$('date').value=today();
+$('cls').onchange=connect;$('date').onchange=connect;
+Net.init().then(()=>{net(Net.ok);connect()});
+setInterval(()=>{if(view==='board')render()},30000);
+</script>
+</body>
+</html>
