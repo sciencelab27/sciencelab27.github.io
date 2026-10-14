@@ -107,12 +107,20 @@ main{padding:20px 22px}
 <script>
 /* ===== 파이어베이스 연결 (firebase-config.js 사용) ===== */
 const Net={ok:false,mode:'',db:null,err:'',
-  init(){
+  async init(){
     try{
       if(typeof firebase==='undefined'){this.err='SDK 없음';return}
       if(!firebase.apps.length){
-        const cfg=(typeof firebaseConfig!=='undefined')?firebaseConfig:window.firebaseConfig;
-        if(!cfg){this.err='설정 파일 없음';return}
+        let cfg=null;
+        for(const n of ['firebaseConfig','FIREBASE_CONFIG','firebase_config','fbConfig','firebaseCfg','config','CONFIG']){
+          try{const v=window[n]!==undefined?window[n]:(0,eval)(n);if(v&&v.apiKey){cfg=v;break}}catch(e){}
+        }
+        if(!cfg){
+          try{const m=await import('./firebase-config.js');
+            for(const v of [m.default,...Object.values(m)]){if(!v)continue;if(v.apiKey){cfg=v;break}if(v.options&&v.options.apiKey){cfg=v.options;break}}
+          }catch(e){this.err='설정 파일을 읽지 못함: '+e.message}
+        }
+        if(!cfg){this.err=this.err||'설정 파일에서 firebaseConfig를 찾지 못함';return}
         firebase.initializeApp(cfg);
       }
       const opt=firebase.app().options;
@@ -207,7 +215,7 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{view=b.datas
 $('manage').onclick=()=>{manage=!manage;$('manage').classList.toggle('on',manage);render()};
 $('date').value=today();
 $('cls').onchange=connect;$('date').onchange=connect;
-Net.init();net(Net.ok);connect();
+Net.init().then(()=>{net(Net.ok);connect()});
 setInterval(()=>{if(view==='board')render()},30000);
 </script>
 </body>
