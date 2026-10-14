@@ -1170,7 +1170,7 @@ const TEACHER_PW='1018';           // ← 비밀번호를 바꾸려면 여기 �
 if(new URLSearchParams(location.search).get('teacher')!=='1')return;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const ss={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}};
-let unlocked=ss.get('boyleTV')==='ok',cls=ss.get('boyleTVcls')||'1',scene=0,hide=false,docs=[],unsub=null,first=true,bigDoc=null;
+let unlocked=ss.get('boyleTV')==='ok',cls=ss.get('boyleTVcls')||'1',scene=0,hide=true,docs=[],unsub=null,first=true,bigDoc=null;
 const seen=new Map(),fresh=new Map(),imgCache=new Map();
 $('#tvOpen').hidden=false;$('#pkOpen').hidden=false;document.querySelectorAll('.qpick').forEach(x=>{x.hidden=false;x.addEventListener('click',()=>$('#pkOpen').click());});
 let pwNext='tv';
