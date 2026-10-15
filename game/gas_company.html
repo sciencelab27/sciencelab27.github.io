@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>기체 주식회사를 살려라</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --tile:#e4ece9; --grout:#d0dbd7; --paper:#fffdf5; --ink:#1f2a2e; --muted:#5b6a6f;
+  --steel:#2f5d73; --steel-d:#234859; --steel-l:#4b7d94; --hazard:#f4c430;
+  --danger:#c9452f; --ok:#2b8f60; --line:#ddd5bf; --soft:#f3efe2;
+  --wheel:#f7f4ea; --wheel-ink:#1f2a2e; --on-steel:#f2f6f7;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --tile:#172023; --grout:#202c30; --paper:#242e32; --ink:#edf1f0; --muted:#a6b3b7;
+    --steel:#2a5265; --steel-d:#1d3d4b; --steel-l:#3e6e85; --line:#3a474c; --soft:#2c373b;
+    --danger:#ef7a62; --ok:#3fae7c;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{
+  font-family:'Gowun Dodum','Noto Sans KR','Apple SD Gothic Neo',sans-serif;
+  color:var(--ink); background-color:var(--tile);
+  background-image:linear-gradient(var(--grout) 2px,transparent 2px),linear-gradient(90deg,var(--grout) 2px,transparent 2px);
+  background-size:56px 56px; font-size:17px; line-height:1.55;
+}
+h1,h2,h3{font-family:'Jua','Gowun Dodum',sans-serif;font-weight:400;margin:0}
+button{font-family:inherit;font-size:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--hazard);outline-offset:2px}
+
+/* 상단 바 */
+.bar{display:flex;align-items:center;gap:18px;padding:10px 22px;background:var(--steel-d);color:var(--on-steel);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.bar h1{font-size:23px}
+.doors{display:flex;gap:8px;list-style:none;margin:0 auto;padding:0}
+.doors li{width:38px;height:46px;border-radius:6px 6px 2px 2px;background:var(--steel-l);display:grid;place-items:center;font-family:'Jua',sans-serif;font-size:18px;color:var(--on-steel);opacity:.5}
+.doors li.now{opacity:1;background:var(--hazard);color:#1f2a2e}
+.doors li.done{opacity:1;background:var(--ok)}
+.power{display:flex;align-items:center;gap:10px}
+.cell{width:96px;height:22px;border:2px solid var(--on-steel);border-radius:4px;padding:2px;position:relative}
+.cell::after{content:"";position:absolute;right:-7px;top:5px;width:4px;height:8px;background:var(--on-steel);border-radius:0 2px 2px 0}
+.cell i{display:block;height:100%;width:100%;background:var(--hazard);border-radius:2px}
+.cell.low i{background:#ff6b52}
+.timer{font-family:'Jua',sans-serif;font-size:22px;min-width:78px}
+.timer.over{color:#ff9d88}
+.power.blink .cell{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+.net{font-size:13px;padding:4px 10px;border-radius:20px;background:var(--steel-l)}
+.net.on{background:var(--ok)}.net.offline{background:#7a5a52}
+.team{margin:18px 0 0;padding:16px 18px;background:var(--soft);border-radius:8px;text-align:left}
+.team h3{font-size:22px;margin-bottom:6px}
+.team ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px}
+.team li{padding:6px 10px;border-radius:6px;background:var(--paper)}
+.team li.done{color:var(--ok)}
+.team .rule{margin:10px 0 0;color:var(--danger)}
+.mute{background:none;border:2px solid var(--steel-l);color:var(--on-steel);border-radius:20px;padding:4px 12px;font-size:14px}
+
+main{max-width:1240px;margin:0 auto;padding:22px}
+.paper{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:22px 26px;box-shadow:0 2px 0 var(--line)}
+.room-name{color:var(--muted);font-size:15px;margin:0}
+.paper h2{font-size:30px;margin-bottom:8px}
+.story{margin:0 0 14px}
+
+/* 시작 */
+.start{max-width:780px;margin:24px auto}
+.start h2{font-size:46px}
+.alarm-strip{background:var(--danger);color:#fff;font-family:'Jua',sans-serif;font-size:20px;padding:8px 14px;border-radius:4px;margin:10px 0 14px;animation:blink 1.4s steps(2) 3}
+.fields{display:grid;grid-template-columns:100px 100px 110px 1fr;gap:14px;margin:18px 0}
+.fields label{display:flex;flex-direction:column;gap:4px;font-size:15px;color:var(--muted)}
+input,select,textarea{font-family:inherit;font-size:18px;padding:10px 12px;border:2px solid var(--line);border-radius:6px;background:var(--soft);color:var(--ink)}
+.rules{margin:0 0 18px;padding-left:20px}
+.rules li{margin:4px 0}
+
+.btn{border:none;border-radius:8px;padding:14px 26px;font-family:'Jua',sans-serif;font-size:21px;background:var(--hazard);color:#1f2a2e;box-shadow:0 4px 0 #b48c14}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b48c14}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);box-shadow:none}
+.btn:disabled{opacity:.5}
+
+/* 방 */
+.room{display:grid;grid-template-columns:1.6fr 1fr;gap:22px;align-items:start}
+.door{background:var(--steel);border-radius:10px 10px 4px 4px;color:var(--on-steel);overflow:hidden;position:relative;box-shadow:inset 0 0 0 6px var(--steel-d);min-height:360px}
+.hazard{height:22px;background:repeating-linear-gradient(45deg,var(--hazard) 0 16px,#1f2a2e 16px 32px)}
+.door-in{padding:22px 22px 26px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.door-in h3{font-size:24px}
+.lock-guide{margin:0;text-align:center;font-size:15px;opacity:.9}
+.wheels{display:flex;gap:10px;padding:14px 16px;background:var(--steel-d);border-radius:12px}
+.wheel{display:flex;flex-direction:column;align-items:center;gap:4px}
+.wheel button{width:58px;height:40px;border:none;border-radius:8px;background:var(--steel-l);color:var(--on-steel);font-size:20px}
+.wheel .val{width:58px;height:70px;border-radius:8px;background:var(--wheel);color:var(--wheel-ink);display:grid;place-items:center;font-family:'Jua',sans-serif;font-size:42px;box-shadow:inset 0 6px 8px rgba(0,0,0,.18),inset 0 -6px 8px rgba(0,0,0,.18)}
+.wheel-sep{align-self:center;font-family:'Jua',sans-serif;font-size:26px;opacity:.7}
+.msg{min-height:26px;margin:0;text-align:center;font-size:17px}
+.msg.bad{color:#ffd0c4}
+.off{position:absolute;inset:0;background:rgba(18,32,38,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;font-family:'Jua',sans-serif;font-size:21px;color:var(--on-steel);padding:20px}
+.off b{font-weight:400;font-size:48px;color:var(--hazard)}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.opened{position:absolute;inset:0;background:var(--ok);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;animation:open .5s ease-out;z-index:2}
+.opened h3{font-size:38px}
+@keyframes open{from{clip-path:inset(0 50% 0 50%)}to{clip-path:inset(0 0 0 0)}}
+.flash{animation:flash .6s}
+@keyframes flash{0%,100%{box-shadow:inset 0 0 0 6px var(--steel-d)}30%{box-shadow:inset 0 0 0 14px #ff5a3c}}
+
+/* 실험 장치 */
+.lab{display:grid;grid-template-columns:minmax(220px,330px) 1fr;gap:18px;align-items:start}
+.lab canvas,.cv{display:block;border-radius:8px}
+.readouts{display:flex;gap:10px;margin-bottom:10px}
+.readout{flex:1;background:var(--steel-d);color:var(--on-steel);border-radius:8px;padding:8px 12px}
+.readout span{font-size:13px;opacity:.85;display:block}
+.readout b{font-family:'Jua',sans-serif;font-weight:400;font-size:30px}
+.ctrls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tool{border:2px solid var(--steel);background:var(--paper);color:var(--ink);border-radius:8px;padding:10px 14px;font-family:'Jua',sans-serif;font-size:18px}
+.tool.main{background:var(--steel);color:var(--on-steel)}
+.tool:disabled{opacity:.35}
+.note{font-size:14px;color:var(--muted);margin:0 0 8px}
+.setT{display:flex;align-items:center;gap:10px}
+.setT b{font-family:'Jua',sans-serif;font-weight:400;font-size:34px;min-width:90px;text-align:center}
+.data{border-collapse:collapse;margin:6px 0;font-size:17px}
+.data th,.data td{border:2px solid var(--line);padding:5px 12px;text-align:center}
+.data th{background:var(--soft);font-weight:400}
+
+.bulbs{display:flex;flex-direction:column;gap:10px;width:100%}
+.bulb{display:flex;align-items:center;gap:12px;background:var(--steel-d);padding:10px 14px;border-radius:8px;font-size:17px}
+.bulb i{flex:none;width:26px;height:26px;border-radius:50%;background:#55666c}
+.bulb.on i{background:#ffe066;box-shadow:0 0 18px #ffe066}
+.bulb.now{outline:2px dashed var(--hazard)}
+
+/* 카드 */
+.stage{display:flex;flex-direction:column;align-items:center;gap:16px;padding:6px 0}
+.card{width:min(100%,560px);min-height:160px;background:var(--soft);border:3px solid var(--line);border-radius:14px;padding:22px;font-size:25px;display:grid;place-items:center;text-align:center;font-family:'Jua',sans-serif;line-height:1.45}
+.card.in{animation:cardin .3s ease-out}
+@keyframes cardin{from{transform:translateY(-36px) rotate(-4deg);opacity:0}}
+.choose{display:flex;gap:16px;width:min(100%,560px)}
+.choose button{flex:1;padding:16px;border:none;border-radius:12px;font-family:'Jua',sans-serif;font-size:28px;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.25)}
+.choose button:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.choose .b{background:#2f6fa0}.choose .c{background:#cf5f27}
+.choose small{display:block;font-size:14px;font-family:'Gowun Dodum',sans-serif}
+.choose button:disabled{opacity:.6}
+.why{min-height:54px;text-align:center;margin:0;font-size:18px}
+.why.bad{color:var(--danger)}
+.big{font-family:'Jua',sans-serif;font-size:58px;line-height:1;color:var(--hazard)}
+
+/* 현미경 */
+.scope{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:8px 0}
+.opt{border:3px solid var(--line);border-radius:10px;padding:6px;text-align:center;background:var(--soft);color:var(--ink)}
+.opt b{font-family:'Jua',sans-serif;font-weight:400;font-size:20px;display:block}
+.opt canvas{width:100%;height:auto}
+button.opt:hover{border-color:var(--steel-l)}
+.opt.ref{border-style:dashed}
+button.opt.good{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--soft))}
+button.opt.nope{border-color:var(--danger);opacity:.6}
+.q{font-size:19px;margin:6px 0}
+
+/* 탈출구·증명서 */
+.final{max-width:860px;margin:0 auto}
+.final textarea{width:100%;min-height:130px;resize:vertical}
+.final label{display:block;margin:14px 0 6px}
+.final select{width:100%}
+.count{font-size:14px;color:var(--muted);text-align:right}
+.hints{margin-top:16px;border-top:2px dashed var(--line);padding-top:12px}
+.hint-btn{background:none;border:2px solid var(--line);border-radius:20px;padding:6px 16px;color:var(--ink);font-size:15px}
+.hint{margin:10px 0 0;padding:10px 14px;background:var(--soft);border-left:5px solid var(--hazard);border-radius:4px}
+.cert{max-width:900px;margin:0 auto;text-align:center}
+.cert canvas{width:100%;height:auto;border-radius:6px;border:1px solid var(--line);margin:10px 0 18px}
+.cert .actions{display:flex;gap:14px;justify-content:center}
+
+@media (max-width:960px){
+  .room{grid-template-columns:1fr}
+  .lab{grid-template-columns:1fr}
+  .scope{grid-template-columns:repeat(3,1fr)}
+  .fields{grid-template-columns:1fr 1fr}
+  .fields label:last-child{grid-column:1/-1}
+  .bar{flex-wrap:wrap;gap:10px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+.cashbox{position:relative;display:flex;align-items:baseline;gap:8px;background:var(--steel);border-radius:8px;padding:4px 14px}
+.cashbox span.l{font-size:13px;opacity:.85}
+.cashbox b{font-family:'Jua',sans-serif;font-weight:400;font-size:24px;color:var(--hazard)}
+.cashbox.neg b{color:#ff9d88}
+.pop{position:absolute;right:6px;top:100%;font-family:'Jua',sans-serif;font-size:22px;animation:rise 1.4s forwards;pointer-events:none;white-space:nowrap}
+.pop.up{color:#7be3a9}.pop.down{color:#ff9d88}
+@keyframes rise{from{transform:translateY(0);opacity:1}to{transform:translateY(26px);opacity:0}}
+.timer{font-family:'Jua',sans-serif;font-size:20px;min-width:64px}
+.orders{display:flex;flex-direction:column;gap:12px;width:100%}
+.order{background:var(--steel-d);border-radius:8px;padding:12px 14px}
+.order p{margin:0 0 10px;font-size:16px}
+.opt-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pick-btn{border:none;border-radius:8px;padding:10px 6px;background:var(--wheel);color:var(--wheel-ink);font-family:'Jua',sans-serif;font-size:20px}
+.pick-btn small{display:block;font-family:'Gowun Dodum',sans-serif;font-size:12px;opacity:.75}
+.pick-btn:disabled{opacity:.4}
+.pick-btn.chosen{opacity:1;background:var(--hazard);box-shadow:0 0 0 3px #fff}
+.result{margin-top:10px;padding:10px 12px;border-radius:6px;font-size:15px;background:rgba(255,255,255,.12);border-left:5px solid #ff9d88}
+.result.ok{border-left-color:#7be3a9}
+.big-num{font-family:'Jua',sans-serif;font-size:46px;margin:0}
+.opt .ad{display:block;font-size:13px;line-height:1.35;margin-top:4px;min-height:36px}
+.ledger{margin:16px 0 0;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 14px}
+.ledger summary{cursor:pointer;font-family:'Jua',sans-serif;font-size:18px}
+.ledger table{width:100%}
+.ledger td.neg{color:var(--danger)}.ledger td.pos{color:var(--ok)}
+.fields{grid-template-columns:90px 90px 100px 1fr}
+
+.mode-badge{display:inline-block;margin:4px 0 0;padding:2px 12px;border-radius:20px;background:var(--steel);color:var(--on-steel);font-size:14px}
+.term-card{background:rgba(255,255,255,.16);border-radius:10px;padding:12px 16px;max-width:88%;text-align:left;display:flex;flex-direction:column;gap:2px;font-size:15px;line-height:1.45}
+.term-card b{font-family:'Gowun Dodum',sans-serif;font-weight:400;font-size:13px;opacity:.85}
+.term-card .tname{font-family:'Jua',sans-serif;font-size:24px}
+.opened{overflow:auto;padding:16px}
+.calc{margin-top:6px;font-size:15px}
+.pl{border-collapse:collapse;margin:8px 0 4px;font-size:13px;width:100%}
+.pl th,.pl td{border:1px solid rgba(255,255,255,.25);padding:3px 5px;text-align:center}
+.pl tr.me td{background:rgba(244,196,48,.3)}
+.pl td.neg{color:#ffb3a3}.pl td.pos{color:#9ff0c3}
+.tip{display:block;margin-top:6px;font-size:14px;opacity:.95}
+.app-card{background:var(--soft);border:2px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0}
+.app-card p{margin:0 0 8px}
+.app-card .pick-btn{background:var(--paper);color:var(--ink);border:2px solid var(--line)}
+.app-card .pick-btn.chosen{background:var(--hazard);color:#1f2a2e}
+.app-card .result{background:var(--paper);color:var(--ink)}
+.invest{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.inv-row{display:grid;grid-template-columns:1fr 52px 120px 52px;align-items:center;gap:8px;background:var(--soft);border-radius:10px;padding:8px 12px}
+.inv-row .inv-name{font-family:'Jua',sans-serif;font-size:21px}
+.inv-row b{font-family:'Jua',sans-serif;font-weight:400;font-size:24px;text-align:center}
+.inv-row .tool{font-size:22px;padding:6px 0}
+.reason-l{font-size:15px;margin-top:4px}
+#reason{width:100%}
+.event{font-family:'Jua',sans-serif;font-size:30px;color:var(--hazard);text-align:center}
+.event small{display:block;font-family:'Gowun Dodum',sans-serif;font-size:14px;color:var(--on-steel)}
+.pl.wide{font-size:14px}
+.evwhy{list-style:none;padding:0;margin:8px 0;font-size:14px;line-height:1.45;text-align:left}
+.evwhy li{margin:4px 0}
+#invRes{width:100%}
+.term{margin:14px 0 0;padding:10px 14px;background:var(--soft);border-left:5px solid var(--steel);border-radius:4px}
+.room .door{min-height:430px}
+.risk{margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(244,196,48,.18);border:2px dashed var(--hazard)}
+.risk p{margin:0 0 8px;font-size:15px}
+.forecast{background:var(--soft);border-left:5px solid var(--steel);border-radius:6px;padding:10px 14px;margin:6px 0 10px;font-size:15px}
+.fc-bars{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.fc-row{display:grid;grid-template-columns:110px 1fr 48px;align-items:center;gap:8px}
+.fc-row i{display:block;height:16px;background:var(--steel-l);border-radius:4px}
+.fc-row em{font-style:normal;font-family:'Jua',sans-serif;font-size:18px}
+.pred{background:var(--soft);border-radius:8px;padding:8px 12px;margin:6px 0}
+.pred-q{font-family:'Jua',sans-serif;font-size:19px;display:block;margin-bottom:6px}
+.pred-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pred .pick-btn{background:var(--paper);color:var(--ink);border:2px solid var(--line);font-size:17px}
+.pred .pick-btn.chosen{background:var(--hazard);color:#1f2a2e}
+.pred-fb{margin:6px 0 0;font-size:14px}.pred-fb.ok{color:var(--ok)}.pred-fb.no{color:var(--danger)}
+.hidden{display:none}
+.ins-box{background:var(--soft);border:2px dashed var(--steel-l);border-radius:8px;padding:10px 12px}
+.ins-box p{margin:0 0 8px;font-size:14px}
+.ins-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ins-btn{border:2px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:8px;font-family:'Jua',sans-serif;font-size:18px}
+.ins-btn small{display:block;font-family:'Gowun Dodum',sans-serif;font-size:12px;opacity:.8}
+.ins-btn.on{background:var(--steel);border-color:var(--steel);color:var(--on-steel)}
+.pl.wide{font-size:12px}
+.impact{border-collapse:collapse;width:100%;font-size:15px;margin:4px 0 10px}
+.impact th,.impact td{border:1px solid var(--line);padding:6px;text-align:center}
+.impact th{background:var(--soft);font-weight:400}
+.impact .dn{color:var(--danger)}.impact .up{color:var(--ok)}
+.frames{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:10px 0}
+.frame-btn{border:2px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:10px;text-align:left}
+.frame-btn b{font-family:'Jua',sans-serif;font-weight:400;font-size:17px;display:block}
+.frame-btn small{font-size:12px;color:var(--muted)}
+.frame-btn.on{border-color:var(--steel);background:var(--steel);color:var(--on-steel)}.frame-btn.on small{color:var(--on-steel)}
+.frame-btn:disabled:not(.on){opacity:.45}
+.fill{margin-top:12px;padding:12px 14px;background:var(--soft);border-radius:8px}
+.fill-s{font-size:20px;line-height:2.1}
+.blank{font-size:18px;padding:4px 8px;margin:0 2px;border:2px solid var(--steel-l);border-radius:6px;background:var(--paper);color:var(--ink)}
+.blank.wrong{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 15%,var(--paper))}
+.blank.right{border-color:var(--ok)}
+.fill textarea{width:100%;min-height:100px}
+.actions-row{display:flex;gap:10px;flex-wrap:wrap}
+.team-pitch{margin-top:10px;padding:10px 12px;background:var(--paper);border-radius:6px;border-left:5px solid var(--steel)}
+.team-pitch p{margin:6px 0 0;font-size:15px}
+.final select.blank{width:auto;display:inline-block}
+.guide-wrap{max-width:980px;margin:0 auto}
+.guide h2{font-size:34px}
+.guide h3{font-size:22px;margin:16px 0 8px}
+.g-lead{font-size:17px}
+.biz{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.biz div{background:var(--steel);color:var(--on-steel);border-radius:10px;padding:12px 14px}
+.biz b{font-family:'Jua',sans-serif;font-weight:400;font-size:22px;display:block}
+.biz span{font-size:14px;opacity:.9}
+.depts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dept{background:var(--soft);border-radius:10px;padding:10px 12px;position:relative}
+.dept em{position:absolute;top:8px;right:10px;font-style:normal;font-family:'Jua',sans-serif;font-size:22px;color:var(--steel-l)}
+.dept b{font-family:'Jua',sans-serif;font-weight:400;font-size:19px;display:block}
+.dept span{font-size:14px;display:block;margin:2px 0}
+.dept small{font-size:12px;color:var(--steel)}
+.g-rules{margin:0 0 16px;padding-left:20px;font-size:15px}
+.gmodal{position:fixed;inset:0;background:rgba(10,20,24,.7);z-index:20;overflow:auto;padding:24px}
+@media (max-width:900px){.depts{grid-template-columns:1fr 1fr}}
+.inv-q{font-family:'Jua',sans-serif;font-size:20px;color:var(--steel);margin:0 0 6px}
+.frames{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.frame-btn b{font-size:16px;line-height:1.35}
+.errbox{position:fixed;left:12px;bottom:12px;right:12px;background:#c9452f;color:#fff;padding:10px 14px;border-radius:8px;z-index:50;font-size:14px}
+</style>
+</head>
+<body>
+<header class="bar">
+  <h1>기체 주식회사를 살려라</h1>
+  <ol class="doors" id="doors"></ol>
+  <div class="cashbox" id="cashBox"><span class="l">회사 자산</span><b id="cash">10,000원</b></div>
+  <span class="timer" id="timer">00:00</span>
+  <span class="net" id="net">순위판 연결 중</span>
+  <button class="mute hidden" id="guideBtn">안내서</button>
+  <button class="mute" id="mute">소리 켬</button>
+</header>
+<main id="app"></main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const COL='gasCompany';
+const Net={ok:false,mode:'',db:null,err:'',
+  async init(){
+    try{
+      if(typeof firebase==='undefined'){this.err='SDK 없음';return}
+      if(!firebase.apps.length){
+        let cfg=null;
+        for(const n of ['firebaseConfig','FIREBASE_CONFIG','firebase_config','fbConfig','firebaseCfg','config','CONFIG']){
+          try{const v=window[n]!==undefined?window[n]:(0,eval)(n);if(v&&v.apiKey){cfg=v;break}}catch(e){}
+        }
+        if(!cfg){
+          try{const m=await import('./firebase-config.js');
+            for(const v of [m.default,...Object.values(m)]){if(!v)continue;if(v.apiKey){cfg=v;break}if(v.options&&v.options.apiKey){cfg=v.options;break}}
+          }catch(e){this.err='설정 파일을 읽지 못함: '+e.message}
+        }
+        if(!cfg){this.err=this.err||'설정 파일에서 firebaseConfig를 찾지 못함';return}
+        firebase.initializeApp(cfg);
+      }
+      const opt=firebase.app().options;
+      if(opt.databaseURL&&firebase.database){this.mode='rtdb';this.db=firebase.database()}
+      else if(firebase.firestore){this.mode='fs';this.db=firebase.firestore()}
+      this.ok=!!this.db;
+    }catch(e){this.err=e.message;console.warn(e)}
+  },
+  col(session){return this.db.collection(COL).doc(session).collection('players')},
+  save(session,id,data){
+    if(!this.ok)return Promise.resolve();
+    try{
+      data=JSON.parse(JSON.stringify(data));
+      return this.mode==='rtdb'?this.db.ref(`${COL}/${session}/players/${id}`).update(data):this.col(session).doc(String(id)).set(data,{merge:true});
+    }catch(e){return Promise.reject(e)}
+  },
+  remove(session,id){
+    if(!this.ok)return Promise.resolve();
+    return this.mode==='rtdb'?this.db.ref(`${COL}/${session}/players/${id}`).remove():this.col(session).doc(String(id)).delete();
+  },
+  watch(session,cb,onErr){
+    if(!this.ok)return()=>{};
+    if(this.mode==='rtdb'){const r=this.db.ref(`${COL}/${session}/players`);const f=s=>cb(Object.values(s.val()||{}));r.on('value',f,onErr);return()=>r.off('value',f)}
+    return this.col(session).onSnapshot(q=>cb(q.docs.map(d=>d.data())),onErr);
+  }
+};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const sessionId=(cls,date=today())=>`${date}_${cls}반`;
+/* ===== 수업 모드 ===== */
+const MODE=new URLSearchParams(location.search).get('t')==='20'?20:30;
+const PLAN=MODE===30?['factory','balloon','insure','ad','invest','pitch']:['factory','balloon','insure','ad','invest'];
+const NAMES={factory:'과자 포장 공장',balloon:'열기구 관광',insure:'보험 심사실',ad:'광고 심사실',invest:'투자 결정',pitch:'모둠 투자 설명회'};
+const TERMS={
+  factory:['원가와 이익','이익 = 매출 - 비용이에요. 질소 값(원가)과 배상금도 모두 비용이라, 많이 넣는다고 무조건 좋은 게 아니에요.'],
+  balloon:['손익 따져 보기','같은 매출이라면 비용을 줄일수록 이익이 커져요. 꼭 필요한 만큼만 쓰는 게 합리적인 선택이에요.'],
+  insure:['보험료와 보험금','보험료는 미리 내는 돈, 보험금은 사고가 났을 때 받는 돈이에요. 사고 위험이 클수록 보험료가 비싸요.'],
+  ad:['허위·과장 광고','사실과 다르거나 부풀린 광고예요. 근거를 따져 보고, 피해를 입으면 소비자상담센터(1372)에 상담할 수 있어요.'],
+  invest:['위험 분산','미래는 아무도 몰라요. 한 곳에 몰지 않고 나눠 투자하면 크게 잃을 위험을 줄일 수 있어요.'],
+  pitch:['투자 유치','사업이 믿을 만한 근거를 설명해 다른 사람의 돈을 투자받는 거예요.']
+};
+const ROOM_NAMES=PLAN.map(k=>NAMES[k]);
+const N=PLAN.length;
+const ROOMS=PLAN.map(k=>({factory:roomFactory,balloon:roomBalloon,insure:roomInsure,ad:roomAd,invest:roomInvest,pitch:roomPitch})[k]);
+function go(i){if(i>=N)return finish();ROOMS[i](i)}
+function finish(){if(!S.explain){S.explain=S.reason;S.product='투자 이유 ('+S.event+')'}S.end=Date.now();clearInterval(tick);$('timer').textContent=fmt(S.end-S.start);S.room=N;renderDoors();sfx.open();sync(true);certificate()}
+
+/* ===== 과자 포장 공장 (보일) ===== */
+function roomFactory(i){
+  const ORDERS=[{place:'산 정상 휴게소',ratio:2,txt:'공장 <b>2기압</b> → 휴게소 <b>1기압</b>'},{place:'고산 마을',ratio:3,txt:'공장 <b>3기압</b> → 마을 <b>1기압</b>'}];
+  const MAX=120,OPTS=[20,40,60,80],PRICE=4000,UNIT=100; // 질소 10mL당 100원
+  scaffold(i,`<p class="story">우리 회사 과자 봉지는 질소를 넣어 과자가 부서지지 않게 해요. 그런데 높은 곳으로 배송하면 봉지가 부풀어 터지는 사고가 났어요! 먼저 주사기 실험으로 압력과 부피의 관계를 알아낸 뒤, 주문을 처리하세요.</p>
+   <div class="lab"><canvas id="c1"></canvas><div>
+    <div class="readouts"><div class="readout"><span>압력</span><b id="rP">2기압</b></div><div class="readout"><span>공기의 부피</span><b id="rV">60 mL</b></div></div>
+    <div class="ctrls"><button class="tool" id="up">추 올리기</button><button class="tool" id="dn">추 내리기</button><button class="tool main" id="rec">실험 기록하기</button></div>
+    <p class="note">온도는 일정해요. 추를 올리면 압력이 커지고, <b>추를 내리면 압력이 작아져요.</b> 공장은 압력이 높은 곳, 산 위는 압력이 낮은 곳이에요.</p>
+    <canvas id="g1"></canvas>
+    <p class="note">과자 한 상자 판매가 ${won(PRICE)} · 질소 원가 10 mL당 ${won(UNIT)}<br>봉지가 헐렁하면 과자가 부서져 절반 값, 터지면 판매 못 하고 배상금 ${won(1000)}</p></div></div>`,
+   `<h3>배송 주문서</h3><div id="orders" class="orders"></div><p class="msg" id="msg"></p>
+    <div class="off" id="off">실험 기록을 3개 모으면<br>주문서가 열려요<b id="recN">0 / 3</b></div>`,
+   ['주사기에서 추를 내려 2기압에서 1기압으로 바꿔 보세요. 부피가 몇 배가 되나요?','2기압 → 1기압이면 부피는 2배, 3기압 → 1기압이면 3배가 돼요. 도착했을 때 120 mL를 넘지 않으면서 가장 빵빵한 양을 고르세요.']);
+  const c=setup($('c1'),300,370),g=setup($('g1'),320,200);
+  let P=2,h=120;const X0=100,X1=200,BOT=340,rec={};
+  const gas=new Gas(10,{x0:X0,x1:X1,y0:100,y1:BOT},1.4);
+  function draw(){
+    h+=(240/P-h)*.07;const top=BOT-h;
+    c.fillStyle='#eef3f1';c.fillRect(0,0,300,370);
+    c.font='12px "Gowun Dodum",sans-serif';c.fillStyle='#5b6a6f';c.strokeStyle='#9aa7ab';c.lineWidth=1.5;
+    for(let m=0;m<=120;m+=20){const y=BOT-m*2;c.beginPath();c.moveTo(X1,y);c.lineTo(X1+10,y);c.stroke();c.fillText(m+' mL',X1+14,y+4)}
+    c.fillStyle='#fff';c.fillRect(X0,40,X1-X0,BOT-40);
+    gas.step({x0:X0,x1:X1,y0:top,y1:BOT},5);gas.draw(c,5);
+    c.strokeStyle='#7d8b90';c.lineWidth=3;c.strokeRect(X0,40,X1-X0,BOT-40);
+    c.fillStyle='#c9452f';c.fillRect(140,BOT+1,20,16);
+    c.fillStyle='#8a979c';c.fillRect(X0+2,top-14,X1-X0-4,14);
+    c.fillStyle='#b3bec2';c.fillRect(146,top-74,8,60);
+    const pf=top-74;c.fillStyle='#5b6a6f';c.fillRect(105,pf-6,90,6);
+    for(let k=0;k<P-1;k++){const y=pf-6-(k+1)*25;c.fillStyle='#2f5d73';c.fillRect(115,y,70,23);c.fillStyle='#fff';c.font='15px Jua,sans-serif';c.fillText('추',143,y+17)}
+  }
+  function graph(){
+    g.fillStyle='#eef3f1';g.fillRect(0,0,320,200);
+    const px=p=>44+p*80,py=v=>172-v*1.1;
+    g.strokeStyle='#5b6a6f';g.lineWidth=2;g.beginPath();g.moveTo(44,20);g.lineTo(44,172);g.lineTo(312,172);g.stroke();
+    g.font='12px "Gowun Dodum",sans-serif';g.fillStyle='#5b6a6f';
+    for(let p=1;p<=3;p++)g.fillText(p,px(p)-3,188);
+    for(let v=0;v<=120;v+=40)g.fillText(v,v<100?24:16,py(v)+4);
+    g.fillText('부피(mL)',50,16);g.fillText('압력(기압)',250,160);
+    g.fillStyle='#c9452f';Object.keys(rec).forEach(p=>{g.beginPath();g.arc(px(+p),py(rec[p]),6,0,Math.PI*2);g.fill()});
+  }
+  function readout(){$('rP').textContent=P+'기압';$('rV').textContent=Math.round(120/P)+' mL';$('up').disabled=P>=3;$('dn').disabled=P<=1}
+  $('up').onclick=()=>{if(P<3){P++;sfx.click();readout()}};
+  $('dn').onclick=()=>{if(P>1){P--;sfx.click();readout()}};
+  $('rec').onclick=()=>{
+    if(rec[P]){sfx.click();return}
+    rec[P]=120/P;graph();const n=Object.keys(rec).length;sfx.click();
+    if($('recN'))$('recN').textContent=n+' / 3';
+    if(n>=3&&$('off')){$('off').remove();sfx.open();showOrder()}
+  };
+  let oi=0;
+  function showOrder(){
+    if(oi>=ORDERS.length){setTimeout(()=>openDoor(i),900);return}
+    const o=ORDERS[oi];
+    $('orders').insertAdjacentHTML('beforeend',`<div class="order" id="o${oi}"><p><b>주문 ${oi+1}. ${o.place}</b><br>${o.txt}예요. 봉지는 <b>${MAX} mL</b>까지 버텨요. 공장에서 질소를 몇 mL 넣을까요?</p>
+      <div class="opt-row">${OPTS.map(v=>`<button class="pick-btn" data-v="${v}">${v} mL<small>원가 ${won(v/10*UNIT)}</small></button>`).join('')}</div></div>`);
+    document.querySelectorAll(`#o${oi} .pick-btn`).forEach(b=>b.onclick=()=>decide(+b.dataset.v));
+  }
+  function decide(v){
+    const o=ORDERS[oi],box=$('o'+oi);
+    box.querySelectorAll('.pick-btn').forEach(b=>{b.disabled=true;if(+b.dataset.v===v)b.classList.add('chosen')});
+    if(MODE===30&&oi===0){
+      box.insertAdjacentHTML('beforeend',`<div class="risk" id="risk"><p><b>잠깐! 배송 위험</b> 날씨가 더우면 트럭 짐칸이 뜨거워질 수 있어요(3번 중 1번꼴). 그러면 봉지 속 기체 부피가 더 커져요.</p>
+        <div class="opt-row"><button class="pick-btn" data-r="0">그대로 보내기<small>추가 비용 없음</small></button><button class="pick-btn" data-r="1">냉장 트럭 쓰기<small>추가 ${won(500)}</small></button></div></div>`);
+      box.querySelectorAll('#risk .pick-btn').forEach(b=>b.onclick=()=>{box.querySelectorAll('#risk .pick-btn').forEach(x=>{x.disabled=true;if(x===b)x.classList.add('chosen')});settle(v,b.dataset.r==='1')});
+    }else settle(v,null);
+  }
+  function settle(v,cool){
+    const o=ORDERS[oi],box=$('o'+oi),best=MAX/o.ratio,cost=v/10*UNIT,coolCost=cool?500:0;
+    const hot=cool===false&&Math.random()<1/3;
+    const after=v*o.ratio*(hot?1.2:1);
+    let sale,extra=0,why;
+    if(after>MAX){sale=0;extra=1000;why=hot?`짐칸이 뜨거워져 봉지가 더 부풀었어요(샤를 법칙). ${Math.round(after)} mL가 되어 <b>봉지가 터졌어요!</b>`:`도착하니 ${after} mL로 부풀어 <b>봉지가 터졌어요!</b>`;if(!hot)S.wrong[i]++}
+    else if(v<best){sale=PRICE/2;S.wrong[i]++;why=`도착하니 ${Math.round(after)} mL. 봉지가 헐렁해 과자가 부서져 절반 값에 팔았어요.`}
+    else{sale=PRICE;why=cool?`냉장 트럭 덕분에 온도가 그대로라 딱 ${after} mL! 제값을 받았어요.`:cool===false?`다행히 날씨가 선선해 딱 ${after} mL! 제값을 받았어요.`:`도착하니 딱 ${after} mL! 과자가 멀쩡해 제값을 받았어요.`}
+    const amt=sale-cost-extra-coolCost;
+    let tip='';
+    if(cool!==null)tip=`<span class="tip">${cool?'500원으로 위험을 막았어요. 위험에 대비하는 데 쓰는 돈도 비용이에요.':hot?'위험에 대비하지 않으면 운이 나쁠 때 크게 잃어요.':'이번엔 운이 좋았어요. 하지만 3번 중 1번은 터질 수 있었어요.'}</span>`;
+    box.insertAdjacentHTML('beforeend',result(`${why}<div class="calc">매출 ${won(sale)} - 원가 ${won(cost)}${coolCost?` - 냉장 트럭 ${won(coolCost)}`:''}${extra?` - 배상금 ${won(extra)}`:''} = <b>${sgn(amt)}</b></div>${tip}`,v===best&&!hot));
+    money(i,`${o.place} 배송`,amt);if(amt<0)hit($('door'));
+    oi++;setTimeout(showOrder,900);
+  }
+  graph();readout();setLoops([draw]);
+}
+
+/* ===== 열기구 관광 (샤를) ===== */
+function roomBalloon(i){
+  const TOURS=[{name:'가족 관광 (4명)',need:54,rev:4000,opts:[10,20,30,40]},{name:'단체 관광 (8명)',need:58,rev:6000,opts:[20,30,40,50]}];
+  const FUEL=500;
+  scaffold(i,`<p class="story">열기구는 버너로 공기를 데워 부피를 키워서 떠요. 탑승 인원이 많을수록 풍선 부피가 더 커야 해요. 온도를 높일수록 연료비가 들어요. <b>떠오를 수 있는 가장 낮은 온도</b>를 고르면 이익이 가장 커요!</p>
+   <div class="lab"><canvas id="c2"></canvas><div>
+    <div class="readouts"><div class="readout"><span>지금 온도</span><b id="rT">0°C</b></div><div class="readout"><span>풍선 속 기체 부피</span><b id="rV2">50 mL</b></div></div>
+    <p class="note">시험 비행 기록 (압력 일정)</p>
+    <table class="data"><tr><th>온도(°C)</th><td>0</td><td>10</td></tr><tr><th>부피(mL)</th><td>50</td><td>52</td></tr></table>
+    <p class="note">연료비: 온도 10°C마다 ${won(FUEL)} · 뜨지 못하면 매출 없이 연료비만 나가요.</p>
+   </div></div>`,
+   `<h3>관광 예약</h3><div id="tours" class="orders"></div><p class="msg" id="msg"></p>`,
+   ['기록지를 보면 온도가 10°C 올라갈 때마다 부피가 2 mL씩 늘어나요.','54 mL는 50 mL보다 4 mL 커요. 2 mL에 10°C이니 20°C면 돼요. 58 mL는 몇 °C일까요?']);
+  const c=setup($('c2'),340,372);
+  let T=0,target=0,running=false,ti=0,cb=null;
+  const gas=new Gas(10,{x0:134,x1:206,y0:232,y1:304},1);
+  const vol=t=>50+t*.2,R=v=>16+(v-48)*5,NECK=170;
+  function draw(){
+    if(running){const d=target-T;if(Math.abs(d)<=.25){T=target;running=false;cb&&cb()}else T+=Math.sign(d)*.25;
+      $('rT').textContent=Math.round(T)+'°C';$('rV2').textContent=(Math.round(vol(T)*10)/10)+' mL'}
+    c.fillStyle='#eef3f1';c.fillRect(0,0,340,372);
+    const v=vol(T),r=R(v);
+    if(ti<TOURS.length){const ly=NECK-1.9*R(TOURS[ti].need);c.setLineDash([8,6]);c.strokeStyle='#2b8f60';c.lineWidth=3;c.beginPath();c.moveTo(22,ly);c.lineTo(318,ly);c.stroke();c.setLineDash([]);
+      c.fillStyle='#2b8f60';c.font='13px Jua,sans-serif';c.fillText(`탑승 기준 ${TOURS[ti].need} mL`,10,ly-8)}
+    c.fillStyle='#e8913a';c.beginPath();c.ellipse(170,NECK-r*.95,r*.88,r*.95,0,0,Math.PI*2);c.fill();
+    c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=2;for(let k=-1;k<=1;k++){c.beginPath();c.ellipse(170,NECK-r*.95,Math.abs(k)*r*.55+.1,r*.95,0,0,Math.PI*2);c.stroke()}
+    c.strokeStyle='#7d8b90';c.lineWidth=3;c.fillStyle='#fff';
+    c.fillRect(158,NECK,24,50);c.strokeRect(158,NECK,24,50);
+    c.beginPath();c.arc(170,268,52,0,Math.PI*2);c.fill();c.stroke();
+    gas.step({x0:134,x1:206,y0:230,y1:306},5,.4+T/18);gas.draw(c,5);
+    const k=T/60;c.fillStyle=`rgba(${Math.round(110+135*k)},${Math.round(175-70*k)},${Math.round(235-150*k)},.45)`;c.fillRect(40,272,260,76);
+    c.strokeStyle='#7d8b90';c.lineWidth=3;c.strokeRect(40,272,260,76);
+    if(running&&target>T){c.fillStyle='#ff8a1f';for(let x=90;x<=250;x+=40){const f=8+Math.random()*8;c.beginPath();c.moveTo(x-8,370);c.lineTo(x,370-f-6);c.lineTo(x+8,370);c.fill()}}
+  }
+  function showTour(){
+    if(ti>=TOURS.length){setTimeout(()=>openDoor(i),900);return}
+    const t=TOURS[ti];
+    $('tours').insertAdjacentHTML('beforeend',`<div class="order" id="t${ti}"><p><b>예약 ${ti+1}. ${t.name}</b><br>풍선 부피가 <b>${t.need} mL</b> 이상이어야 떠요. 매출 ${won(t.rev)}</p>
+      <div class="opt-row">${t.opts.map(o=>`<button class="pick-btn" data-v="${o}">${o}°C<small>연료 ${won(o/10*FUEL)}</small></button>`).join('')}</div></div>`);
+    document.querySelectorAll(`#t${ti} .pick-btn`).forEach(b=>b.onclick=()=>fly(+b.dataset.v));
+  }
+  function fly(temp){
+    const t=TOURS[ti],box=$('t'+ti);
+    box.querySelectorAll('.pick-btn').forEach(b=>{b.disabled=true;if(+b.dataset.v===temp)b.classList.add('chosen')});
+    target=temp;running=true;
+    cb=()=>{
+      cb=null;const ok=vol(temp)>=t.need-.01,fuel=temp/10*FUEL,best=Math.min(...t.opts.filter(o=>vol(o)>=t.need-.01));
+      const amt=ok?t.rev-fuel:-fuel;if(!ok)S.wrong[i]++;
+      const rows=t.opts.map(o=>{const f=o/10*FUEL,fl=vol(o)>=t.need-.01,p=fl?t.rev-f:-f;return `<tr class="${o===temp?'me':''}"><td>${o}°C</td><td>${vol(o)} mL</td><td>${fl?'뜸':'못 뜸'}</td><td>${won(fl?t.rev:0)}</td><td>${won(f)}</td><td class="${p<0?'neg':'pos'}">${sgn(p)}</td></tr>`}).join('');
+      box.insertAdjacentHTML('beforeend',result(`${ok?`부피 ${vol(temp)} mL로 떠올랐어요!`:`부피 ${vol(temp)} mL라 뜨지 못했어요.`} <b>${sgn(amt)}</b>
+        <table class="pl"><tr><th>온도</th><th>부피</th><th>비행</th><th>매출</th><th>연료비</th><th>손익</th></tr>${rows}</table>
+        <span class="tip">${ok&&temp===best?'가장 적은 연료로 떴어요. 최고의 선택!':`가장 이익이 큰 선택은 ${best}°C였어요.`}</span>`,ok&&temp===best));
+      money(i,t.name,amt);if(!ok)hit($('door'));
+      setTimeout(()=>{target=0;running=true;cb=()=>{cb=null;ti++;showTour()}},1500);
+    };
+  }
+  setLoops([draw]);showTour();
+}
+
+/* ===== 보험 심사실 ===== */
+const CASES=[
+  ['높은 산에 올라갔더니 과자 봉지가 빵빵하게 부풀었어요.','B','높이 올라가면 공기가 누르는 압력이 작아져요. 압력 변화예요.'],
+  ['잠수부가 내뿜은 공기 방울이 수면으로 올라갈수록 커졌어요.','B','물속 깊은 곳일수록 압력이 커요. 올라오면 압력이 작아져요.'],
+  ['하늘 높이 날아간 헬륨 풍선이 점점 커지다가 터졌어요.','B','높이 올라갈수록 바깥 압력이 작아져서 생긴 일이에요.'],
+  ['비행기 안에서 마개를 닫은 빈 페트병이 착륙 후 찌그러졌어요.','B','비행기 안보다 땅 위의 압력이 커서 생긴 일이에요.'],
+  ['찌그러진 탁구공을 뜨거운 물에 넣었더니 펴졌어요.','C','뜨거운 물로 공 속 기체의 온도가 높아졌어요.'],
+  ['한여름 차 안에 둔 풍선이 빵빵해져 터졌어요.','C','뜨거운 차 안에서 온도가 높아져 생긴 일이에요.'],
+  ['겨울철 바깥에 둔 풍선이 쪼그라들었어요.','C','추운 바깥에서 온도가 낮아져 생긴 일이에요.'],
+  ['냉장고에 넣어 둔 빈 페트병이 찌그러졌어요.','C','냉장고 속에서 온도가 낮아져 생긴 일이에요.']
+];
+const APPS=[
+  {who:'풍선 가게',txt:'한여름에 헬륨 풍선 200개를 햇볕 드는 트럭 짐칸에 싣고 다녀요.',risk:'high',why:'온도가 높아지면 풍선 속 기체 부피가 커져 터질 위험이 커요 (샤를 법칙).',acc:'폭염에 트럭 안 풍선이 줄줄이 터졌어요!'},
+  {who:'동네 마트',txt:'밀봉한 과자 봉지를 서늘하고 온도가 일정한 1층 창고에 보관해요.',risk:'low',why:'압력도 온도도 거의 변하지 않아 부피 변화가 작아요.',acc:'아무 사고 없이 한 달이 지났어요.'},
+  {who:'산장 매점',txt:'평지 공장에서 포장한 과자를 매일 높은 산 정상까지 실어 와요.',risk:'high',why:'높은 곳은 압력이 낮아 봉지 속 기체 부피가 커져 터질 위험이 커요 (보일 법칙).',acc:'산 정상에서 과자 봉지가 터졌어요!'}
+];
+function roomInsure(i){
+  const cards=shuffle([...shuffle(CASES.filter(c=>c[1]==='B')).slice(0,2),...shuffle(CASES.filter(c=>c[1]==='C')).slice(0,2)]);
+  const withApps=MODE===30;
+  let deck=cards.map((_,k)=>k),lock=false;
+  scaffold(i,`<p class="story">여기는 우리 회사의 <b>보험 사업부</b>예요. ${withApps?'먼저 들어온 피해 신고서의 원인을 심사하고, 그다음 새 가입 신청서를 보고 <b>보험료</b>를 정하세요.':'고객의 피해 신고서를 보고 원인이 <b>압력 변화</b>인지 <b>온도 변화</b>인지 정확히 심사하세요.'}</p>
+   <div id="stageA"><p class="q"><b>① 피해 신고서 심사</b> 정확하면 수수료 +${won(500)}, 틀리면 손해 -${won(1000)}</p>
+    <div class="stage"><div class="card" id="card"></div>
+    <div class="choose"><button class="b" id="bB">압력 때문<small>보일 법칙</small></button><button class="c" id="bC">온도 때문<small>샤를 법칙</small></button></div>
+    <p class="why" id="why"></p></div></div>
+   <div id="stageB"></div>`,
+   `<h3>심사 현황</h3><p class="lock-guide">남은 신고서</p><div class="big" id="left">4</div>${withApps?'<p class="lock-guide">남은 가입 신청서</p><div class="big" id="left2">3</div>':''}<p class="msg" id="msg"></p>`,
+   withApps?['높이·깊이가 바뀌면 압력, 데우거나 식히면 온도 변화예요.','보험료는 사고 위험이 클 때 비싸게, 작을 때 싸게 정해요. 압력이나 온도가 크게 바뀌는 곳에 보관하면 위험이 커요.']
+           :['신고서에서 무엇이 달라졌는지 찾아보세요. 높이나 깊이인가요, 뜨겁고 차가움인가요?','산·하늘·물속·비행기처럼 높이나 깊이가 바뀌면 압력, 데우거나 식히면 온도예요.']);
+  function show(){const el=$('card');el.textContent=cards[deck[0]][0];el.classList.remove('in');void el.offsetWidth;el.classList.add('in');$('left').textContent=deck.length}
+  function choose(v){
+    if(lock)return;const id=deck[0];
+    if(cards[id][1]===v){deck.shift();money(i,'정확한 심사',500);$('why').className='why';$('why').textContent='정확한 심사예요!';
+      if(!deck.length){$('left').textContent=0;$('card').textContent='신고서 심사 끝!';$('bB').disabled=$('bC').disabled=true;setTimeout(()=>withApps?partB():openDoor(i),600)}else show()}
+    else{S.wrong[i]++;money(i,'잘못된 심사',-1000);hit($('card'));$('why').className='why bad';$('why').textContent='잘못 심사했어요. '+cards[id][2];
+      lock=true;$('bB').disabled=$('bC').disabled=true;
+      setTimeout(()=>{if(!$('bB'))return;deck.push(deck.shift());lock=false;$('bB').disabled=$('bC').disabled=false;show()},2200)}
+  }
+  $('bB').onclick=()=>choose('B');$('bC').onclick=()=>choose('C');show();
+  let ai=0;
+  function partB(){
+    $('stageA').style.display='none';
+    $('stageB').innerHTML=`<p class="q"><b>② 가입 신청서 보험료 정하기</b> 위험이 큰 고객에게 싸게 받으면 사고 때 보험금 ${won(2000)}을 물어 줘 손해예요. 위험이 작은 고객에게 비싸게 받으면 가입하지 않아요.</p><div id="apps"></div>`;
+    nextApp();
+  }
+  function nextApp(){
+    if($('left2'))$('left2').textContent=APPS.length-ai;
+    if(ai>=APPS.length){setTimeout(()=>openDoor(i),900);return}
+    const a=APPS[ai];
+    $('apps').insertAdjacentHTML('beforeend',`<div class="app-card" id="a${ai}"><p><b>${a.who}</b> · ${a.txt}</p>
+      <div class="opt-row"><button class="pick-btn" data-v="low">낮은 보험료<small>${won(1000)}</small></button><button class="pick-btn" data-v="high">높은 보험료<small>${won(3000)}</small></button></div></div>`);
+    document.querySelectorAll(`#a${ai} .pick-btn`).forEach(b=>b.onclick=()=>price(b.dataset.v));
+  }
+  function price(v){
+    const a=APPS[ai],box=$('a'+ai);
+    if(!box||box.dataset.done)return;box.dataset.done='1';
+    box.querySelectorAll('.pick-btn').forEach(b=>{b.disabled=true;if(b.dataset.v===v)b.classList.add('chosen')});
+    let amt,html;const prem=v==='high'?3000:1000;
+    if(a.risk==='high'){const pay=2000;amt=prem-pay;html=`${a.acc}<div class="calc">보험료 ${won(prem)} - 보험금 ${won(pay)} = <b>${sgn(amt)}</b></div>`}
+    else if(v==='low'){amt=1000;html=`${a.acc}<div class="calc">보험료 ${won(1000)} - 보험금 0원 = <b>${sgn(amt)}</b></div>`}
+    else{amt=0;html=`보험료가 너무 비싸다며 고객이 가입하지 않았어요.<div class="calc">수입 <b>0원</b></div>`}
+    const good=(a.risk==='high')===(v==='high');if(!good)S.wrong[i]++;
+    box.insertAdjacentHTML('beforeend',result(`${html}<span class="tip">위험도: ${a.risk==='high'?'높음':'낮음'}. ${a.why}</span>`,good));
+    ai++;setTimeout(nextApp,900);
+    try{if(amt!==0)money(i,`${a.who} 보험`,amt);else{S.ledger.push({room:i,label:`${a.who} 가입 실패`,amt:0});sfx.loss()}
+    if(amt<0)hit($('door'))}catch(e){console.warn(e)}
+  }
+}
+
+/* ===== 광고 심사실 ===== */
+const ROUNDS=[
+ {q:'과자 공장에 <b>질소 충전기</b>를 납품하려는 업체 4곳이에요. <b>기체를 눌러 압력을 높였을 때</b> 입자 모습을 바르게 설명한 정직한 업체는?',
+  start:{top:18,n:10,r:6,s:1},
+  opts:[{top:66,n:5,r:6,s:1,ad:'눌러서 입자를 없애 가볍게!',why:'누른다고 입자가 사라지지 않아요. 입자 수는 그대로예요.'},
+        {top:66,n:10,r:3,s:1,ad:'입자를 작게 압축해 드려요!',why:'입자의 크기는 변하지 않아요. 변하는 건 입자 사이의 거리예요.'},
+        {top:66,n:10,r:6,s:1,ok:true,ad:'입자 사이를 좁혀 담아요'},
+        {top:66,n:10,r:6,s:1,corner:true,ad:'입자를 한쪽에 모아 드려요!',why:'기체 입자는 한쪽에 몰리지 않고 공간 전체를 고르게 돌아다녀요.'}]},
+ {q:'열기구에 <b>버너</b>를 납품하려는 업체 4곳이에요. <b>압력을 일정하게 두고 풍선 속 공기를 데웠을 때</b> 입자 모습을 바르게 설명한 정직한 업체는?',
+  start:{top:66,n:10,r:6,s:.7},
+  opts:[{top:18,n:10,r:10,s:.7,ad:'데우면 입자가 커져요!',why:'데워도 입자의 크기는 커지지 않아요. 입자 사이의 거리가 멀어져요.'},
+        {top:18,n:10,r:6,s:2.4,ok:true,ad:'입자가 빨라지고 사이가 멀어져요'},
+        {top:18,n:18,r:6,s:.7,ad:'데우면 입자가 늘어나요!',why:'데운다고 입자가 새로 생기지 않아요. 입자 수는 그대로예요.'},
+        {top:18,n:10,r:6,s:.25,ad:'데우면 입자가 느긋해져요!',why:'데우면 입자 운동이 느려지는 게 아니라 빨라져요.'}]}
+];
+function roomAd(i){
+  const RS=MODE===30?ROUNDS:ROUNDS.slice(0,1);let round=0;
+  scaffold(i,`<p class="story">우리 과자 공장과 열기구에 기계를 납품하겠다는 업체들이 광고를 보냈어요. 과학적으로 틀린 <b>허위 광고</b>에 속아 계약하면 돈을 잃어요. 입자 모습을 보고 정직한 업체를 골라 계약하세요.</p><div id="scopeArea"></div><p class="why" id="why"></p>`,
+   `<h3>계약 현황</h3><div class="bulbs" id="bulbs"></div><p class="lock-guide">정직한 업체와 계약 +${won(2000)}<br>허위 광고에 속음 -${won(1000)}</p><p class="msg" id="msg"></p>`,
+   ['기체를 누르거나 데워도 입자의 수와 크기는 변하지 않아요.','누르면 입자 사이 거리가 가까워지고, 데우면 입자 운동이 빨라져 거리가 멀어져요.']);
+  function bulbs(){$('bulbs').innerHTML=['질소 충전기 계약','열기구 버너 계약'].slice(0,RS.length).map((t,k)=>`<div class="bulb ${k<round?'on':''} ${k===round?'now':''}"><i></i>${t}</div>`).join('')}
+  function makeView(cv,o){
+    const c=setup(cv,150,140),b=o.corner?{x0:12,x1:64,y0:90,y1:132}:{x0:12,x1:138,y0:o.top,y1:132};
+    const gas=new Gas(o.n,b,o.s);
+    return()=>{c.fillStyle='#eef3f1';c.fillRect(0,0,150,140);c.fillStyle='#fff';c.fillRect(12,o.top,126,132-o.top);
+      gas.step(b,o.r);gas.draw(c,o.r);c.strokeStyle='#7d8b90';c.lineWidth=2;c.strokeRect(12,o.top,126,132-o.top);
+      c.fillStyle='#8a979c';c.fillRect(12,o.top-7,126,7);c.fillStyle='#b3bec2';c.fillRect(71,0,8,o.top-7)};
+  }
+  function build(){
+    const R=RS[round];bulbs();$('why').textContent='';
+    $('scopeArea').innerHTML=`<p class="q">${R.q}</p><div class="scope"><div class="opt ref"><b>처음</b><canvas id="v0"></canvas></div>
+      ${R.opts.map((o,k)=>`<button class="opt" data-k="${k}"><b>${'ABCD'[k]}사</b><canvas id="v${k+1}"></canvas><span class="ad">“${o.ad}”</span></button>`).join('')}</div>`;
+    setLoops([makeView($('v0'),R.start),...R.opts.map((o,k)=>makeView($('v'+(k+1)),o))]);
+    document.querySelectorAll('button.opt').forEach(b=>b.onclick=()=>{
+      const o=R.opts[+b.dataset.k];if(b.classList.contains('nope'))return;
+      if(o.ok){b.classList.add('good');money(i,'정직한 업체와 계약',2000);$('why').className='why';$('why').textContent='정직한 업체예요! 입자의 수와 크기는 그대로예요.';
+        round++;bulbs();document.querySelectorAll('button.opt').forEach(x=>x.disabled=true);
+        setTimeout(()=>round>=RS.length?openDoor(i):build(),1600)}
+      else{S.wrong[i]++;money(i,'허위 광고에 속음',-1000);b.classList.add('nope');hit(b);$('why').className='why bad';$('why').textContent='허위 광고예요! '+o.why}
+    });
+  }
+  build();
+}
+
+/* ===== 투자 결정 ===== */
+const INV=[{k:'snack',name:'과자 공장 확장',icon:'과자'},{k:'balloon',name:'열기구 증설',icon:'열기구'},{k:'bank',name:'은행 예금',icon:'예금'}];
+const EVENTS={
+  cold:{name:'한파',law:'샤를 법칙',desc:'기온이 크게 떨어졌어요.',rate:{snack:.2,balloon:-.5,bank:.05},loser:'balloon',
+   why:{snack:'차가워지면 봉지 속 기체 부피가 줄어 터지는 사고가 없어 판매가 늘었어요.',balloon:'바깥이 차가우면 풍선 속 공기를 훨씬 더 데워야 부피가 커져서, 연료비가 크게 늘었어요.',bank:'예금은 날씨와 관계없이 약속한 이자를 받아요.'}},
+  hot:{name:'폭염',law:'샤를 법칙',desc:'기온이 크게 올랐어요.',rate:{snack:-.5,balloon:.2,bank:.05},loser:'snack',
+   why:{snack:'뜨거운 트럭 안에서 봉지 속 기체 부피가 커져 봉지가 줄줄이 터졌어요.',balloon:'휴가철 관광객이 몰려 예약이 꽉 찼어요.',bank:'예금은 날씨와 관계없이 약속한 이자를 받아요.'}},
+  road:{name:'고산 마을 배송',law:'보일 법칙',desc:'평지 공장에서 질소를 가득 채운 과자 봉지를 높은 산 마을까지 보내게 됐어요.',rate:{snack:-.4,balloon:.1,bank:.05},loser:'snack',
+   why:{snack:'높은 곳은 공기가 누르는 압력이 낮아 봉지 속 기체 부피가 커져서, 봉지가 줄줄이 터졌어요.',balloon:'새로 난 산길로 관광객이 늘어 예약이 조금 늘었어요.',bank:'예금은 날씨와 관계없이 약속한 이자를 받아요.'}}
+};
+const FORECASTS=[
+  {title:'겨울 예보',p:{cold:60,road:30,hot:10}},
+  {title:'여름 예보',p:{hot:60,road:30,cold:10}},
+  {title:'봄 예보',p:{road:50,cold:25,hot:25}}
+];
+function hashStr(t){let h=0;for(const ch of t)h=(h*31+ch.charCodeAt(0))>>>0;return h}
+function roomInvest(i){
+  const fund=Math.max(0,Math.min(6000,Math.floor(S.cash/1000)*1000));
+  const amt={snack:0,balloon:0,bank:0},ins={snack:false,balloon:false},premOf=k=>Math.round(amt[k]*.1);
+  const fc=FORECASTS[hashStr(sessionId(S.cls))%FORECASTS.length];
+  const evKeys=Object.keys(fc.p).sort((x,y)=>fc.p[y]-fc.p[x]);
+  const predict=MODE===30;
+  const fcHtml=`<div class="forecast"><b>${fc.title}</b> 다음 달에 일어날 일의 확률이에요.
+    <div class="fc-bars">${evKeys.map(k=>`<div class="fc-row"><span>${EVENTS[k].name}</span><i style="width:${fc.p[k]}%"></i><em>${fc.p[k]}%</em></div>`).join('')}</div></div>`;
+  scaffold(i,`<p class="story">회사 자산 중 <b>${won(fund)}</b>을 투자해 회사를 키우려고 해요. 아래 예보를 보고, 일이 일어나면 기체의 부피가 어떻게 바뀌어 각 사업에 어떤 영향을 줄지 따져 보세요.</p>
+   ${fcHtml}
+   ${predict?`<div id="predBox"><p class="q"><b>① 영향 예측</b> 각 일이 일어나면 <b>손해를 보는 사업</b>은?</p>
+     ${evKeys.map(k=>`<div class="pred" id="pr_${k}"><span class="pred-q">${EVENTS[k].name}</span><div class="pred-opts">${[['snack','과자 공장'],['balloon','열기구'],['none','손해 없음']].map(([v,t])=>`<button class="pick-btn" data-e="${k}" data-v="${v}">${t}</button>`).join('')}</div></div>`).join('')}</div>`:''}
+   <div id="invBox" ${predict?'class="hidden"':''}><p class="q"><b>${predict?'② ':''}투자하기</b> 1,000원 단위로 나눠 투자하세요.</p>
+   <div class="invest">${INV.map(o=>`<div class="inv-row"><span class="inv-name">${o.name}</span><button class="tool" data-k="${o.k}" data-d="-1">-</button><b id="iv_${o.k}">0원</b><button class="tool" data-k="${o.k}" data-d="1">+</button></div>`).join('')}
+   <p class="note" id="leftFund">남은 투자금 ${won(fund)}</p>
+   <p class="note">과자 공장과 열기구는 크게 벌거나 크게 잃을 수 있어요. 은행 예금은 이자가 적지만 언제나 안전해요.</p>
+   ${predict?`<div class="ins-box"><p><b>보험 가입</b> 보험료는 그 사업 투자금의 10%이고 회사 자산에서 따로 나가요. 그 사업이 손해를 보면 <b>손해를 전부</b> 보험금으로 돌려받아요.</p>
+     <div class="ins-row"><button class="ins-btn" data-k="snack">과자 공장 보험<small>가입 안 함</small></button><button class="ins-btn" data-k="balloon">열기구 보험<small>가입 안 함</small></button></div></div>`:''}
+   <label class="reason-l" for="reason">예보와 기체의 성질을 근거로, 왜 이렇게 나눴는지 한 문장으로 써 보세요.</label>
+   <input id="reason" maxlength="90" placeholder="예: 한파 확률이 높은데 추우면 풍선 속 공기를 더 데워야 해서 열기구는 줄였다"></div></div>`,
+   `<h3>투자 결과</h3><div id="invRes"><p class="lock-guide">${predict?'영향을 예측하고,<br>':''}투자금을 모두 나누고<br>이유를 쓴 뒤 결정하세요.</p></div><button class="btn" id="decide" disabled>투자 결정</button><p class="msg" id="msg"></p>`,
+   ['추워지면 기체 부피는 줄고, 더워지면 커져요(샤를 법칙). 높은 곳은 압력이 낮아 부피가 커져요(보일 법칙). 각 사업이 어떤 영향을 받을지 생각해 보세요.','확률이 높은 일에서 손해 보는 사업에는 적게, 이득 보는 사업에는 많이 투자하되, 혹시 모를 일에 대비해 한 곳에 몰지 않는 게 좋아요.']);
+  if(predict){
+    let done=0;
+    document.querySelectorAll('.pred .pick-btn').forEach(b=>b.onclick=()=>{
+      const k=b.dataset.e,row=$('pr_'+k),ok=b.dataset.v===EVENTS[k].loser;
+      row.querySelectorAll('.pick-btn').forEach(x=>{x.disabled=true;if(x===b)x.classList.add('chosen')});
+      if(!ok)S.wrong[i]++;
+      const right={snack:'과자 공장',balloon:'열기구',none:'손해 없음'}[EVENTS[k].loser];
+      row.insertAdjacentHTML('beforeend',`<p class="pred-fb ${ok?'ok':'no'}">${ok?'맞아요!':`정답은 ${right}.`} ${EVENTS[k].why[EVENTS[k].loser]} (${EVENTS[k].law})</p>`);
+      ok?sfx.coin():sfx.loss();
+      if(++done===evKeys.length)setTimeout(()=>{
+        const lab=r=>r<=-.4?'<span class="dn">▼▼ 크게 손해</span>':r<0?'<span class="dn">▼ 손해</span>':r===0?'변화 없음':r<.15?'<span class="up">▲ 조금 이득</span>':'<span class="up">▲▲ 이득</span>';
+        $('predBox').insertAdjacentHTML('beforeend',`<p class="q"><b>영향 정리</b> 예측을 확인했어요. 각 일이 일어나면 사업은 이렇게 돼요.</p>
+          <table class="impact"><tr><th>일 (확률)</th>${INV.map(o=>`<th>${o.icon}</th>`).join('')}</tr>${evKeys.map(k=>`<tr><td>${EVENTS[k].name} (${fc.p[k]}%)</td>${INV.map(o=>`<td>${lab(EVENTS[k].rate[o.k])}</td>`).join('')}</tr>`).join('')}</table>`);
+        $('invBox').classList.remove('hidden');$('invBox').scrollIntoView({behavior:'smooth',block:'start'})},600);
+    });
+  }
+  const left=()=>fund-amt.snack-amt.balloon-amt.bank;
+  function insLabel(){document.querySelectorAll('.ins-btn').forEach(b=>{const k=b.dataset.k;b.querySelector('small').textContent=ins[k]?`가입함 · 보험료 ${won(premOf(k))}`:`가입 안 함 · 보험료 ${won(premOf(k))}`})}
+  function upd(){insLabel();INV.forEach(o=>$('iv_'+o.k).textContent=won(amt[o.k]));$('leftFund').textContent='남은 투자금 '+won(left());$('decide').disabled=!(left()===0&&$('reason').value.trim().length>=8)}
+  document.querySelectorAll('.inv-row .tool').forEach(b=>b.onclick=()=>{const k=b.dataset.k,d=+b.dataset.d*1000;if(d>0&&left()<1000)return;if(d<0&&amt[k]<1000)return;amt[k]+=d;sfx.click();upd()});
+  document.querySelectorAll('.ins-btn').forEach(b=>b.onclick=()=>{const k=b.dataset.k;ins[k]=!ins[k];b.classList.toggle('on',ins[k]);insLabel();sfx.click()});
+  $('reason').oninput=upd;
+  if(fund===0){$('invRes').innerHTML='<p class="lock-guide">투자할 자산이 없어요. 이유만 쓰고 넘어가요.</p>';$('decide').disabled=false}
+  $('decide').onclick=()=>{
+    if(fund>0&&(left()!==0||$('reason').value.trim().length<8))return;
+    S.reason=$('reason').value.trim()||'(투자 없음)';
+    document.querySelectorAll('.inv-row .tool,.ins-btn').forEach(b=>b.disabled=true);$('reason').disabled=true;$('decide').disabled=true;
+    let r=Math.random()*100,key=evKeys[evKeys.length-1];for(const k of evKeys){if(r<fc.p[k]){key=k;break}r-=fc.p[k]}
+    const ev=EVENTS[key];S.event=ev.name;
+    let total=0,premTot=0,payTot=0;const insUsed=predict&&(ins.snack||ins.balloon);
+    const rows=INV.map(o=>{const v=Math.round(amt[o.k]*ev.rate[o.k]);total+=v;
+      const has=insUsed&&ins[o.k],prem=has?premOf(o.k):0,pay=has&&v<0?-v:0;premTot+=prem;payTot+=pay;
+      const net=v-prem+pay;
+      return `<tr><td>${o.name}</td><td>${won(amt[o.k])}</td><td>${(ev.rate[o.k]>0?'+':'')+Math.round(ev.rate[o.k]*100)}%</td><td class="${v<0?'neg':'pos'}">${sgn(v)}</td>${predict?`<td>${prem?'-'+won(prem):'-'}</td><td>${pay?'+'+won(pay):'-'}</td><td class="${net<0?'neg':'pos'}">${sgn(net)}</td>`:''}</tr>`}).join('');
+    const spread=INV.filter(o=>amt[o.k]>0).length;
+    let insTip='';
+    if(predict){
+      const saved=INV.filter(o=>ins[o.k]&&amt[o.k]*ev.rate[o.k]<0),wasted=INV.filter(o=>ins[o.k]&&!(amt[o.k]*ev.rate[o.k]<0)),bare=INV.filter(o=>!ins[o.k]&&o.k!=='bank'&&amt[o.k]*ev.rate[o.k]<0);
+      if(saved.length)insTip+=`${saved.map(o=>o.icon).join(', ')} 보험 덕분에 손해를 보험금으로 돌려받았어요. 보험료만 내고 큰 손해를 막았어요. `;
+      if(wasted.length)insTip+=`${wasted.map(o=>o.icon).join(', ')} 보험은 손해가 없어서 보험료만 나갔어요. 보험은 안 쓰면 아까워 보여도 큰 손해를 막아 주는 장치예요. `;
+      if(bare.length)insTip+=`${bare.map(o=>o.icon).join(', ')}에 보험이 없어 손해를 그대로 떠안았어요. `;
+    }
+    $('invRes').innerHTML=`<div class="event">${ev.name}!<small>${ev.desc} (예보 확률 ${fc.p[key]}%)</small></div>
+      <table class="pl wide"><tr><th>사업</th><th>투자</th><th>수익률</th><th>손익</th>${predict?'<th>보험료</th><th>보험금</th><th>합계</th>':''}</tr>${rows}</table>
+      <ul class="evwhy">${INV.map(o=>`<li><b>${o.icon}</b> ${ev.why[o.k]}</li>`).join('')}</ul>
+      <p class="tip">${fc.p[key]<30?'확률이 낮은 일이 일어났어요. 그래서 대비가 중요해요. ':''}${spread>=2?'여러 곳에 나눠 투자해서 큰 손실을 피했어요. ':'한 곳에 몰아서 투자했어요. 다른 일이 일어났다면 결과가 어땠을까요? '}${insTip}</p>`;
+    if(fund>0){if(total-premTot+payTot<0)S.wrong[i]++;money(i,`투자 손익 (${ev.name})`,total);
+      if(premTot)money(i,'보험료',-premTot);if(payTot)money(i,'보험금',payTot)}
+    $('decide').textContent='다음으로';$('decide').disabled=false;$('decide').onclick=()=>openDoor(i);
+  };
+  upd();
+}
+
+/* ===== 투자 설명회 ===== */
+const FRAMES=[
+  {k:'f1',title:'높은 산으로 보내도 과자 봉지가 안 터지나요?',law:'보일',parts:['높은 산에서 달라지는 것은 ',['압력','온도'],'이고, 그 값이 ',['낮아져서','높아져서'],' 봉지 속 입자 사이의 거리가 ',['멀어지고','가까워지고'],' 봉지의 부피가 ',['커진다','작아진다'],'. 그래서 우리 회사는 ',['도착지 압력을 계산해 질소 양을 맞추므로','질소를 최대한 많이 넣으므로'],' 봉지가 터지지 않아 믿고 투자할 만하다.']},
+  {k:'f2',title:'한여름에 배송해도 과자 봉지가 괜찮나요?',law:'샤를',parts:['폭염에 달라지는 것은 ',['온도','압력'],'이고, 그 값이 ',['높아져서','낮아져서'],' 봉지 속 입자의 운동이 ',['빨라지고','느려지고'],' 봉지의 부피가 ',['커진다','작아진다'],'. 그래서 우리 회사는 ',['여름에는 냉장 트럭으로 배송하므로','여름에는 질소를 더 많이 넣으므로'],' 봉지가 터지지 않아 믿고 투자할 만하다.']},
+  {k:'f5',title:'공장에서 질소를 눌러 담아도 과자에 문제없나요?',law:'보일',parts:['공장에서 질소를 눌러 담으면 달라지는 것은 ',['압력','온도'],'이고, 입자의 수와 크기는 ',['변하지 않으며','줄어들며'],' 입자 사이의 거리가 ',['가까워져','멀어져'],' 부피가 ',['작아진다','커진다'],'. 그래서 우리 회사는 ',['입자 크기가 변하지 않는다고 정직하게 알리므로','입자를 작게 압축한다고 광고하므로'],' 고객이 믿을 수 있어 투자할 만하다.']},
+  {k:'f3',title:'열기구는 어떻게 하늘로 떠오르나요?',law:'샤를',parts:['버너로 데우면 달라지는 것은 ',['온도','압력'],'이고, 풍선 속 입자의 운동이 ',['빨라져','느려져'],' 입자 사이의 거리가 ',['멀어지고','가까워지고'],' 풍선의 부피가 ',['커져서','작아져서'],' 떠오른다. 그래서 우리 회사는 ',['꼭 필요한 온도까지만 데워 연료비를 아끼므로','최대한 뜨겁게 데워 크게 띄우므로'],' 이익을 남길 수 있어 믿고 투자할 만하다.']},
+  {k:'f4',title:'추운 겨울에도 열기구 사업이 손해를 안 보나요?',law:'샤를',parts:['한파에 달라지는 것은 ',['온도','압력'],'이고, 그 값이 ',['낮아져서','높아져서'],' 풍선 속 입자 사이의 거리가 ',['가까워지고','멀어지고'],' 부피가 ',['작아지므로','커지므로'],' 연료가 더 든다. 그래서 우리 회사는 ',['겨울에는 연료비를 미리 더 준비하므로','겨울에도 연료를 똑같이 준비하므로'],' 손해를 막을 수 있어 믿고 투자할 만하다.']}
+];
+function frameText(f){return f.parts.map(x=>Array.isArray(x)?x[0]:x).join('')}
+function roomPitch(i){
+  S.room=i;renderDoors();window.scrollTo(0,0);setLoops([]);sync();
+  let taken={},unW=()=>{},pick=null;
+  app.innerHTML=`<section class="final paper"><p class="room-name">${i+1}번 부서</p><h2>모둠 투자 설명회</h2>
+    <p class="story">투자자들이 우리 회사에 질문을 했어요. 모둠원이 <b>질문을 하나씩 나눠 맡아</b> 과학으로 답하면, 그 답들이 모여 우리 모둠의 투자 설명서가 돼요. 아직 아무도 맡지 않은 질문을 하나 고르세요.</p>
+    <div class="frames" id="frames"></div>
+    <div id="work"></div>
+    <div class="term"><b>오늘의 금융 용어: ${TERMS.pitch[0]}</b> ${TERMS.pitch[1]}</div></section>`;
+  function drawFrames(){
+    if(!$('frames'))return;
+    const full=FRAMES.every(f=>taken[f.k]);
+    $('frames').innerHTML=(full&&!pick?'<p class="note" style="grid-column:1/-1">모든 질문을 모둠원이 맡았어요. 친구와 같은 질문을 골라 함께 답해도 돼요.</p>':'')+FRAMES.map(f=>{const who=taken[f.k];const mine=pick&&pick.k===f.k;
+      return `<button class="frame-btn ${mine?'on':''}" data-k="${f.k}" ${(who&&!mine&&!full)||pick?'disabled':''}><b>Q. ${f.title}</b><small>${mine?'내가 맡음':who?esc(who)+' 맡음':f.law+' 법칙'}</small></button>`}).join('');
+    document.querySelectorAll('.frame-btn').forEach(b=>b.onclick=()=>choose(FRAMES.find(f=>f.k===b.dataset.k)));
+  }
+  if(Net.ok)unW=Net.watch(sessionId(S.cls),list=>{taken={};list.filter(p=>p.team==+S.team&&p.num!=+S.num&&p.frame).forEach(p=>taken[p.frame]=p.num+'번 '+p.name);drawFrames()},()=>{});
+  drawFrames();
+  function choose(f){
+    pick=f;S.frame=f.k;sync();drawFrames();sfx.click();
+    const order=f.parts.map(x=>Array.isArray(x)?shuffle(x):null);
+    $('work').innerHTML=`<div class="fill"><p class="inv-q">투자자 질문: ${f.title}</p><p class="q"><b>1단계</b> 빈칸을 눌러 알맞은 말을 골라 답을 완성하세요.</p>
+      <p class="fill-s">${f.parts.map((x,j)=>Array.isArray(x)?`<select class="blank" data-j="${j}"><option value="">고르기 ▾</option>${order[j].map(o=>`<option>${o}</option>`).join('')}</select>`:esc(x)).join('')}</p>
+      <p class="msg" id="fmsg" style="color:var(--danger)"></p><button class="btn" id="check1">문장 확인</button></div><div id="step2"></div>`;
+    $('check1').onclick=()=>{
+      let bad=0,empty=0;
+      document.querySelectorAll('.blank').forEach(sel=>{const ans=f.parts[+sel.dataset.j][0];sel.classList.remove('wrong','right');
+        if(!sel.value){empty++;return}if(sel.value!==ans){bad++;sel.classList.add('wrong')}else sel.classList.add('right')});
+      if(empty){$('fmsg').textContent='빈칸을 모두 골라 주세요.';return}
+      if(bad){S.wrong[i]++;sfx.loss();$('fmsg').textContent=`빨간 칸 ${bad}개가 틀렸어요. 다시 골라 보세요.`;return}
+      $('fmsg').textContent='';document.querySelectorAll('.blank').forEach(x=>x.disabled=true);$('check1').remove();
+      S.product=f.title;S.explain=frameText(f);
+      money(i,'투자 유치',1000);
+      $('step2').innerHTML=`<div class="fill"><p class="q"><b>2단계 (도전)</b> 다른 제품이나 상황 하나를 골라 <b>내 말로</b> 입자를 넣어 설명해 보세요. 선생님이 읽어 보고 <b>과학적으로 정확한 설명</b>에는 보너스 ${won(1000)}을 줘요.</p>
+        <textarea id="ex" maxlength="200" placeholder="예: 겨울에 바깥에 둔 풍선은 온도가 낮아져 입자의 운동이 느려지고..."></textarea><div class="count"><span id="cnt">0</span>/200</div>
+        <p class="msg" id="fmsg2" style="color:var(--danger)"></p>
+        <div class="actions-row"><button class="btn" id="bonus">도전 설명 내고 결산하기</button><button class="btn ghost" id="skip">여기서 결산하기</button></div></div>`;
+      const ex=$('ex');ex.oninput=()=>$('cnt').textContent=ex.value.length;
+      $('bonus').onclick=()=>{if(ex.value.trim().length<15){$('fmsg2').textContent='15자 이상 써 주세요. 어렵다면 "여기서 결산하기"를 눌러도 돼요.';return}
+        S.extra=ex.value.trim();unW();finish()};
+      $('skip').onclick=()=>{unW();finish()};
+      $('step2').scrollIntoView({behavior:'smooth',block:'start'});
+    };
+  }
+}
+
+const $=id=>document.getElementById(id);
+window.addEventListener('error',ev=>{try{const d=document.createElement('div');d.className='errbox';d.textContent='오류가 생겼어요: '+(ev.message||'')+' (이 화면을 선생님께 보여 주세요)';document.body.appendChild(d);setTimeout(()=>d.remove(),8000)}catch(e){}});
+const app=$('app');
+const START_CASH=10000, HINT_COST=1000;
+const S={cls:'',team:'',num:'',name:'',start:0,end:0,room:-1,cash:START_CASH,ledger:[],wrong:Array(N).fill(0),hints:Array(N).fill(0),product:'',explain:'',reason:'',event:''};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=ms=>{const t=Math.floor(ms/1000);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
+const won=n=>(n<0?'-':'')+Math.abs(n).toLocaleString('ko-KR')+'원';
+const sgn=n=>(n>0?'+':'')+won(n);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* 소리 */
+let muted=false,AC=null;
+function tone(f,d,type='sine',v=.07,delay=0){if(muted)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime+delay,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.03)}catch(e){}}
+const sfx={click:()=>tone(520,.05,'square',.025),coin:()=>{tone(988,.08,'square',.04);tone(1319,.2,'square',.04,.08)},loss:()=>{tone(220,.18,'sawtooth',.05);tone(160,.3,'sawtooth',.05,.15)},open:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.2,'triangle',.07,i*.09))};
+$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'소리 끔':'소리 켬'};
+
+/* 애니메이션 */
+let loops=[],raf=null;
+function frame(){loops.forEach(f=>f());raf=requestAnimationFrame(frame)}
+function setLoops(a){loops=a;if(!raf)raf=requestAnimationFrame(frame)}
+function setup(el,w,h){const d=Math.min(window.devicePixelRatio||1,2);el.width=w*d;el.height=h*d;el.style.width='100%';el.style.maxWidth=w+'px';el.style.height='auto';const c=el.getContext('2d');c.scale(d,d);return c}
+class Gas{
+  constructor(n,b,speed){this.p=[];for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2;this.p.push({x:b.x0+Math.random()*(b.x1-b.x0),y:b.y0+Math.random()*(b.y1-b.y0),vx:Math.cos(a)*speed,vy:Math.sin(a)*speed})}}
+  step(b,r,mul=1){for(const p of this.p){p.x+=p.vx*mul;p.y+=p.vy*mul;
+    if(p.x<b.x0+r){p.x=b.x0+r;p.vx=Math.abs(p.vx)}if(p.x>b.x1-r){p.x=b.x1-r;p.vx=-Math.abs(p.vx)}
+    if(p.y<b.y0+r){p.y=b.y0+r;p.vy=Math.abs(p.vy)}if(p.y>b.y1-r){p.y=b.y1-r;p.vy=-Math.abs(p.vy)}}}
+  draw(c,r,col='#2f5d73'){c.fillStyle=col;for(const p of this.p){c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fill()}}
+}
+
+/* 돈 */
+function money(room,label,amt){
+  S.cash+=amt;S.ledger.push({room,label,amt});
+  $('cash').textContent=won(S.cash);$('cashBox').classList.toggle('neg',S.cash<START_CASH);
+  const f=document.createElement('span');f.className='pop '+(amt>=0?'up':'down');f.textContent=sgn(amt);$('cashBox').appendChild(f);setTimeout(()=>f.remove(),1400);
+  try{amt>=0?sfx.coin():sfx.loss()}catch(e){}
+  try{sync()}catch(e){console.warn(e)}
+}
+function roomSum(i){return S.ledger.filter(l=>l.room===i).reduce((a,l)=>a+l.amt,0)}
+
+/* 공통 */
+function renderDoors(){$('doors').innerHTML=ROOM_NAMES.map((n,i)=>`<li class="${i<S.room?'done':i===S.room?'now':''}" title="${n}">${i+1}</li>`).join('')}
+renderDoors();
+let tick=null;
+function scaffold(i,left,right,hints){
+  S.room=i;renderDoors();window.scrollTo(0,0);setLoops([]);sync();
+  app.innerHTML=`<section class="room"><div class="paper"><p class="room-name">${i+1}번 부서</p><h2>${ROOM_NAMES[i]}</h2>${left}
+    <div class="hints"><button class="hint-btn" id="hintBtn">힌트 사기 (${won(HINT_COST)}) 0/2</button><div id="hintBox"></div></div></div>
+    <div class="door" id="door"><div class="hazard"></div><div class="door-in">${right}</div></div></section>`;
+  let shown=0;
+  $('hintBtn').onclick=()=>{
+    if(shown>=2)return;
+    money(i,`힌트 ${shown+1} 구매`,-HINT_COST);
+    $('hintBox').insertAdjacentHTML('beforeend',`<p class="hint">힌트 ${shown+1}. ${hints[shown]}</p>`);
+    shown++;S.hints[i]=shown;$('hintBtn').textContent=`힌트 사기 (${won(HINT_COST)}) ${shown}/2`;if(shown>=2)$('hintBtn').disabled=true;
+  };
+}
+function setMsg(t,bad){const m=$('msg');if(!m)return;m.innerHTML=t;m.className='msg'+(bad?' bad':'')}
+function hit(el,cls='shake'){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls)}
+function openDoor(i){
+  sfx.open();const s=roomSum(i),tm=TERMS[PLAN[i]];
+  $('door').insertAdjacentHTML('beforeend',`<div class="opened"><h3>부서 결산</h3><p class="big-num">${sgn(s)}</p>
+    <div class="term-card"><b>오늘의 금융 용어</b><span class="tname">${tm[0]}</span><span>${tm[1]}</span></div>
+    <button class="btn" id="next">${i===N-1?'결산하기':'다음 부서로'}</button></div>`);
+  $('next').onclick=()=>go(i+1);$('next').focus({preventScroll:true});$('door').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function result(html,good){return `<div class="result ${good?'ok':'no'}">${html}</div>`}
+
+
+/* ===== 기록 보내기 ===== */
+function sync(done=false){
+  if(!Net.ok||!S.num)return;
+  const d={num:+S.num,name:S.name,team:+S.team,room:done?N+1:S.room+1,total:N,mode:MODE,frame:S.frame||'',escaped:done,cash:S.cash,
+    wrong:S.wrong.reduce((a,b)=>a+b,0),hints:S.hints.reduce((a,b)=>a+b,0),start:S.start,updated:Date.now()};
+  if(done)Object.assign(d,{end:S.end,time:S.end-S.start,caseText:S.product,explain:S.explain,extra:S.extra||'',reason:S.reason,event:S.event,ledger:S.ledger});
+  Net.save(sessionId(S.cls),S.num,d).then(()=>netState(true)).catch(e=>{console.warn(e);netState(false,'저장 실패')});
+}
+function netState(on,txt){const n=$('net');n.className='net '+(on?'on':'offline');n.textContent=txt||(on?'순위판 연결됨':'순위판 미연결')}
+let unTeam=()=>{};
+function stopTeam(){unTeam();unTeam=()=>{}}
+function watchTeam(){
+  const box=$('teamBox');
+  if(!Net.ok){box.innerHTML='<h3>우리 모둠 현황</h3><p>순위판에 연결되지 않아 모둠 현황을 볼 수 없어요.</p>';return}
+  unTeam=Net.watch(sessionId(S.cls),list=>{
+    if(!$('teamBox'))return stopTeam();
+    const mem=list.filter(p=>p.team==+S.team).sort((a,b)=>a.num-b.num),left=mem.filter(p=>!p.escaped);
+    box.innerHTML=`<h3>${S.team}모둠 현황 (${mem.length-left.length}/${mem.length}명 결산 완료)</h3>
+      <ul>${mem.map(p=>`<li class="${p.escaped?'done':''}">${p.num}번 ${esc(p.name)}: ${p.escaped?'결산 완료 '+won(p.cash):p.room+'번 부서'}</li>`).join('')}</ul>
+      ${MODE===30?`<div class="team-pitch"><b>우리 모둠 투자 설명서</b>${mem.filter(p=>p.escaped&&p.explain).map(p=>`<p><b>Q. ${esc(p.product)}</b><br>A. ${esc(p.explain)} <small>(${p.num}번)</small></p>`).join('')||'<p>아직 모인 문장이 없어요.</p>'}</div>`:''}
+      ${left.length?'<p class="rule">모둠원 전원이 결산을 마쳐야 모둠 기록이 인정돼요. 아직 못 끝낸 친구를 도와주세요. 단, 친구 화면은 만지지 말고 말로만 설명하기!</p>':'<p style="color:var(--ok);margin:10px 0 0">모둠원 모두 결산을 마쳤어요!</p>'}`;
+  },()=>{box.innerHTML='<h3>우리 모둠 현황</h3><p>모둠 현황을 불러오지 못했어요.</p>'});
+}
+
+/* ===== 회사 안내서 ===== */
+const DEPT={
+  factory:['높은 곳으로 배송할 과자 봉지에 질소를 알맞게 넣어요.','보일 법칙'],
+  balloon:['연료를 아끼면서 손님을 태울 만큼 열기구를 띄워요.','샤를 법칙'],
+  insure:[MODE===30?'우리 회사 보험 사업부예요. 피해 원인을 심사하고, 고객의 보험료를 정해요.':'우리 회사 보험 사업부예요. 고객의 피해 원인을 심사해요.','보일·샤를 법칙'],
+  ad:['우리 공장과 열기구에 기계를 납품하려는 업체 중 정직한 곳을 골라요.','입자 모형'],
+  invest:['날씨 예보를 보고 두 사업과 예금에 나눠 투자해요.','보일·샤를 법칙'],
+  pitch:['모둠원이 한 문장씩 맡아 투자자를 설득해요.','입자 모형']
+};
+function guideHTML(){
+  return `<div class="guide"><h2>기체 주식회사 안내서</h2>
+    <p class="g-lead">기체 주식회사는 <b>질소 포장 과자</b>와 <b>열기구 관광</b>, 두 사업을 하는 회사예요. 두 사업 모두 기체의 성질을 잘 알아야 돈을 벌 수 있어요. 과자 봉지는 압력이 바뀌면, 열기구는 온도가 바뀌면 부피가 달라지거든요.</p>
+    <div class="biz"><div><b>과자 사업</b><span>질소를 넣은 과자 봉지를 여러 곳에 배송해요</span></div><div><b>열기구 사업</b><span>공기를 데워 손님을 태우고 하늘을 날아요</span></div></div>
+    <h3>부서 지도</h3>
+    <div class="depts">${PLAN.map((k,j)=>`<div class="dept"><em>${j+1}</em><b>${NAMES[k]}${k==='pitch'?'':''}</b><span>${DEPT[k][0]}</span><small>${DEPT[k][1]}</small></div>`).join('')}</div>
+    <h3>돈 규칙</h3>
+    <ul class="g-rules"><li>자본금 ${won(START_CASH)}으로 시작해요.</li><li>정확한 판단은 이익, 틀린 판단은 손해가 돼요. 한 번 내린 결정은 되돌릴 수 없어요.</li><li>힌트는 한 번에 ${won(HINT_COST)}이에요.</li><li>부서가 끝날 때마다 그 부서의 손익과 <b>오늘의 금융 용어</b>를 알려 줘요.</li><li>모둠원 전원이 결산을 마치면, 1인당 평균 자산이 많은 모둠이 이겨요.</li></ul></div>`;
+}
+function showGuide(){
+  window.scrollTo(0,0);
+  app.innerHTML=`<section class="paper guide-wrap">${guideHTML()}<button class="btn" id="startWork">업무 시작</button></section>`;
+  $('startWork').onclick=()=>{
+    S.start=Date.now();sfx.open();$('guideBtn').classList.remove('hidden');
+    tick=setInterval(()=>{$('timer').textContent=fmt(Date.now()-S.start)},500);go(0);
+  };
+}
+$('guideBtn').onclick=()=>{
+  if($('gmodal'))return;
+  document.body.insertAdjacentHTML('beforeend',`<div class="gmodal" id="gmodal"><div class="paper guide-wrap">${guideHTML()}<button class="btn ghost" id="gclose">닫기</button></div></div>`);
+  $('gclose').onclick=()=>$('gmodal').remove();$('gmodal').onclick=e=>{if(e.target.id==='gmodal')$('gmodal').remove()};
+};
+
+/* ===== 시작 ===== */
+function startScreen(){
+  S.room=-1;renderDoors();setLoops([]);clearInterval(tick);$('guideBtn').classList.add('hidden');$('timer').textContent='00:00';$('cash').textContent=won(START_CASH);$('cashBox').classList.remove('neg');
+  app.innerHTML=`<section class="start paper"><h2>기체 주식회사를 살려라</h2><p class="mode-badge">${MODE}분 수업용</p>
+   <div class="alarm-strip">긴급! 회사가 파산 직전이에요</div>
+   <p>여러분은 오늘부터 기체 주식회사의 새 사장이에요. 자본금 ${won(START_CASH)}으로 시작해 ${N}개 부서를 돌며 보일 법칙과 샤를 법칙으로 회사를 살려 내세요. 과학을 정확히 알수록 돈을 벌고, 틀리면 손해를 봐요.</p>
+   <div class="fields">
+    <label>반<select id="cls">${[1,2,3,4,5].map(n=>`<option>${n}</option>`).join('')}</select></label>
+    <label>모둠<select id="team">${[1,2,3,4,5,6,7,8].map(n=>`<option>${n}</option>`).join('')}</select></label>
+    <label>번호<input id="num" type="number" min="1" max="40" inputmode="numeric"></label>
+    <label>이름<input id="nm" type="text" maxlength="10"></label></div>
+   <ul class="rules">
+    <li>정확한 판단은 이익, 틀린 판단은 손해가 돼요. 한 번 내린 결정은 되돌릴 수 없어요.</li>
+    <li>힌트는 한 번에 ${won(HINT_COST)}이에요. 사기 전에 한 번 더 생각해 보세요.</li>
+    <li>모둠원 전원이 결산을 마치면, 1인당 평균 자산이 많은 모둠이 이겨요.</li></ul>
+   <p class="msg" id="startMsg" style="color:var(--danger)"></p>
+   <button class="btn" id="go">출근하기</button></section>`;
+  $('go').onclick=()=>{
+    const num=$('num').value.trim(),nm=$('nm').value.trim();
+    if(!num||!nm){$('startMsg').textContent='번호와 이름을 모두 써 주세요.';return}
+    Object.assign(S,{cls:$('cls').value,team:$('team').value,num,name:nm,start:Date.now(),end:0,cash:START_CASH,ledger:[],wrong:Array(N).fill(0),hints:Array(N).fill(0),explain:'',reason:'',product:'',event:'',frame:'',extra:''});
+    sfx.click();showGuide();
+  };
+}
+
+/* ===== 결산서 ===== */
+function wrapLines(x,text,maxW){const lines=[];let line='';for(const ch of text){if(ch==='\n'){lines.push(line);line='';continue}if(x.measureText(line+ch).width>maxW){lines.push(line);line=ch}else line+=ch}if(line)lines.push(line);return lines}
+function drawCert(){
+  const c=document.createElement('canvas');c.width=1200;c.height=900;const x=c.getContext('2d');
+  const profit=S.cash-START_CASH;
+  x.fillStyle='#fffdf5';x.fillRect(0,0,1200,900);
+  x.fillStyle='#2f5d73';x.fillRect(0,0,1200,30);
+  x.fillStyle='#2f5d73';x.font='54px Jua, sans-serif';x.fillText('기체 주식회사 결산서',60,105);
+  x.fillStyle='#1f2a2e';x.font='28px "Gowun Dodum", sans-serif';x.fillText(`${S.cls}반 ${S.team}모둠 ${S.num}번 ${S.name} 사장`,60,155);
+  x.fillText(`근무 시간 ${fmt(S.end-S.start)} · ${MODE}분 수업 · ${S.event||''}`,60,197);
+  x.font='24px "Gowun Dodum", sans-serif';x.fillStyle='#5b6a6f';x.fillText('부서',60,255);x.fillText('손익',400,255);x.fillText('오답',540,255);x.fillText('힌트',630,255);
+  x.strokeStyle='#ddd5bf';x.lineWidth=2;
+  const rh=N>5?34:40;
+  for(let k=0;k<N;k++){const y=297+k*rh;x.beginPath();x.moveTo(60,y-26);x.lineTo(700,y-26);x.stroke();const s=roomSum(k);
+    x.fillStyle='#1f2a2e';x.fillText(`${k+1}. ${ROOM_NAMES[k]}`,60,y);x.fillStyle=s<0?'#c9452f':'#2b8f60';x.fillText(sgn(s),400,y);
+    x.fillStyle='#1f2a2e';if(PLAN[k]!=='pitch'){x.fillText(S.wrong[k]+'번',540,y);x.fillText(S.hints[k]+'개',630,y)}}
+  const yb=297+N*rh-16;x.beginPath();x.moveTo(60,yb);x.lineTo(700,yb);x.stroke();
+  x.font='26px Jua, sans-serif';x.fillStyle='#1f2a2e';x.fillText(`자본금 ${won(START_CASH)} → 최종 자산 ${won(S.cash)}`,60,yb+38);
+  x.save();x.translate(950,330);x.rotate(-.15);const col=profit>=0?'#2b8f60':'#c9452f';x.strokeStyle=col;x.lineWidth=7;x.beginPath();x.arc(0,0,125,0,Math.PI*2);x.stroke();
+  x.lineWidth=3;x.beginPath();x.arc(0,0,108,0,Math.PI*2);x.stroke();x.fillStyle=col;x.textAlign='center';
+  x.font='56px Jua, sans-serif';x.fillText(profit>=0?'흑자':'적자',0,0);x.font='28px Jua, sans-serif';x.fillText(sgn(profit),0,44);x.restore();
+  x.fillStyle='#2f5d73';x.font='28px Jua, sans-serif';x.fillText(S.product.startsWith('투자 이유')?'투자 이유':'투자 설명서',60,575);
+  x.fillStyle='#5b6a6f';x.font='22px "Gowun Dodum", sans-serif';x.fillText(S.product.startsWith('투자 이유')?S.product:'제품: '+S.product,60,612);
+  x.fillStyle='#f3efe2';x.fillRect(60,630,1080,172);
+  x.fillStyle='#1f2a2e';x.font='26px "Gowun Dodum", sans-serif';wrapLines(x,S.explain+(S.extra?'\n도전: '+S.extra:''),1040).slice(0,4).forEach((l,k)=>x.fillText(l,80,674+k*38));
+  x.fillStyle='#5b6a6f';x.font='22px "Gowun Dodum", sans-serif';x.fillText('배운 금융 용어: '+PLAN.map(k=>TERMS[k][0]).join(', '),60,850);
+  const d=new Date(S.end);x.textAlign='right';x.font='20px "Gowun Dodum", sans-serif';x.fillText(`${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`,1140,850);
+  return c;
+}
+async function certificate(){
+  try{await document.fonts.ready}catch(e){}
+  const profit=S.cash-START_CASH;
+  app.innerHTML=`<section class="cert"><h2 style="font-size:40px">${profit>=0?'회사를 살려 냈어요!':'아쉽게 적자예요'}</h2><p>결산서를 저장해서 제출하세요.</p><div id="cv"></div>
+    <div class="actions"><button class="btn" id="save">이미지 저장하기</button><button class="btn ghost" id="again">처음부터 다시</button></div><p class="msg" id="smsg"></p><div class="team" id="teamBox"></div>
+    <details class="ledger"><summary>거래 내역 보기 (${S.ledger.length}건)</summary><table class="data"><tr><th>부서</th><th>내용</th><th>금액</th></tr>${S.ledger.map(l=>`<tr><td>${l.room+1}. ${ROOM_NAMES[l.room]}</td><td>${esc(l.label)}</td><td class="${l.amt<0?'neg':'pos'}">${sgn(l.amt)}</td></tr>`).join('')}</table></details></section>`;
+  const c=drawCert();$('cv').appendChild(c);
+  $('save').onclick=()=>{try{const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download=`기체주식회사_${S.cls}반_${S.num}번_${S.name}.png`;document.body.appendChild(a);a.click();a.remove();$('smsg').textContent='저장했어요. 갤러리나 다운로드 폴더를 확인하세요.'}catch(e){$('smsg').textContent='저장하지 못했어요. 화면을 캡처해 제출하세요.'}};
+  $('again').onclick=()=>{if(confirm('기록이 지워져요. 처음부터 다시 할까요?')){stopTeam();startScreen()}};
+  watchTeam();
+}
+startScreen();
+Net.init().then(()=>netState(Net.ok,Net.ok?'순위판 연결됨':'순위판 미연결'));
+</script>
+</body>
+</html>
