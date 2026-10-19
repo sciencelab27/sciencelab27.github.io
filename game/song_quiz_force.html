@@ -98,6 +98,14 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0}
 .seg-tabs{display:flex;gap:.4rem}
 .seg-tabs button,.ctrl{border:1px solid var(--line);background:var(--surface);border-radius:.7rem;padding:.55rem 1.1rem}
 .seg-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.listen-body{flex:1;min-height:0;display:flex;gap:1.2rem}
+.listen-body .slot{flex:1 1 48%;min-width:0}
+.big-lyrics{flex:1 1 52%;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:1rem;padding:1.4rem 1.6rem;overflow:auto;display:flex;flex-direction:column;justify-content:center;justify-content:safe center}
+.big-lyrics[hidden]{display:none}
+.big-lyrics .bl-n{font-family:var(--display);color:var(--mint);font-size:1.5em;margin-bottom:.7rem}
+.big-lyrics .bl-t{font-family:var(--display);font-size:clamp(1.3rem,2.05vw,2.8rem);line-height:1.5;white-space:pre-wrap;word-break:keep-all}
+section[data-s="listen"]:fullscreen{background:var(--bg);padding:1.5rem 2rem}
+@media (max-width:900px){.listen-body{flex-direction:column}}
 .ctrls{display:flex;gap:.5rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
 .ctrl.main{background:var(--ink);color:var(--bg);border-color:var(--ink);font-family:var(--display);font-size:1.2em}
 
@@ -313,12 +321,17 @@ textarea{width:100%;resize:vertical;min-height:2.6em;line-height:1.5}
           <button data-round="2" aria-pressed="false">2 ROUND</button>
         </div>
       </div>
-      <div class="slot" id="slot-listen"></div>
+      <div class="listen-body">
+        <div class="slot" id="slot-listen"></div>
+        <div class="big-lyrics" id="bigLyrics" hidden></div>
+      </div>
       <div class="ctrls">
         <button class="ctrl main" id="cdPlay">5초 세고 재생</button>
         <button class="ctrl" id="fullPlay">바로 재생</button>
         <button class="ctrl" id="pauseBtn">일시정지</button>
         <button class="ctrl" id="stopBtn">처음으로</button>
+        <button class="ctrl" id="bigLyBtn" hidden>가사 크게 보기 끄기</button>
+        <button class="ctrl" id="fsBtn">전체 화면</button>
         <button class="ctrl" data-go="board">문제판으로</button>
       </div>
     </section>
@@ -866,15 +879,40 @@ function renderOrder(){
 
 /* ---------- 전곡 듣기 ---------- */
 function renderRound(){
+  lastBig = -2; renderBigLyrics(0);
   $("#roundLabel").textContent = `${G.round} ROUND 전곡 듣기 (${G.round === 1 ? "가사 있음" : "가사 없음"})`;
   if(media[1] || media[2]) useMedia(G.round).then(a => { vid.currentTime = 0; if(a && a !== G.round) toast(`${KEYNAME[G.round]}이 없어서 ${KEYNAME[a]}으로 재생해요.`); });
   $$("[data-round]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.round === G.round)));
 }
 $$("[data-round]").forEach(b => b.onclick = () => { G.round = +b.dataset.round; saveSession(); renderRound(); });
-$("#cdPlay").onclick = () => countdownThen(() => playRange(0, null, 1, G.round));
-$("#fullPlay").onclick = () => playRange(0, null, 1, G.round);
-$("#pauseBtn").onclick = () => { if(!needMedia()) return; if(vid.paused){ vid.play(); } else vid.pause(); };
-$("#stopBtn").onclick = () => { cancelCountdown(); vid.pause(); vid.currentTime = 0; };
+let bigLy = true, lastBig = -2;
+const hasLyrics = () => S.segments.some(s => s.lyrics && s.lyrics.trim());
+function renderBigLyrics(t){
+  const box = $("#bigLyrics"), btn = $("#bigLyBtn");
+  btn.hidden = !(G.round === 1 && hasLyrics());
+  btn.textContent = bigLy ? "가사 크게 보기 끄기" : "가사 크게 보기";
+  const show = G.round === 1 && bigLy && hasLyrics();
+  box.hidden = !show;
+  if(!show){ lastBig = -2; return; }
+  let idx = -1;
+  S.segments.forEach((sg, i) => { if(sg.start != null && t >= sg.start - 0.3) idx = i; });
+  if(idx === lastBig) return; lastBig = idx;
+  if(idx < 0){ box.innerHTML = `<div class="bl-n">${esc(S.title)}</div><div class="bl-t">곧 노래가 시작돼요</div>`; return; }
+  const sg = S.segments[idx];
+  box.innerHTML = `<div class="bl-n">${idx + 1}소절</div><div class="bl-t">${esc((sg.lyrics || sg.hint || "").trim())}</div>`;
+}
+const lyTick = t => renderBigLyrics(t);
+$("#cdPlay").onclick = () => { onTick = lyTick; countdownThen(() => playRange(0, null, 1, G.round)); };
+$("#fullPlay").onclick = () => { onTick = lyTick; playRange(0, null, 1, G.round); };
+$("#pauseBtn").onclick = () => { if(!needMedia()) return; if(vid.paused){ onTick = lyTick; vid.play(); } else vid.pause(); };
+$("#stopBtn").onclick = () => { cancelCountdown(); vid.pause(); vid.currentTime = 0; lastBig = -2; renderBigLyrics(0); };
+$("#bigLyBtn").onclick = () => { bigLy = !bigLy; lastBig = -2; renderBigLyrics(vid.currentTime || 0); };
+$("#fsBtn").onclick = () => {
+  const el = document.querySelector('section[data-s="listen"]');
+  if(document.fullscreenElement){ document.exitFullscreen(); return; }
+  if(el.requestFullscreen) el.requestFullscreen().catch(() => toast("이 화면에서는 전체 화면을 열 수 없어요.")); else toast("이 브라우저는 전체 화면을 지원하지 않아요.");
+};
+document.addEventListener("fullscreenchange", () => { $("#fsBtn").textContent = document.fullscreenElement ? "전체 화면 나가기" : "전체 화면"; });
 
 /* ---------- 문제판 / 문제 ---------- */
 let curQ = 0;
