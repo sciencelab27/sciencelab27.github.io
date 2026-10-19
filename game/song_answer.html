@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>모둠 답 내기 – 노래 듣고 가사 맞추기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+:root{
+  --bg:#EEF1FB; --surface:#FFFFFF; --surface2:#E2E7F7; --ink:#1B1E3D; --muted:#5B6185; --line:#C9D0EA;
+  --ice:#2F7FD8; --mint:#0E8F71; --danger:#C93A4E;
+  --display:"Jua","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color-scheme:light;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14152E; --surface:#1F2145; --surface2:#2A2D5A; --ink:#F2F4FF; --muted:#A6ACD6; --line:#3A3E72;
+    --ice:#7EC8FF; --mint:#5BE0B5; --danger:#FF7A8A; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14152E; --surface:#1F2145; --surface2:#2A2D5A; --ink:#F2F4FF; --muted:#A6ACD6; --line:#3A3E72;
+  --ice:#7EC8FF; --mint:#5BE0B5; --danger:#FF7A8A; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{min-height:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:clamp(16px,1.6vw,21px)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,textarea:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding:1rem 1.2rem 2rem}
+.top{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem}
+.top h1{font-size:1.5em;flex:1}
+.who{font-family:var(--display);border:0;border-radius:.8rem;padding:.4rem .9rem;background:var(--tc,var(--ink));color:var(--tt,var(--bg));font-size:1.1em}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:1.2rem;padding:1.3rem 1.4rem;margin-bottom:1rem}
+.pick-row{display:flex;flex-wrap:wrap;gap:.6rem;margin:.6rem 0 1.2rem}
+.pick{font-family:var(--display);font-size:1.4em;border:2px solid var(--line);background:var(--surface);border-radius:.9rem;padding:.6rem 1.3rem;min-width:4.5em}
+.pick[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tpick{border:0;background:var(--tc);color:var(--tt)}
+.tpick[aria-pressed="true"]{box-shadow:0 0 0 4px var(--surface),0 0 0 7px var(--tc)}
+.go{font-family:var(--display);font-size:1.4em;border:0;border-radius:1rem;padding:.7rem 2.2rem;background:var(--ink);color:var(--bg)}
+.go:disabled{opacity:.35;cursor:not-allowed}
+.state{font-family:var(--display);font-size:1.9em;line-height:1.35}
+.sub{color:var(--muted);margin:.4rem 0 0}
+.qnum{font-family:var(--display);color:var(--ice);font-size:1.3em}
+.qtext{font-size:1.35em;line-height:1.6;margin:.3rem 0 1rem;word-break:keep-all}
+textarea{width:100%;min-height:5.5em;font:inherit;font-size:1.5em;line-height:1.45;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:.9rem;padding:.6rem .8rem;resize:vertical}
+.row{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;margin-top:.8rem}
+.sent{color:var(--mint);font-family:var(--display);font-size:1.15em}
+.mine{background:var(--surface2);border-radius:.8rem;padding:.6rem .9rem;margin-top:.8rem;font-size:1.2em;word-break:keep-all}
+.log{display:grid;gap:.5rem;margin:.6rem 0 1rem}
+.log div{display:grid;grid-template-columns:4.5em 1fr;gap:.6rem;background:var(--surface2);border-radius:.7rem;padding:.5rem .8rem}
+.log b{font-family:var(--display);font-weight:400;color:var(--ice)}
+.mini{border:1px solid var(--line);background:var(--surface);border-radius:.6rem;padding:.4rem .8rem;font-size:.9em}
+.err{color:var(--danger)}
+.toast{position:fixed;left:50%;bottom:calc(1.2rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.7rem 1.3rem;border-radius:.8rem;display:none;max-width:90vw;text-align:center;z-index:5}
+.toast.on{display:block}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1 id="title">모둠 답 내기</h1>
+    <button class="who" id="whoBtn" hidden></button>
+  </div>
+
+  <!-- 반·모둠 고르기 -->
+  <section class="card" id="pickCard">
+    <h2 style="font-size:1.5em">우리 반을 골라요</h2>
+    <div class="pick-row" id="classRow"></div>
+    <h2 style="font-size:1.5em">우리 모둠을 골라요</h2>
+    <div class="pick-row" id="teamRow"></div>
+    <button class="go" id="startBtn" disabled>시작하기</button>
+    <p class="sub small err" id="pickErr"></p>
+  </section>
+
+  <!-- 답 내기 -->
+  <section id="mainArea" hidden>
+    <div class="card" id="waitCard">
+      <div class="state" id="waitState">선생님이 문제를 띄우면 여기에 답을 쓸 수 있어요.</div>
+      <p class="sub" id="waitSub">TV를 보며 모둠 친구들과 함께 기다려요.</p>
+      <div class="mine" id="waitMine" hidden></div>
+    </div>
+    <div class="card" id="ansCard" hidden>
+      <div class="qnum" id="qNum"></div>
+      <div class="qtext" id="qText"></div>
+      <textarea id="ans" placeholder="모둠 친구들과 의논한 답을 써요. S펜으로 써도 돼요 (키보드의 필기 입력)."></textarea>
+      <div class="row">
+        <button class="go" id="sendBtn">답 내기</button>
+        <span class="sent" id="sentMsg" hidden>제출했어요! 공개 전까지는 고쳐서 다시 낼 수 있어요.</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row" style="margin:0 0 .3rem;justify-content:space-between">
+        <h3 style="font-size:1.3em">우리 모둠이 낸 답</h3>
+        <button class="mini" id="saveImg">이미지 저장하기</button>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const TC = [["#E5534B","#FFFFFF"],["#EE8A2B","#FFFFFF"],["#E7C21E","#2A2410"],["#3FA66B","#FFFFFF"],["#3C84D6","#FFFFFF"],["#8E62CF","#FFFFFF"],["#D2559A","#FFFFFF"],["#21A3A0","#FFFFFF"]];
+const tStyle = t => `--tc:${TC[t % TC.length][0]};--tt:${TC[t % TC.length][1]}`;
+let toastT;
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2600); }
+function load(k, fb){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; }catch(e){ return fb; } }
+function store(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+let me = load("songans:me", null);           // {cls, team}
+let selCls = me ? me.cls : null, selTeam = me ? me.team : null;
+let db = null, room = null, unsubPick = null, unsubRoom = null, curRound = null, sentRound = null;
+
+function fbConfig(){
+  try{ if(typeof firebaseConfig !== "undefined" && firebaseConfig) return firebaseConfig; }catch(e){}
+  if(window.firebaseConfig) return window.firebaseConfig;
+  return null;
+}
+function fbInit(){
+  if(db) return true;
+  if(typeof firebase === "undefined" || !firebase.firestore){ $("#pickErr").textContent = "연결할 수 없어요. 인터넷 연결을 확인하거나 선생님께 알려 주세요."; return false; }
+  try{
+    if(!firebase.apps.length){ const c = fbConfig(); if(!c){ $("#pickErr").textContent = "설정 파일을 찾지 못했어요. 선생님께 알려 주세요."; return false; } firebase.initializeApp(c); }
+    db = firebase.firestore(); return true;
+  }catch(e){ $("#pickErr").textContent = "연결 설정이 올바르지 않아요. 선생님께 알려 주세요."; return false; }
+}
+const roomRef = c => db.collection("songquiz_rooms").doc("songquiz_c" + c);
+
+/* ---- 반·모둠 고르기 ---- */
+function renderPick(teamCount){
+  $("#classRow").innerHTML = [1,2,3,4,5].map(c => `<button class="pick" data-c="${c}" aria-pressed="${c === selCls}">${c}반</button>`).join("");
+  document.querySelectorAll("[data-c]").forEach(b => b.onclick = () => { selCls = +b.dataset.c; selTeam = null; listenPick(); renderPick(6); });
+  const n = teamCount || 6;
+  $("#teamRow").innerHTML = selCls ? Array.from({length: n}, (_, t) => `<button class="pick tpick" style="${tStyle(t)}" data-t="${t}" aria-pressed="${t === selTeam}">${t + 1}모둠</button>`).join("") : `<span class="sub">반을 먼저 골라요.</span>`;
+  document.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { selTeam = +b.dataset.t; renderPick(n); });
+  $("#startBtn").disabled = !(selCls && selTeam != null);
+}
+function listenPick(){
+  if(unsubPick){ unsubPick(); unsubPick = null; }
+  if(!selCls || !fbInit()) return;
+  unsubPick = roomRef(selCls).onSnapshot(s => { const d = s.data() || {}; renderPick(d.teamCount || 6); }, () => {});
+}
+$("#startBtn").onclick = () => {
+  if(!(selCls && selTeam != null)) return;
+  me = {cls: selCls, team: selTeam}; store("songans:me", me);
+  if(unsubPick){ unsubPick(); unsubPick = null; }
+  startMain();
+};
+$("#whoBtn").onclick = () => {
+  if(unsubRoom){ unsubRoom(); unsubRoom = null; }
+  $("#mainArea").hidden = true; $("#pickCard").hidden = false; $("#whoBtn").hidden = true;
+  renderPick(6); listenPick();
+};
+
+/* ---- 답 내기 ---- */
+const logKey = () => `songans:log:${me.cls}:${me.team}`;
+function renderLog(){
+  const log = load(logKey(), []);
+  $("#log").innerHTML = log.length ? log.map(x => `<div><b>문제 ${x.qNum}</b><span>${esc(x.text)}</span></div>`).join("") : `<span class="sub">아직 낸 답이 없어요.</span>`;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function startMain(){
+  $("#pickCard").hidden = true; $("#mainArea").hidden = false;
+  const w = $("#whoBtn"); w.hidden = false; w.setAttribute("style", tStyle(me.team)); w.textContent = `${me.cls}반 ${me.team + 1}모둠 (바꾸기)`;
+  renderLog();
+  if(!fbInit()){ $("#waitState").textContent = "연결할 수 없어요."; $("#waitSub").textContent = "인터넷 연결을 확인하거나 선생님께 알려 주세요."; return; }
+  unsubRoom = roomRef(me.cls).onSnapshot(s => { room = s.data() || {}; renderRoom(); }, e => { $("#waitState").textContent = "연결이 끊겼어요."; $("#waitSub").textContent = "잠시 뒤 새로 고쳐 주세요."; });
+}
+function renderRoom(){
+  if(room.title) $("#title").textContent = room.title + " · 모둠 답 내기";
+  if(room.teamCount && me.team >= room.teamCount){ toast("이번 수업에는 없는 모둠이에요. 모둠을 다시 골라 주세요."); $("#whoBtn").click(); return; }
+  if(room.round !== curRound){ curRound = room.round; $("#ans").value = ""; $("#sentMsg").hidden = true; }
+  const mine = load(logKey(), []).find(x => x.round === room.round);
+  if(room.open && room.round){
+    $("#ansCard").hidden = false; $("#waitCard").hidden = true;
+    $("#qNum").textContent = "문제 " + (room.qNum || "");
+    $("#qText").textContent = room.qText || "";
+    if(mine && !$("#ans").value){ $("#ans").value = mine.text; $("#sentMsg").hidden = false; }
+  } else {
+    $("#ansCard").hidden = true; $("#waitCard").hidden = false;
+    if(room.revealed && room.round){
+      $("#waitState").textContent = "답을 공개했어요. TV를 함께 보세요!";
+      $("#waitSub").textContent = "선생님이 다음 문제를 띄우면 다시 답을 쓸 수 있어요.";
+      const m = $("#waitMine"); m.hidden = false; m.textContent = mine ? `우리 모둠 답: ${mine.text}` : "이번 문제에는 답을 내지 않았어요.";
+    } else {
+      $("#waitState").textContent = "선생님이 문제를 띄우면 여기에 답을 쓸 수 있어요.";
+      $("#waitSub").textContent = "TV를 보며 모둠 친구들과 함께 기다려요.";
+      $("#waitMine").hidden = true;
+    }
+  }
+}
+$("#sendBtn").onclick = async () => {
+  const text = $("#ans").value.trim();
+  if(!text){ toast("답을 먼저 써 주세요."); return; }
+  if(!room || !room.open){ toast("지금은 답을 낼 수 없어요."); return; }
+  const btn = $("#sendBtn"); btn.disabled = true;
+  try{
+    await roomRef(me.cls).collection("answers").doc("t" + me.team).set({team: me.team, round: room.round, text: text, at: firebase.firestore.FieldValue.serverTimestamp()});
+    const log = load(logKey(), []).filter(x => x.round !== room.round);
+    log.push({round: room.round, qNum: room.qNum, text: text}); store(logKey(), log.slice(-30));
+    $("#sentMsg").hidden = false; renderLog(); toast("답을 냈어요!");
+  }catch(e){ toast("답을 보내지 못했어요. 다시 눌러 주세요."); }
+  btn.disabled = false;
+};
+
+/* ---- 이미지 저장하기 ---- */
+$("#saveImg").onclick = () => {
+  const log = load(logKey(), []);
+  const W = 1200, lineH = 54, pad = 60;
+  const lines = [];
+  const cv = document.createElement("canvas"), cx = cv.getContext("2d");
+  cx.font = "34px 'Gowun Dodum', sans-serif";
+  const wrap = (txt, max) => { const out = []; let cur = ""; for(const ch of txt){ if(cx.measureText(cur + ch).width > max){ out.push(cur); cur = ch; } else cur += ch; } if(cur) out.push(cur); return out.length ? out : [""]; };
+  log.forEach(x => { const w = wrap(x.text, W - pad * 2 - 170); w.forEach((l, i) => lines.push({q: i === 0 ? "문제 " + x.qNum : "", t: l})); });
+  const H = pad * 2 + 120 + Math.max(1, lines.length) * lineH;
+  cv.width = W; cv.height = H;
+  cx.fillStyle = "#FFFFFF"; cx.fillRect(0, 0, W, H);
+  cx.fillStyle = TC[me.team % TC.length][0]; cx.fillRect(0, 0, W, 16);
+  cx.fillStyle = "#1B1E3D"; cx.font = "46px Jua, 'Gowun Dodum', sans-serif"; cx.textBaseline = "top";
+  cx.fillText(`${(room && room.title) || "노래 듣고 가사 맞추기"} · ${me.cls}반 ${me.team + 1}모둠`, pad, pad);
+  cx.font = "34px 'Gowun Dodum', sans-serif";
+  if(!lines.length){ cx.fillStyle = "#5B6185"; cx.fillText("아직 낸 답이 없어요.", pad, pad + 110); }
+  lines.forEach((l, i) => { const y = pad + 110 + i * lineH; cx.fillStyle = "#2F7FD8"; cx.fillText(l.q, pad, y); cx.fillStyle = "#1B1E3D"; cx.fillText(l.t, pad + 170, y); });
+  cv.toBlob(b => { if(!b){ toast("이미지를 만들지 못했어요."); return; }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `${me.cls}반_${me.team + 1}모둠_답.png`;
+    document.body.appendChild(a); a.click(); a.remove(); toast("이미지를 저장했어요."); }, "image/png");
+};
+
+/* ---- 시작 ---- */
+renderPick(6);
+if(me && fbInit()) startMain(); else listenPick();
+})();
+</script>
+</body>
+</html>
