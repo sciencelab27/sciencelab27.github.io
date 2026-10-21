@@ -55,6 +55,9 @@ main{padding:20px 22px}
 .esc-ok{font-family:'Jua',sans-serif;color:var(--ok);min-width:38px;text-align:right}
 .del{border:none;background:var(--danger);color:#fff;border-radius:50%;width:24px;height:24px;line-height:1;display:none}
 .manage .del{display:inline-block}
+.wipe{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;border:2px dashed var(--danger);border-radius:6px;background:var(--paper)}
+.wipe button{border:none;background:var(--danger);color:#fff;border-radius:6px;padding:8px 14px;font-size:16px;cursor:pointer}
+.wipe span{color:var(--muted);font-size:14px}
 .tfoot{padding:0 14px 10px;font-size:14px;color:var(--muted)}
 .rank{background:var(--steel);color:var(--on-steel);border-radius:10px 10px 4px 4px;overflow:hidden;position:sticky;top:80px}
 .rank-in{padding:16px 18px}
@@ -180,7 +183,8 @@ function renderBoard(){
   if(!T.length){$('main').innerHTML='<div class="empty"><h2>아직 들어온 학생이 없어요</h2><p>학생들이 반과 모둠을 고르고 출근하면 여기에 나타나요.</p></div>';return}
   const ranked=T.filter(t=>t.complete).sort((a,b)=>b.avg-a.avg||a.finish-b.finish);
   const ing=T.filter(t=>!t.complete).sort((a,b)=>b.esc/b.n-a.esc/a.n);
-  $('main').innerHTML=`<div class="view ${manage?'manage':''}"><div class="teams">${T.map(t=>`
+  const wipeBar=manage?`<div class="wipe"><button id="wipeAll">이 반 기록 모두 지우기 (${players.length}명)</button><span>${esc($('cls').value)}반 · ${esc($('date').value||today())} 기록만 지워져요. 설명 모아보기 내용도 함께 지워지고 되돌릴 수 없어요.</span></div>`:'';
+  $('main').innerHTML=wipeBar+`<div class="view ${manage?'manage':''}"><div class="teams">${T.map(t=>`
     <section class="tcard ${t.complete?'done':''}"><div class="thead"><h2>${t.team}모둠</h2><span class="badge">${t.complete?'전원 결산':`${t.esc}/${t.n}명 결산`}</span></div>
     <ul class="mem">${t.mem.map(p=>`<li><span class="nm">${p.num}번 ${esc(p.name)}</span>${pips(p)}<span class="esc-ok">${won(p.cash??10000)}</span><button class="del" data-id="${p.num}" aria-label="${p.num}번 기록 지우기">×</button></li>`).join('')}</ul>
     <div class="tfoot">1인당 평균 자산 ${won(t.avg)}, 평균 오답 ${t.wrong.toFixed(1)}번, 힌트 ${t.hints}개</div></section>`).join('')}</div>
@@ -192,6 +196,15 @@ function renderBoard(){
     const p=players.find(x=>String(x.num)===b.dataset.id);
     if(confirm(`${p.num}번 ${p.name} 학생의 기록을 지울까요?`))Net.remove(session(),p.num).catch(e=>alert('지우지 못했어요: '+e.message));
   });
+  if($('wipeAll'))$('wipeAll').onclick=()=>{
+    const list=players.slice(),label=`${$('cls').value}반 (${$('date').value||today()})`;
+    if(!list.length)return;
+    if(!confirm(`${label} 학생 ${list.length}명의 기록을 모두 지울까요?`))return;
+    if(!confirm('정말 지울까요? 지운 기록은 되돌릴 수 없어요.'))return;
+    Promise.all(list.map(p=>Net.remove(session(),p.num)))
+      .then(()=>{const d=document.createElement('div');d.className='toast';d.textContent=`${label} 기록을 모두 지웠어요`;document.body.appendChild(d);setTimeout(()=>d.remove(),3500)})
+      .catch(e=>alert('일부를 지우지 못했어요: '+e.message));
+  };
 }
 function renderExp(){
   const done=players.filter(p=>p.escaped&&p.explain);
