@@ -151,8 +151,16 @@ function listenTeacher(){
   $("studentCount").textContent=docs.length+"명"; renderStudentRows(docs);
  }));
  unsubs.push(onSnapshot(collection(db,"live_class_responses"),snap=>{
-  renderStats(snap.docs.filter(d=>d.data().room===room));
- }));
+  renderStats(snap.docs.filter(d=>String(d.data().room)===String(room)));
+ },err=>console.error("responses realtime listener:",err)));
+ // 학교망/브라우저에서 실시간 리스너 갱신이 지연될 때를 위한 보조 갱신
+ const poll=setInterval(async()=>{
+   try{
+     const snap=await getDocs(collection(db,"live_class_responses"));
+     renderStats(snap.docs.filter(d=>String(d.data().room)===String(room)));
+   }catch(e){ console.error("responses polling:",e); }
+ },1500);
+ unsubs.push(()=>clearInterval(poll));
 }
 function renderStudentRows(docs){
  const rows=docs.map(d=>d.data()).sort((a,b)=>(+a.no||999)-(+b.no||999));
@@ -161,7 +169,7 @@ function renderStudentRows(docs){
 }
 async function refreshCurrentResponses(){
  if(!room)return; const snap=await getDocs(collection(db,"live_class_responses"));
- renderStats(snap.docs.filter(d=>d.data().room===room),true);
+ renderStats(snap.docs.filter(d=>String(d.data().room)===String(room)),true);
 }
 function renderStats(docs,rowsOnly=false){
  const cur=docs.map(d=>d.data()).filter(x=>x.qIndex===qIndex);
@@ -197,8 +205,13 @@ $("submitAnswer").onclick=async()=>{
  if(selected===null){alert("답을 선택하세요.");return}
  const roomSnap=await getDoc(doc(db,"live_classes",room));if(!roomSnap.exists()||roomSnap.data().locked){alert("제출이 마감되었습니다.");return}
  const x=QUESTIONS[qIndex],rid=studentId+"_q"+qIndex;
- await setDoc(doc(db,"live_class_responses",room+"_"+rid),{room,sid:studentId,qIndex,answer:selected,correct:selected===x.a,submittedAt:serverTimestamp()});
- $("sState").textContent="제출 완료";$("submitAnswer").textContent="답 수정 제출";
+ try{
+   await setDoc(doc(db,"live_class_responses",room+"_"+rid),{room:String(room),sid:studentId,qIndex:Number(qIndex),answer:selected,correct:selected===x.a,submittedAt:serverTimestamp()});
+   $("sState").textContent="제출 완료";$("submitAnswer").textContent="답 수정 제출";
+ }catch(e){
+   $("sState").textContent="제출 저장 실패: "+e.message;
+   console.error("response write:",e);
+ }
 };
 function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 </script>
