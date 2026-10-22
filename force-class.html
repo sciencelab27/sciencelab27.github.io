@@ -146,10 +146,13 @@ $("closeQ").onclick=async()=>{await updateDoc(doc(db,"live_classes",room),{locke
 function listenTeacher(){
  renderTeacherQuestion();
  unsubs.push(onSnapshot(doc(db,"live_classes",room),s=>{if(s.exists()){qIndex=s.data().qIndex??0;renderTeacherQuestion();if(s.data().reveal)show("teacherAnswer");else hide("teacherAnswer")}}));
- unsubs.push(onSnapshot(collection(db,"live_classes",room,"students"),snap=>{
-  $("studentCount").textContent=snap.size+"명"; renderStudentRows(snap.docs);
+ unsubs.push(onSnapshot(collection(db,"live_class_students"),snap=>{
+  const docs=snap.docs.filter(d=>d.data().room===room);
+  $("studentCount").textContent=docs.length+"명"; renderStudentRows(docs);
  }));
- unsubs.push(onSnapshot(collection(db,"live_classes",room,"responses"),snap=>renderStats(snap.docs)));
+ unsubs.push(onSnapshot(collection(db,"live_class_responses"),snap=>{
+  renderStats(snap.docs.filter(d=>d.data().room===room));
+ }));
 }
 function renderStudentRows(docs){
  const rows=docs.map(d=>d.data()).sort((a,b)=>(+a.no||999)-(+b.no||999));
@@ -157,8 +160,8 @@ function renderStudentRows(docs){
  refreshCurrentResponses();
 }
 async function refreshCurrentResponses(){
- if(!room)return; const snap=await getDocs(collection(db,"live_classes",room,"responses"));
- renderStats(snap.docs,true);
+ if(!room)return; const snap=await getDocs(collection(db,"live_class_responses"));
+ renderStats(snap.docs.filter(d=>d.data().room===room),true);
 }
 function renderStats(docs,rowsOnly=false){
  const cur=docs.map(d=>d.data()).filter(x=>x.qIndex===qIndex);
@@ -171,7 +174,7 @@ $("joinRoom").onclick=async()=>{
  try{
   const r=await getDoc(doc(db,"live_classes",c));if(!r.exists()){throw Error("존재하지 않는 수업방입니다.")}
   room=c;studentId=(no+"_"+name).replace(/[\/.#$\[\]]/g,"_");
-  await setDoc(doc(db,"live_classes",room,"students",studentId),{sid:studentId,no,name,joinedAt:serverTimestamp()},{merge:true});
+  await setDoc(doc(db,"live_class_students",room+"_"+studentId),{room,sid:studentId,no,name,joinedAt:serverTimestamp()},{merge:true});
   hide("studentJoin");show("student");$("sRoom").textContent="방 "+room;$("sIdentity").textContent=no+"번 "+name;
   listenStudent();
  }catch(e){$("joinMsg").textContent=e.message}
@@ -194,7 +197,7 @@ $("submitAnswer").onclick=async()=>{
  if(selected===null){alert("답을 선택하세요.");return}
  const roomSnap=await getDoc(doc(db,"live_classes",room));if(!roomSnap.exists()||roomSnap.data().locked){alert("제출이 마감되었습니다.");return}
  const x=QUESTIONS[qIndex],rid=studentId+"_q"+qIndex;
- await setDoc(doc(db,"live_classes",room,"responses",rid),{sid:studentId,qIndex,answer:selected,correct:selected===x.a,submittedAt:serverTimestamp()});
+ await setDoc(doc(db,"live_class_responses",room+"_"+rid),{room,sid:studentId,qIndex,answer:selected,correct:selected===x.a,submittedAt:serverTimestamp()});
  $("sState").textContent="제출 완료";$("submitAnswer").textContent="답 수정 제출";
 };
 function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
