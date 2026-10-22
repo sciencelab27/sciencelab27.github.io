@@ -205,6 +205,31 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
 .tq .qexp{font-size:18px}
 .tq .stat{font-size:20px; font-weight:800}
 .tend .qrow{font-size:17px}
+/* 그림 공유 */
+.share-row{margin-top:10px}
+.g-sub{display:flex; gap:8px; align-items:center; flex-wrap:wrap; grid-column:1/-1; margin-bottom:4px}
+.g-sub .sp{flex:1}
+.g-sub .note{font-weight:700; color:var(--soft)}
+.gcard{border:2px solid var(--line); border-radius:12px; background:#fff; padding:8px; cursor:pointer; position:relative}
+.gcard:hover{border-color:var(--ink)}
+.gcard img{display:block; width:100%; border-radius:8px; border:1px solid var(--line); background:#fff}
+.gcard .gn{font-weight:800; font-size:16px; margin:6px 0 2px}
+.gcard .gt{white-space:pre-line; font-size:14px; line-height:1.45; color:var(--ink); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
+.gcard .gok{position:absolute; top:14px; right:14px; font-size:13px; font-weight:800; padding:2px 9px; border-radius:999px; color:#fff}
+.g-empty{grid-column:1/-1; text-align:center; color:var(--soft); font-weight:700; font-size:18px; padding:40px 0}
+#lightbox{position:fixed; inset:0; z-index:50; background:rgba(16,22,36,.88); display:flex; align-items:center; justify-content:center; padding:20px}
+#lightbox[hidden]{display:none}
+.lb-in{background:#fff; border-radius:14px; padding:14px 16px; width:min(1100px,100%); max-height:100%; overflow:auto}
+.lb-top{display:flex; gap:8px; align-items:center; margin-bottom:10px; font-size:22px}
+.lb-top .sp{flex:1}
+#lbImg{display:block; width:100%; border:1px solid var(--line); border-radius:10px}
+.lb-txt{font-size:20px; line-height:1.6; margin-top:10px; white-space:pre-line}
+.talk{background:#EEF4FF; border:1.5px solid #BFD3F5; border-radius:10px; padding:10px 14px; font-weight:700; margin:12px 0 4px}
+.exp-row{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:6px 0 4px}
+.exp-title{flex:1 1 320px; display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px}
+.exp-title input{flex:1}
+.exp-chg{display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px}
+.gtag{display:inline-block; font-size:12.5px; font-weight:800; color:#fff; border-radius:999px; padding:1px 8px; margin-left:6px; vertical-align:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -286,14 +311,15 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
       <div class="row"><button class="btn light blankCheck">빈칸 확인</button><span class="result"></span></div>
     </div>
 
-    <p class="guide">내가 직접 물체에 힘을 주어 움직임이나 모양이 변했던 경험을 하나 떠올려 적어 보세요.</p>
-    <div class="frame two">
-      <span>누가(무엇이)</span><input type="text">
-      <span>무엇에</span><input type="text">
-      <span>어떻게 했더니</span><input type="text">
-      <span>어떻게 됐다</span><input type="text">
+    <div class="talk">💬 짝과 함께, 내가 물체에 힘을 주어 물체가 변했던 경험을 이야기해 보세요.</div>
+    <p class="guide">그럼 내 경험을 그림으로 그려 볼까요? 먼저 장면에 한 줄 제목을 붙이고, 무엇이 변했는지 골라요.</p>
+    <div class="exp-row">
+      <label class="exp-title">제목 <input type="text" id="expTitle" placeholder="예: 발로 축구공을 찼다"></label>
+      <div class="exp-chg"><span>무엇이 변했나요?</span>
+        <div class="chips" id="chgChips"><button class="chip" data-c="0">운동 상태</button><button class="chip" data-c="1">모양</button><button class="chip" data-c="2">둘 다</button></div>
+      </div>
     </div>
-    <p class="guide">그 장면을 펜으로 간단히 그리고, 화살표 도구로 힘을 나타내세요. 화살표의 시작점과 방향, 길이에 신경 써서 그려요.</p>
+    <p class="guide">펜으로 장면을 간단히 그리고, 화살표 도구로 힘을 나타내세요. 화살표의 시작점과 방향, 길이에 신경 써서 그려요.</p>
     <div class="drawgrid">
       <div class="drawcol">
     <div class="row" data-board="scene">
@@ -310,6 +336,7 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
       <span>힘의 크기</span><input type="text" placeholder="예: 5 N">
     </div>
     </div>
+    <div class="row share-row" data-html2canvas-ignore="true"><button class="btn" id="shareScene">📤 내 그림 선생님 화면에 올리기</button><span id="shareSceneMsg" class="result"></span></div>
   </section>
 
   <!-- 4 -->
@@ -324,9 +351,10 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
       <div class="side check-side">
         <div id="checkResult" class="result" style="margin-top:0"></div>
         <p class="guide" style="margin:8px 0 6px">그렇게 그린 까닭을 설명해 보세요.</p>
-        <textarea rows="5" placeholder="작용점, 방향, 길이를 넣어 설명해요."></textarea>
+        <textarea rows="5" id="checkWhy" placeholder="작용점, 방향, 길이를 넣어 설명해요."></textarea>
       </div>
     </div>
+    <div class="row share-row" data-html2canvas-ignore="true"><button class="btn" id="shareCheck">📤 내 그림 선생님 화면에 올리기</button><span id="shareCheckMsg" class="result"></span></div>
   </section>
 
   <!-- 4 -->
@@ -349,6 +377,7 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
   <div class="t-bar">
     <button class="btn" data-tab="1">1단계 · 힘이 아닌 것</button>
     <button class="btn light" data-tab="2">2단계 · 무엇이 변했나</button>
+    <button class="btn light" data-tab="4">그림 함께 보기</button>
     <button class="btn light" data-tab="3">마무리 문제</button>
     <span id="tCount" class="t-count"></span>
     <button class="btn" id="tReveal">정답 공개</button>
@@ -356,6 +385,14 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
   </div>
   <div id="tMsg" class="t-msg"></div>
   <div class="t-grid" id="tGrid"></div>
+</div>
+
+<div id="lightbox" hidden>
+  <div class="lb-in">
+    <div class="lb-top"><b id="lbTitle"></b><span class="sp"></span><button class="btn light" id="lbPrev">◀ 이전</button><button class="btn light" id="lbNext">다음 ▶</button><button class="btn" id="lbClose">닫기 ✕</button></div>
+    <img id="lbImg" alt="">
+    <div id="lbTxt" class="lb-txt"></div>
+  </div>
 </div>
 
 <div id="overlay">
@@ -417,7 +454,7 @@ try {
     if (firebase.apps.length) db = firebase.firestore();
   }
 } catch (e) { db = null; }
-const COL = 'force_sort', STATE = 'force_sort_state', QCOL = 'force_quiz';
+const COL = 'force_sort', STATE = 'force_sort_state', QCOL = 'force_quiz', DCOL = 'force_draw';
 const FORCE = ITEMS.map((_, i) => i).filter(i => ITEMS[i][1] !== 3);
 const ZC = ['#2563C9', '#E5383B', '#8B4FD8'], ZN = ['운동 상태', '모양', '둘 다'];
 
@@ -461,7 +498,7 @@ sub1.onclick = async () => {
   try {
     await db.collection(COL).doc(`${w.ban}_${w.sid}`).set({ ban: w.ban, sid: w.sid, name: w.name, s1: [...s1].sort((a, b) => a - b), t1: Date.now() }, { merge: true });
     sent1 = true; sub1.textContent = '다시 제출';
-    setMsg(1, '제출했어요! 친구들 생각을 함께 보고, 생각이 바뀌면 고쳐서 다시 제출해도 돼요.', 'ok');
+    setMsg(1, '제출했어요! 선생님이 정답을 공개하면 2단계가 열려요. 생각이 바뀌면 고쳐서 다시 제출해도 돼요.', 'ok');
   } catch (e) { setMsg(1, '제출하지 못했어요. 잠시 뒤 다시 눌러 주세요.', 'no'); }
 };
 function reveal1() {
@@ -519,7 +556,7 @@ sub2.onclick = async () => {
   try {
     await db.collection(COL).doc(`${w.ban}_${w.sid}`).set({ ban: w.ban, sid: w.sid, name: w.name, s2: ans, t2: Date.now() }, { merge: true });
     sent2 = true; sub2.textContent = '다시 제출';
-    setMsg(2, '제출했어요! 친구들 생각을 함께 보고, 생각이 바뀌면 고쳐서 다시 제출해도 돼요.', 'ok');
+    setMsg(2, '제출했어요! 선생님이 정답을 공개하면 결과가 나와요. 생각이 바뀌면 고쳐서 다시 제출해도 돼요.', 'ok');
   } catch (e) { setMsg(2, '제출하지 못했어요. 잠시 뒤 다시 눌러 주세요.', 'no'); }
 };
 function reveal2() {
@@ -633,6 +670,8 @@ async function restoreQuiz() {
 }
 document.getElementById('ban').addEventListener('change', restoreQuiz);
 document.getElementById('sid').addEventListener('change', restoreQuiz);
+// 새로고침 뒤 반이 이미 선택돼 있으면 바로 연결
+window.addEventListener('load', () => { listen(); restoreQuiz(); });
 
 /* ===== 선생님 화면 (주소 끝에 ?teacher) ===== */
 if (/[?&#]teacher/.test(location.href)) teacherView();
@@ -640,19 +679,20 @@ function teacherView() {
   document.getElementById('sheet').style.display = 'none';
   const T = document.getElementById('teacher'); T.hidden = false;
   const grid = document.getElementById('tGrid'), msg = document.getElementById('tMsg');
-  let ban = '1', tab = 1, subs = [], st = {}, qres = [], u1 = null, u2 = null, u3 = null;
+  let ban = '1', tab = 1, subs = [], st = {}, qres = [], draws = [], gk = 'scene', gc = -1, showName = false, u1 = null, u2 = null, u3 = null, u4 = null;
   const banBox = document.getElementById('tBan');
   banBox.innerHTML = [1, 2, 3, 4, 5].map(n => `<button class="btn light" data-b="${n}">${n}반</button>`).join('');
   if (!db) { msg.textContent = '공유 연결이 안 됐어요. 인터넷 연결을 확인하세요.'; }
   function sub() {
     banBox.querySelectorAll('.btn').forEach(b => b.classList.toggle('light', b.dataset.b !== ban));
     if (!db) { render(); return; }
-    u1 && u1(); u2 && u2(); u3 && u3();
+    u1 && u1(); u2 && u2(); u3 && u3(); u4 && u4();
+    u4 = db.collection(DCOL).where('ban', '==', ban).onSnapshot(q => { draws = q.docs.map(d => d.data()); if (tab === 4) render(); }, () => {});
     u3 = db.collection(QCOL).where('ban', '==', ban).onSnapshot(q => { qres = q.docs.map(d => d.data()); render(); }, () => {});
     u1 = db.collection(COL).where('ban', '==', ban).onSnapshot(q => { subs = q.docs.map(d => d.data()); render(); }, e => { msg.textContent = '학생 답을 불러오지 못했어요. (보안 규칙을 확인하세요)'; });
     u2 = db.collection(STATE).doc(ban).onSnapshot(d => { st = d.data() || {}; render(); }, () => {});
   }
-  banBox.onclick = e => { const b = e.target.closest('[data-b]'); if (b) { ban = b.dataset.b; subs = []; st = {}; qres = []; sub(); } };
+  banBox.onclick = e => { const b = e.target.closest('[data-b]'); if (b) { ban = b.dataset.b; subs = []; st = {}; qres = []; draws = []; sub(); } };
   T.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = +b.dataset.tab; render(); });
   document.getElementById('tReveal').onclick = async () => {
     if (!db) return;
@@ -663,7 +703,8 @@ function teacherView() {
     if (!db || !confirm(`${ban}반의 제출 답과 정답 공개 상태를 모두 지울까요?`)) return;
     const q = await db.collection(COL).where('ban', '==', ban).get();
     const q3 = await db.collection(QCOL).where('ban', '==', ban).get();
-    const batch = db.batch(); q.docs.concat(q3.docs).forEach(d => batch.delete(d.ref));
+    const q4 = await db.collection(DCOL).where('ban', '==', ban).get();
+    const batch = db.batch(); q.docs.concat(q3.docs, q4.docs).forEach(d => batch.delete(d.ref));
     batch.set(db.collection(STATE).doc(ban), { r1: false, r2: false, q: -1, qr: false, qdone: false });
     await batch.commit();
   };
@@ -672,8 +713,9 @@ function teacherView() {
     const n1 = subs.filter(s => Array.isArray(s.s1)), n2 = subs.filter(s => s.s2);
     document.getElementById('tCount').textContent = `${ban}반 · 1단계 ${n1.length}명 · 2단계 ${n2.length}명 제출`;
     const rv = document.getElementById('tReveal');
-    rv.hidden = tab === 3;
+    rv.hidden = tab === 3 || tab === 4;
     if (tab === 3) { renderQuizT(); return; }
+    if (tab === 4) { renderDrawT(); return; }
     if (tab === 1) { rv.textContent = st.r1 ? '1단계 정답 공개됨' : '1단계 정답 공개'; rv.disabled = !!st.r1; }
     else { rv.textContent = st.r2 ? '2단계 정답 공개됨' : (st.r1 ? '2단계 정답 공개' : '1단계를 먼저 공개하세요'); rv.disabled = !!st.r2 || !st.r1; }
     grid.className = 't-grid' + (tab === 2 ? ' two' : '');
@@ -703,6 +745,47 @@ function teacherView() {
         <div class="leg">${r.segs.map(s => `<span><i style="background:${s[1]}"></i>${s[2]} ${s[0]}명</span>`).join('')}</div>
         ${shown ? `<div class="ans ok">정답: ${ansTxt}</div>` : ''}</div>`;
     }).join('');
+  }
+
+  // ----- 그림 함께 보기 -----
+  let lbList = [], lbIdx = 0;
+  const lb = document.getElementById('lightbox');
+  const gLabel = (d, i) => showName ? d.name : `그림 ${i + 1}`;
+  function openLB(i) {
+    lbIdx = i; const d = lbList[i]; if (!d) return;
+    document.getElementById('lbTitle').textContent = `${gLabel(d, i)}${d.k === 'scene' && d.chg != null ? ' · ' + ZN[d.chg] : ''}  (${i + 1} / ${lbList.length})`;
+    document.getElementById('lbImg').src = d.img;
+    document.getElementById('lbTxt').textContent = d.txt || '';
+    lb.hidden = false;
+  }
+  document.getElementById('lbClose').onclick = () => { lb.hidden = true; };
+  document.getElementById('lbPrev').onclick = () => openLB((lbIdx - 1 + lbList.length) % lbList.length);
+  document.getElementById('lbNext').onclick = () => openLB((lbIdx + 1) % lbList.length);
+  lb.onclick = e => { if (e.target === lb) lb.hidden = true; };
+  document.addEventListener('keydown', e => {
+    if (lb.hidden) return;
+    if (e.key === 'Escape') lb.hidden = true;
+    if (e.key === 'ArrowRight') document.getElementById('lbNext').click();
+    if (e.key === 'ArrowLeft') document.getElementById('lbPrev').click();
+  });
+  function renderDrawT() {
+    grid.className = 't-grid two';
+    lbList = draws.filter(d => d.k === gk && (gk !== 'scene' || gc < 0 || d.chg === gc)).sort((a, b) => a.t - b.t);
+    const nS = draws.filter(d => d.k === 'scene').length, nC = draws.filter(d => d.k === 'check').length;
+    grid.innerHTML = `<div class="g-sub">
+        <button class="btn ${gk === 'scene' ? '' : 'light'}" data-gk="scene">2번 · 내가 경험한 힘 (${nS})</button>
+        <button class="btn ${gk === 'check' ? '' : 'light'}" data-gk="check">3번 · 스스로 확인하기 (${nC})</button>
+        ${gk === 'scene' ? `<span style="width:10px"></span>${[[-1, '전체'], [0, '운동 상태'], [1, '모양'], [2, '둘 다']].map(([c, t]) => `<button class="btn ${gc === c ? '' : 'light'}" data-gc="${c}">${t}${c >= 0 ? ` (${draws.filter(d => d.k === 'scene' && d.chg === c).length})` : ''}</button>`).join('')}` : ''}
+        <span class="sp"></span><span class="note">그림을 누르면 크게 보여요</span>
+        <button class="btn light" id="gName">${showName ? '이름 가리기' : '이름 보기'}</button></div>` +
+      (lbList.length ? lbList.map((d, i) => `<div class="gcard" data-i="${i}">
+        ${d.ok === true ? '<span class="gok" style="background:var(--mint)">정답</span>' : d.ok === false ? '<span class="gok" style="background:var(--red)">다시</span>' : ''}
+        <img src="${d.img}" alt=""><div class="gn">${escH(gLabel(d, i))}${d.k === 'scene' && d.chg != null ? `<span class="gtag" style="background:${ZC[d.chg]}">${ZN[d.chg]}</span>` : ''}</div><div class="gt">${escH(d.txt || '')}</div></div>`).join('')
+        : '<div class="g-empty">아직 올라온 그림이 없어요.</div>');
+    grid.querySelectorAll('[data-gk]').forEach(b => b.onclick = () => { gk = b.dataset.gk; render(); });
+    grid.querySelectorAll('[data-gc]').forEach(b => b.onclick = () => { gc = +b.dataset.gc; render(); });
+    document.getElementById('gName').onclick = () => { showName = !showName; render(); if (!lb.hidden) openLB(lbIdx); };
+    grid.querySelectorAll('.gcard').forEach(c => c.onclick = () => openLB(+c.dataset.i));
   }
   const setQ = v => db ? db.collection(STATE).doc(ban).set(v, { merge: true }) : null;
   function renderQuizT() {
@@ -893,6 +976,43 @@ const check = makeBoard(document.getElementById('checkBoard'), {
   }
 });
 document.querySelector('[data-board="check"] [data-act="clear"]').onclick = () => check.clear();
+
+/* ---------- 그림 선생님 화면에 올리기 ---------- */
+function boardJpeg(cv, maxW) {
+  const k = Math.min(1, maxW / cv.width), c = document.createElement('canvas');
+  c.width = Math.round(cv.width * k); c.height = Math.round(cv.height * k);
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+  x.drawImage(cv, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.8);
+}
+async function shareDraw(kind) {
+  const msg = document.getElementById(kind === 'scene' ? 'shareSceneMsg' : 'shareCheckMsg');
+  const set = (t, c) => { msg.className = 'result ' + c; msg.textContent = t; };
+  if (!db) { set('공유 연결이 안 돼 있어요.', 'no'); return; }
+  const w = who(); if (!w) return;
+  let img, txt, ok = null, chg = null;
+  if (kind === 'scene') {
+    img = boardJpeg(document.getElementById('sceneBoard'), 700);
+    const title = document.getElementById('expTitle').value.trim();
+    const on = document.querySelector('#chgChips .chip.on');
+    chg = on ? +on.dataset.c : null;
+    if (!title) { set('제목을 먼저 적어 주세요.', 'no'); document.getElementById('expTitle').focus(); return; }
+    if (chg === null) { set('무엇이 변했는지 골라 주세요.', 'no'); return; }
+    const sd = [...document.querySelectorAll('.frame.side input')].map(i => i.value.trim());
+    txt = title + (sd.some(Boolean) ? `\n작용점: ${sd[0] || '-'} · 방향: ${sd[1] || '-'} · 크기: ${sd[2] || '-'}` : '');
+  } else {
+    img = boardJpeg(document.getElementById('checkBoard'), 700);
+    txt = document.getElementById('checkWhy').value.trim();
+    ok = document.getElementById('checkResult').classList.contains('ok');
+  }
+  set('올리는 중…', '');
+  try {
+    await db.collection(DCOL).doc(`${w.ban}_${w.sid}_${kind}`).set({ ban: w.ban, sid: w.sid, name: w.name, k: kind, img, txt: txt.trim(), ok, chg, t: Date.now() });
+    set('선생님 화면에 올렸어요! 고친 뒤 다시 누르면 새 그림으로 바뀌어요.', 'ok');
+  } catch (e) { set('올리지 못했어요. 잠시 뒤 다시 눌러 주세요.', 'no'); }
+}
+document.getElementById('shareScene').onclick = () => shareDraw('scene');
+document.getElementById('shareCheck').onclick = () => shareDraw('check');
 
 /* ---------- 이미지로 저장 ---------- */
 const overlay = document.getElementById('overlay');
