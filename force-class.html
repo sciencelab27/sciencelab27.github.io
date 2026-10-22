@@ -1,41 +1,76 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Force Class · 마무리 형성평가</title><style>
+<title>Force Class · 마무리 형성평가</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
 :root{--bg:#f4f7fb;--card:#fff;--ink:#172033;--muted:#667085;--line:#dfe5ef;--brand:#2563eb;--good:#16803c;--bad:#b42318;--accent:#7c3aed}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif}
 .wrap{max-width:1080px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 5px 20px #1720330d}
 h1,h2,h3{margin:.2em 0 .6em}.muted{color:var(--muted)}button,input,textarea,select{font:inherit}
 button{border:0;border-radius:12px;padding:11px 15px;font-weight:750;cursor:pointer;background:#e9eef8;color:var(--ink)}
+button:disabled{opacity:.55;cursor:not-allowed}
 button.primary{background:var(--brand);color:#fff}button.good{background:var(--good);color:#fff}button.danger{background:#fee4e2;color:#912018}
+button.save{background:var(--accent);color:#fff}
 input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .hide{display:none!important}.pill{padding:6px 10px;border-radius:999px;background:#edf2ff;font-weight:700}.big{font-size:clamp(26px,5vw,48px);font-weight:900}
-.option{display:block;width:100%;text-align:left;margin:8px 0;background:#f8fafc;border:2px solid var(--line)}.option.sel{border-color:var(--brand);background:#eff6ff}
-.bar{height:22px;background:#e9eef8;border-radius:999px;overflow:hidden}.fill{height:100%;background:var(--brand);transition:.3s}.stat{font-size:28px;font-weight:900}
+.option{display:block;width:100%;text-align:left;margin:8px 0;background:#f8fafc;border:2px solid var(--line);border-radius:12px;padding:11px 15px}
+.option.sel{border-color:var(--brand);background:#eff6ff}
+.option.correct{border-color:var(--good);background:#ecfdf3}
+.option.wrongsel{border-color:var(--bad);background:#fef3f2}
+.bar{height:22px;background:#e9eef8;border-radius:999px;overflow:hidden}.fill{height:100%;background:var(--brand);transition:.3s}.fill.correct{background:var(--good)}
+.stat{font-size:28px;font-weight:900}
 .qedit{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}.small{font-size:13px}.ok{color:var(--good)}.err{color:var(--bad)}
+.expbox{margin-top:12px;padding:12px 14px;border-radius:12px;background:#ecfdf3;border:1px solid #abefc6}
+.sumrow{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.sumrow:first-child{border-top:0}
+.mark{font-weight:900;font-size:20px;text-align:center}
 </style></head><body><div class="wrap">
-<div class="top"><div><h1>Force Class</h1><div class="muted">익명 응답형 수업 마무리 · v3</div></div><span class="pill" id="net">Firebase 연결 준비</span></div>
-<div id="home" class="card"><h2>시작하기</h2><div class="row"><button class="primary" id="teacherBtn">교사 모드</button><button id="studentBtn">학생 모드</button></div></div>
+<div class="top"><div><h1>Force Class</h1><div class="muted">익명 응답형 수업 마무리 · v4</div></div><span class="pill" id="net">Firebase 연결 준비</span></div>
+
+<div id="home" class="card"><h2>시작하기</h2><div class="row"><button class="primary" id="teacherBtn">교사 모드</button><button id="studentBtn">학생 모드</button></div>
+<div id="resumeBox" class="hide" style="margin-top:14px"><button class="good" id="resumeBtn"></button><div class="small muted" style="margin-top:6px">새로고침하거나 창을 닫았을 때 진행하던 수업방으로 돌아갑니다.</div></div></div>
 
 <section id="teacherSetup" class="hide">
 <div class="card"><h2>문제 세트 관리</h2><div class="grid"><div><label>세트 이름</label><input id="setName" value="과학에서의 힘 · 마무리"></div><div><label>저장된 세트</label><select id="savedSets"></select></div></div>
-<div class="row" style="margin-top:10px"><button id="loadSet">불러오기</button><button id="saveSet">이 브라우저에 저장</button><button id="newSet">새 세트</button><button id="addQ">문제 추가</button></div>
+<div class="row" style="margin-top:10px"><button id="loadSet">불러오기</button><button id="saveSet">이 브라우저에 저장</button><button id="newSet">새 세트</button><button id="resetSet">기본 문제로 되돌리기</button><button id="addQ">문제 추가</button></div>
 <div id="editor"></div></div>
 <div class="card"><button class="primary" id="makeRoom">이 문제 세트로 수업방 만들기</button><div id="makeMsg" class="small muted"></div></div>
 </section>
 
 <section id="teacherLive" class="hide">
 <div class="card"><div class="top"><div><div class="muted">수업방 코드</div><div class="big" id="roomCode"></div></div><div><img id="qr" width="150" height="150" alt="QR"></div></div><div class="small muted">학생은 QR 또는 같은 페이지의 학생 모드에서 방 코드를 입력합니다.</div></div>
-<div class="card"><div class="top"><div><span class="pill" id="qnum"></span><h2 id="tq"></h2></div><div class="row"><button id="prevQ">이전</button><button id="reveal">정답 공개</button><button class="primary" id="nextQ">다음</button></div></div><div id="topts"></div></div>
-<div class="card"><h3>익명 응답 분포</h3><div class="grid"><div><div class="muted">제출</div><div class="stat" id="submitted">0명</div></div><div><div class="muted">정답률</div><div class="stat" id="accuracy">—</div></div></div><div id="dist"></div><p class="small muted">학생 이름·번호·오답자 명단은 교사 화면에 표시하지 않습니다.</p></div>
+<div class="card"><div class="top"><div><span class="pill" id="qnum"></span><h2 id="tq"></h2></div><div class="row"><button id="prevQ">이전</button><button id="reveal">정답 공개</button><button class="primary" id="nextQ">다음</button></div></div><div id="topts"></div><div id="texp" class="expbox hide"></div></div>
+<div class="card"><h3>익명 응답 분포</h3><div class="grid"><div><div class="muted">제출</div><div class="stat" id="submitted">0명</div></div><div><div class="muted">정답률</div><div class="stat" id="accuracy">공개 후 표시</div></div></div><div id="dist"></div><p class="small muted">학생 이름·번호·오답자 명단은 교사 화면에 표시하지 않습니다.</p></div>
 </section>
 
-<section id="studentJoin" class="hide"><div class="card"><h2>학생 입장</h2><label>방 코드</label><input id="joinRoom" maxlength="6"><button class="primary" id="joinBtn" style="margin-top:10px">입장하기</button><div id="joinMsg" class="small"></div></div></section>
-<section id="studentLive" class="hide"><div class="card"><span class="pill" id="sqnum"></span><h2 id="sq"></h2><div id="sopts"></div><button class="primary" id="submit">답 제출하기</button><div id="smsg" style="margin-top:10px"></div></div><div class="card hide" id="resultCard"><h3>내 결과</h3><div id="myResult"></div><div id="myExp" class="muted"></div></div></section>
+<section id="teacherEnd" class="hide">
+<div class="card"><div class="top"><h2>수업 마무리 · 문항별 정답률</h2><div class="row"><button id="backToLast">마지막 문제로 돌아가기</button><button class="primary" id="newRoom">새 수업방 만들기</button></div></div>
+<p class="muted small">정답률이 낮은 문항은 함께 다시 짚어 보세요.</p><div id="endList"></div></div>
+</section>
+
+<section id="studentJoin" class="hide"><div class="card"><h2>학생 입장</h2><label>방 코드</label><input id="joinRoom" maxlength="6" inputmode="numeric"><button class="primary" id="joinBtn" style="margin-top:10px">입장하기</button><div id="joinMsg" class="small err"></div></div></section>
+
+<section id="studentLive" class="hide">
+<div id="sCapture">
+<div class="card"><span class="pill" id="sqnum"></span><h2 id="sq"></h2><div id="sopts"></div><button class="primary" id="submit">답 제출하기</button><div id="smsg" style="margin-top:10px"></div></div>
+<div class="card hide" id="resultCard"><h3>내 결과</h3><div id="myResult"></div><div id="myExp" class="expbox"></div></div>
 </div>
+</section>
+
+<section id="studentEnd" class="hide">
+<div class="card" id="sumCapture"><div class="top"><h2>오늘의 마무리 결과</h2><span class="pill" id="sumScore"></span></div>
+<div class="no-cap" style="margin-bottom:10px"><label class="small muted">이미지에 적을 번호·이름 (선택, 선생님께 전송되지 않아요)</label><input id="sumName" placeholder="예: 7번 김과학"></div>
+<div id="sumNameShow" class="hide" style="font-weight:800;margin-bottom:8px"></div>
+<div id="sumList"></div>
+<div class="row no-cap" style="margin-top:14px"><button class="save" id="saveImg">이미지 저장하기</button></div>
+</div>
+</section>
+</div>
+
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import{getFirestore,doc,setDoc,getDoc,collection,getDocs,onSnapshot,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import{getFirestore,doc,setDoc,getDoc,collection,getDocs,onSnapshot,query,where,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 const firebaseConfig={
  apiKey:"AIzaSyAis4MfE6-oamhQZ_iD7ND-qfcD2Dcr8BQ",
  authDomain:"sciencelab27-5b82f.firebaseapp.com",
@@ -45,26 +80,192 @@ const firebaseConfig={
  appId:"1:412075132650:web:5630ae2484e7dcd1393993"
 };
 const app=initializeApp(firebaseConfig),db=getFirestore(app),$=id=>document.getElementById(id);
-$("net").textContent="Firebase 연결됨 · v3";
-const DEFAULT=[{"q": "과학에서 말하는 힘의 설명으로 옳은 것은?", "opts": ["사람의 능력이나 역량", "물체를 밀거나 당길 때 작용하며 물체의 모양이나 운동 상태를 변화시킬 수 있다.", "피곤하지 않은 상태", "다른 사람에게 미치는 영향력"], "a": 1, "exp": "학습지의 ‘과학에서의 힘’ 개념을 확인하는 문제입니다."}, {"q": "힘의 단위로 옳은 것은?", "opts": ["kg", "m", "N(뉴턴)", "℃"], "a": 2, "exp": "학습지의 ‘과학에서의 힘’ 개념을 확인하는 문제입니다."}, {"q": "다음 중 과학적 의미의 힘이 작용한 경우는?", "opts": ["아는 것이 힘이다.", "공부하니 힘들었다.", "책상을 밀었다.", "격려가 힘이 된다."], "a": 2, "exp": "학습지의 ‘과학에서의 힘’ 개념을 확인하는 문제입니다."}, {"q": "힘에 의해 주로 물체의 모양이 변한 예는?", "opts": ["수레를 밀었다.", "고무줄을 당겼다.", "농구공을 던졌다.", "창문을 밀어 열었다."], "a": 1, "exp": "학습지의 ‘과학에서의 힘’ 개념을 확인하는 문제입니다."}, {"q": "힘에 의해 주로 운동 상태가 변한 예는?", "opts": ["색종이를 접었다.", "밀가루 반죽을 눌렀다.", "수레를 밀었다.", "고무줄을 당겼다."], "a": 2, "exp": "학습지의 ‘과학에서의 힘’ 개념을 확인하는 문제입니다."}, {"q": "힘에 의해 모양과 운동 상태가 모두 변할 수 있는 예는?", "opts": ["책을 읽었다.", "물이 얼었다.", "테니스공을 쳤다.", "종이를 접었다."], "a": 2, "exp": "학습지의 ‘과학에서의 힘’ 개념을 확인하는 문제입니다."}, {"q": "다음 중 힘의 작용으로 보기 어려운 것은?", "opts": ["대리석을 깼다.", "수레를 밀었다.", "물이 얼었다.", "테니스공을 쳤다."], "a": 2, "exp": "학습지의 ‘과학에서의 힘’ 개념을 확인하는 문제입니다."}, {"q": "힘을 측정할 때 사용할 수 있는 도구는?", "opts": ["온도계", "용수철저울 또는 힘 센서", "초시계", "눈금실린더"], "a": 1, "exp": "학습지의 ‘과학에서의 힘’ 개념을 확인하는 문제입니다."}, {"q": "‘책을 들어 옮겼다.’에서 힘은 과학적 의미의 힘인가?", "opts": ["그렇다.", "아니다.", "상황에 따라 항상 다르다.", "판단할 수 없다."], "a": 0, "exp": "학습지의 ‘과학에서의 힘’ 개념을 확인하는 문제입니다."}, {"q": "야구공을 잡을 때 힘의 주요 효과는?", "opts": ["공의 온도가 변한다.", "공의 운동 상태가 변한다.", "공이 녹는다.", "공의 질량이 변한다."], "a": 1, "exp": "학습지의 ‘과학에서의 힘’ 개념을 확인하는 문제입니다."}]; let questions=structuredClone(DEFAULT),room="",qi=0,selected=null,studentId=localStorage.fc_sid||crypto.randomUUID();localStorage.fc_sid=studentId;
+$("net").textContent="Firebase 연결됨 · v4";
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const DEFAULT=[
+{q:"과학에서 말하는 힘의 설명으로 옳은 것은?",opts:["사람의 능력이나 역량","물체를 밀거나 당길 때 작용하며 물체의 모양이나 운동 상태를 변화시킬 수 있다.","피곤하지 않은 상태","다른 사람에게 미치는 영향력"],a:1,exp:"과학에서 힘은 물체의 모양이나 운동 상태를 변화시키는 원인입니다. 능력, 기운, 영향력은 일상생활에서 쓰는 ‘힘’의 뜻이에요."},
+{q:"힘의 단위로 옳은 것은?",opts:["kg","m","N(뉴턴)","℃"],a:2,exp:"힘의 단위는 N(뉴턴)입니다. kg은 질량, m는 길이, ℃는 온도의 단위예요."},
+{q:"다음 중 과학적 의미의 힘이 작용한 경우는?",opts:["아는 것이 힘이다.","공부하니 힘들었다.","책상을 밀었다.","격려가 힘이 된다."],a:2,exp:"책상을 밀면 책상이라는 물체에 실제로 힘이 작용합니다. 나머지는 지식, 피곤함, 마음의 힘처럼 일상적인 뜻으로 쓴 말이에요."},
+{q:"힘에 의해 주로 물체의 모양이 변한 예는?",opts:["수레를 밀었다.","고무줄을 당겼다.","농구공을 던졌다.","창문을 밀어 열었다."],a:1,exp:"고무줄을 당기면 늘어나서 모양이 변합니다. 수레, 농구공, 창문은 멈춰 있다가 움직이게 되므로 운동 상태가 변한 예예요."},
+{q:"힘에 의해 주로 운동 상태가 변한 예는?",opts:["색종이를 접었다.","밀가루 반죽을 눌렀다.","수레를 밀었다.","고무줄을 당겼다."],a:2,exp:"수레를 밀면 멈춰 있던 수레가 움직이므로 운동 상태(빠르기)가 변합니다. 색종이, 반죽, 고무줄은 모양이 변한 예예요."},
+{q:"힘에 의해 모양과 운동 상태가 모두 변할 수 있는 예는?",opts:["책을 읽었다.","물이 얼었다.","테니스공을 쳤다.","종이를 접었다."],a:2,exp:"테니스공을 라켓으로 치면 공이 순간적으로 찌그러지고(모양 변화), 날아가는 방향과 빠르기도 바뀝니다(운동 상태 변화)."},
+{q:"다음 중 힘의 작용으로 보기 어려운 것은?",opts:["대리석을 깼다.","수레를 밀었다.","물이 얼었다.","테니스공을 쳤다."],a:2,exp:"물이 어는 것은 온도가 낮아져 상태가 변한 것이지, 물체를 밀거나 당겨서 생긴 변화가 아닙니다."},
+{q:"힘을 측정할 때 사용할 수 있는 도구는?",opts:["온도계","용수철저울 또는 힘 센서","초시계","눈금실린더"],a:1,exp:"힘의 크기는 용수철저울이나 힘 센서로 잽니다. 온도계는 온도, 초시계는 시간, 눈금실린더는 부피를 재요."},
+{q:"‘책을 들어 옮겼다.’에서 힘은 과학적 의미의 힘인가?",opts:["그렇다.","아니다.","책이 무거울 때만 그렇다.","판단할 수 없다."],a:0,exp:"책을 들어 옮기면 책에 힘이 작용해 책의 운동 상태가 변합니다. 책의 무게와 관계없이 과학적 의미의 힘이에요."},
+{q:"야구공을 잡을 때 힘의 주요 효과는?",opts:["공의 온도가 변한다.","공의 운동 상태가 변한다.","공이 녹는다.","공의 질량이 변한다."],a:1,exp:"날아오던 공이 글러브에 잡혀 멈추므로 공의 빠르기, 즉 운동 상태가 변합니다."}
+];
+
+let questions=structuredClone(DEFAULT),room="",qi=0,revealed=false,finished=false,selected=null;
+let studentId=localStorage.fc_sid||crypto.randomUUID();localStorage.fc_sid=studentId;
+let respDocs=[],unsubResp=null,unsubRoom=null,lastQi=-1;
 const show=id=>$(id).classList.remove("hide"),hide=id=>$(id).classList.add("hide");
-function renderEditor(){$("editor").innerHTML="";questions.forEach((x,i)=>{let d=document.createElement("div");d.className="qedit";d.innerHTML=`<b>${i+1}번</b><textarea data-k="q">${x.q}</textarea>${x.opts.map((o,j)=>`<div class="row"><input data-o="${j}" value="${o.replaceAll('"','&quot;')}"><label style="width:auto"><input style="width:auto" type="radio" name="a${i}" data-a="${j}" ${x.a===j?"checked":""}> 정답</label></div>`).join("")}<textarea data-k="exp" placeholder="해설">${x.exp||""}</textarea><button class="danger" data-del>삭제</button>`;d.querySelector('[data-k=q]').oninput=e=>x.q=e.target.value;d.querySelector('[data-k=exp]').oninput=e=>x.exp=e.target.value;d.querySelectorAll("[data-o]").forEach(el=>el.oninput=e=>x.opts[+e.target.dataset.o]=e.target.value);d.querySelectorAll("[data-a]").forEach(el=>el.onchange=e=>x.a=+e.target.dataset.a);d.querySelector("[data-del]").onclick=()=>{questions.splice(i,1);renderEditor()};$("editor").append(d)})}
-function sets(){return JSON.parse(localStorage.fc_sets||"{}")} function refreshSets(){let s=sets();$("savedSets").innerHTML='<option value="">선택</option>'+Object.keys(s).map(k=>`<option>${k}</option>`).join("")}
-$("teacherBtn").onclick=()=>{hide("home");show("teacherSetup");renderEditor();refreshSets()};$("studentBtn").onclick=()=>{hide("home");show("studentJoin")};
+const roomRef=()=>doc(db,"live_classes",room);
+
+/* ---------- 홈: 진행 중 수업방 이어가기 ---------- */
+const savedRoom=localStorage.fc_teacher_room;
+if(savedRoom){$("resumeBtn").textContent=`진행 중인 수업방 이어가기 (코드 ${savedRoom})`;show("resumeBox")}
+$("resumeBtn").onclick=async()=>{
+ let snap=await getDoc(doc(db,"live_classes",savedRoom));
+ if(!snap.exists()){localStorage.removeItem("fc_teacher_room");hide("resumeBox");return alert("수업방을 찾을 수 없습니다. 새로 만들어 주세요.")}
+ let d=snap.data();room=savedRoom;questions=d.questions;qi=d.qIndex||0;revealed=!!d.revealed;finished=!!d.finished;
+ hide("home");enterTeacherLive();if(finished)showTeacherEnd();
+};
+
+/* ---------- 교사: 문제 편집 ---------- */
+function renderEditor(){$("editor").innerHTML="";questions.forEach((x,i)=>{let d=document.createElement("div");d.className="qedit";
+ d.innerHTML=`<b>${i+1}번</b><textarea data-k="q">${esc(x.q)}</textarea>${x.opts.map((o,j)=>`<div class="row"><input data-o="${j}" value="${esc(o)}" style="flex:1"><label style="width:auto"><input style="width:auto" type="radio" name="a${i}" data-a="${j}" ${x.a===j?"checked":""}> 정답</label></div>`).join("")}<textarea data-k="exp" placeholder="해설">${esc(x.exp||"")}</textarea><button class="danger" data-del>삭제</button>`;
+ d.querySelector('[data-k=q]').oninput=e=>x.q=e.target.value;d.querySelector('[data-k=exp]').oninput=e=>x.exp=e.target.value;
+ d.querySelectorAll("[data-o]").forEach(el=>el.oninput=e=>x.opts[+e.target.dataset.o]=e.target.value);
+ d.querySelectorAll("[data-a]").forEach(el=>el.onchange=e=>x.a=+e.target.dataset.a);
+ d.querySelector("[data-del]").onclick=()=>{if(confirm(`${i+1}번 문제를 삭제할까요?`)){questions.splice(i,1);renderEditor()}};$("editor").append(d)})}
+function sets(){return JSON.parse(localStorage.fc_sets||"{}")}
+function refreshSets(){let s=sets();$("savedSets").innerHTML='<option value="">선택</option>'+Object.keys(s).map(k=>`<option value="${esc(k)}">${esc(k)}</option>`).join("")}
+$("teacherBtn").onclick=()=>{hide("home");show("teacherSetup");renderEditor();refreshSets()};
+$("studentBtn").onclick=()=>{hide("home");show("studentJoin")};
 $("addQ").onclick=()=>{questions.push({q:"새 문제",opts:["보기 1","보기 2","보기 3","보기 4"],a:0,exp:""});renderEditor()};
 $("newSet").onclick=()=>{questions=[];$("setName").value="새 문제 세트";renderEditor()};
+$("resetSet").onclick=()=>{if(confirm("기본 문제 10개로 되돌릴까요?")){questions=structuredClone(DEFAULT);$("setName").value="과학에서의 힘 · 마무리";renderEditor()}};
 $("saveSet").onclick=()=>{let s=sets(),n=$("setName").value.trim()||"문제 세트";s[n]=questions;localStorage.fc_sets=JSON.stringify(s);refreshSets();$("savedSets").value=n;alert("저장했습니다. 이 브라우저에서 다시 사용할 수 있습니다.")};
 $("loadSet").onclick=()=>{let s=sets(),n=$("savedSets").value;if(s[n]){questions=structuredClone(s[n]);$("setName").value=n;renderEditor()}};
-$("makeRoom").onclick=async()=>{if(!questions.length)return alert("문제를 1개 이상 만들어 주세요.");room=String(Math.floor(100000+Math.random()*900000));await setDoc(doc(db,"live_classes",room),{room,setName:$("setName").value,questions,qIndex:0,revealed:false,active:true,createdAt:serverTimestamp()});hide("teacherSetup");show("teacherLive");$("roomCode").textContent=room;let u=location.href.split("?")[0]+"?room="+room;$("qr").src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="+encodeURIComponent(u);listenTeacher();renderT()};
-function renderT(){let x=questions[qi];$("qnum").textContent=`${qi+1} / ${questions.length}`;$("tq").textContent=x.q;$("topts").innerHTML=x.opts.map((o,i)=>`<div class="option">${i+1}. ${o}</div>`).join("");refreshStats()}
-async function updateRoom(rev=false){await setDoc(doc(db,"live_classes",room),{qIndex:qi,revealed:rev},{merge:true})}
-$("nextQ").onclick=async()=>{if(qi<questions.length-1)qi++;await updateRoom(false);renderT()};$("prevQ").onclick=async()=>{if(qi>0)qi--;await updateRoom(false);renderT()};$("reveal").onclick=()=>updateRoom(true);
-async function refreshStats(){let s=await getDocs(collection(db,"live_class_responses")),docs=s.docs.map(d=>d.data()).filter(x=>String(x.room)===room&&Number(x.qIndex)===qi),x=questions[qi],cnt=x.opts.map((_,i)=>docs.filter(r=>Number(r.answer)===i).length);$("submitted").textContent=docs.length+"명";$("accuracy").textContent=docs.length?Math.round(100*docs.filter(r=>r.correct).length/docs.length)+"%":"—";$("dist").innerHTML=cnt.map((n,i)=>`<div style="margin:10px 0"><div>${i+1}. ${x.opts[i]} <b>${n}명</b></div><div class="bar"><div class="fill" style="width:${docs.length?100*n/docs.length:0}%"></div></div></div>`).join("")}
-function listenTeacher(){setInterval(refreshStats,1200)}
-async function join(){room=$("joinRoom").value.trim();let snap=await getDoc(doc(db,"live_classes",room));if(!snap.exists())return $("joinMsg").textContent="수업방을 찾을 수 없습니다.";questions=snap.data().questions;hide("studentJoin");show("studentLive");onSnapshot(doc(db,"live_classes",room),s=>{if(!s.exists())return;let d=s.data();qi=d.qIndex||0;renderS(d.revealed)})}
+
+$("makeRoom").onclick=async()=>{
+ if(!questions.length)return alert("문제를 1개 이상 만들어 주세요.");
+ $("makeRoom").disabled=true;$("makeMsg").textContent="수업방을 만드는 중…";
+ try{
+  for(let t=0;t<5;t++){room=String(Math.floor(100000+Math.random()*900000));if(!(await getDoc(roomRef())).exists())break}
+  qi=0;revealed=false;finished=false;
+  await setDoc(roomRef(),{room,setName:$("setName").value,questions,qIndex:0,revealed:false,finished:false,active:true,createdAt:serverTimestamp()});
+  localStorage.fc_teacher_room=room;hide("teacherSetup");enterTeacherLive();
+ }catch(e){console.error(e);$("makeMsg").textContent="수업방을 만들지 못했습니다. 인터넷 연결을 확인해 주세요."}
+ $("makeRoom").disabled=false;
+};
+
+/* ---------- 교사: 수업 진행 ---------- */
+function enterTeacherLive(){
+ show("teacherLive");$("roomCode").textContent=room;
+ let u=location.href.split("?")[0]+"?room="+room;
+ $("qr").src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="+encodeURIComponent(u);
+ renderT();
+}
+function listenResponses(){
+ if(unsubResp)unsubResp();respDocs=[];drawStats();
+ const q=query(collection(db,"live_class_responses"),where("room","==",room),where("qIndex","==",qi));
+ unsubResp=onSnapshot(q,s=>{respDocs=s.docs.map(d=>d.data());drawStats()},e=>{console.error(e);$("net").textContent="응답을 불러오지 못함"});
+}
+function renderT(){
+ let x=questions[qi];$("qnum").textContent=`${qi+1} / ${questions.length}`;$("tq").textContent=x.q;
+ $("topts").innerHTML=x.opts.map((o,i)=>`<div class="option ${revealed&&i===x.a?"correct":""}">${i+1}. ${esc(o)}${revealed&&i===x.a?" <b class='ok'>✓ 정답</b>":""}</div>`).join("");
+ if(revealed){$("texp").innerHTML=`<b>정답: ${x.a+1}번</b><br>${esc(x.exp||"")}`;show("texp")}else hide("texp");
+ $("reveal").disabled=revealed;$("reveal").textContent=revealed?"정답 공개됨":"정답 공개";
+ $("prevQ").disabled=qi===0;
+ $("nextQ").textContent=qi===questions.length-1?"수업 마무리":"다음";
+ listenResponses();
+}
+function drawStats(){
+ let x=questions[qi];if(!x)return;
+ let cnt=x.opts.map((_,i)=>respDocs.filter(r=>Number(r.answer)===i).length),n=respDocs.length;
+ $("submitted").textContent=n+"명";
+ $("accuracy").textContent=revealed?(n?Math.round(100*respDocs.filter(r=>r.correct).length/n)+"%":"—"):"공개 후 표시";
+ $("dist").innerHTML=cnt.map((c,i)=>`<div style="margin:10px 0"><div>${i+1}. ${esc(x.opts[i])} <b>${c}명</b></div><div class="bar"><div class="fill ${revealed&&i===x.a?"correct":""}" style="width:${n?100*c/n:0}%"></div></div></div>`).join("");
+}
+async function updateRoom(){await setDoc(roomRef(),{qIndex:qi,revealed,finished},{merge:true})}
+$("nextQ").onclick=async()=>{
+ if(qi<questions.length-1){qi++;revealed=false;await updateRoom();renderT()}
+ else if(confirm("수업을 마무리할까요? 학생 화면에 각자의 전체 결과가 표시됩니다.")){finished=true;await updateRoom();showTeacherEnd()}
+};
+$("prevQ").onclick=async()=>{if(qi>0){qi--;revealed=false;await updateRoom();renderT()}};
+$("reveal").onclick=async()=>{revealed=true;await updateRoom();renderT()};
+
+async function showTeacherEnd(){
+ if(unsubResp){unsubResp();unsubResp=null}
+ hide("teacherLive");show("teacherEnd");$("endList").innerHTML='<p class="muted">집계 중…</p>';
+ let s=await getDocs(query(collection(db,"live_class_responses"),where("room","==",room))),all=s.docs.map(d=>d.data());
+ $("endList").innerHTML=questions.map((x,i)=>{let r=all.filter(d=>Number(d.qIndex)===i),n=r.length,p=n?Math.round(100*r.filter(d=>d.correct).length/n):0;
+  return `<div style="margin:14px 0"><div><b>${i+1}번</b> ${esc(x.q)} <span class="muted small">(${n}명 제출)</span> <b class="${p<60?"err":"ok"}">${n?p+"%":"—"}</b></div><div class="bar"><div class="fill ${p>=60?"correct":""}" style="width:${p}%;${p<60?"background:var(--bad)":""}"></div></div></div>`}).join("");
+}
+$("backToLast").onclick=async()=>{finished=false;await updateRoom();hide("teacherEnd");show("teacherLive");renderT()};
+$("newRoom").onclick=async()=>{
+ if(!confirm("이 수업방을 닫고 새 수업방을 만들까요?"))return;
+ await setDoc(roomRef(),{active:false},{merge:true});localStorage.removeItem("fc_teacher_room");
+ hide("teacherEnd");show("teacherSetup");renderEditor();refreshSets();$("makeMsg").textContent="";
+};
+
+/* ---------- 학생 ---------- */
+const myKey=i=>"fc_last_"+room+"_"+i;
+const myRec=i=>{let r=localStorage.getItem(myKey(i));return r?JSON.parse(r):null};
+async function join(){
+ room=$("joinRoom").value.trim();if(!/^\d{6}$/.test(room))return $("joinMsg").textContent="방 코드 6자리 숫자를 입력하세요.";
+ let snap;try{snap=await getDoc(roomRef())}catch(e){return $("joinMsg").textContent="연결에 실패했습니다. 인터넷 연결을 확인하세요."}
+ if(!snap.exists()||snap.data().active===false)return $("joinMsg").textContent="수업방을 찾을 수 없습니다. 방 코드를 확인하세요.";
+ questions=snap.data().questions;hide("studentJoin");
+ if(unsubRoom)unsubRoom();
+ unsubRoom=onSnapshot(roomRef(),s=>{
+  if(!s.exists())return;let d=s.data();
+  if(d.finished){hide("studentLive");showSummary();return}
+  hide("studentEnd");show("studentLive");
+  revealed=!!d.revealed;let nq=d.qIndex||0;
+  if(nq!==lastQi){qi=nq;lastQi=nq;renderS()}
+  applyRevealS();
+ });
+}
 $("joinBtn").onclick=join;
-function renderS(revealed){let x=questions[qi];selected=null;$("sqnum").textContent=`${qi+1} / ${questions.length}`;$("sq").textContent=x.q;$("sopts").innerHTML=x.opts.map((o,i)=>`<button class="option" data-i="${i}">${i+1}. ${o}</button>`).join("");$("sopts").querySelectorAll("button").forEach(b=>b.onclick=()=>{selected=+b.dataset.i;$("sopts").querySelectorAll("button").forEach(z=>z.classList.remove("sel"));b.classList.add("sel")});$("smsg").textContent="";hide("resultCard");if(revealed)showOwnResult()}
-$("submit").onclick=async()=>{if(selected===null)return $("smsg").textContent="답을 먼저 선택하세요.";let x=questions[qi];await setDoc(doc(db,"live_class_responses",room+"_"+studentId+"_"+qi),{room,sid:studentId,qIndex:qi,answer:selected,correct:selected===x.a,submittedAt:serverTimestamp()});localStorage.setItem("fc_last_"+room+"_"+qi,JSON.stringify({answer:selected,correct:selected===x.a}));$("smsg").innerHTML='<span class="ok">제출 완료 ✓</span>'};
-function showOwnResult(){let raw=localStorage.getItem("fc_last_"+room+"_"+qi);if(!raw)return;let r=JSON.parse(raw),x=questions[qi];show("resultCard");$("myResult").innerHTML=r.correct?'<b class="ok">정답입니다 ✓</b>':`<b class="err">다시 확인해 봅시다.</b><br>정답: ${x.a+1}번 ${x.opts[x.a]}`;$("myExp").textContent=x.exp||""}
-let prm=new URLSearchParams(location.search);if(prm.get("room")){hide("home");show("studentJoin");$("joinRoom").value=prm.get("room")}
+$("joinRoom").addEventListener("keydown",e=>{if(e.key==="Enter")join()});
+
+function renderS(){
+ let x=questions[qi],mine=myRec(qi);selected=mine?mine.answer:null;
+ $("sqnum").textContent=`${qi+1} / ${questions.length}`;$("sq").textContent=x.q;
+ $("sopts").innerHTML=x.opts.map((o,i)=>`<button class="option ${selected===i?"sel":""}" data-i="${i}">${i+1}. ${esc(o)}</button>`).join("");
+ $("sopts").querySelectorAll("button").forEach(b=>b.onclick=()=>{if(revealed)return;selected=+b.dataset.i;$("sopts").querySelectorAll("button").forEach(z=>z.classList.remove("sel"));b.classList.add("sel")});
+ $("smsg").innerHTML=mine?'<span class="ok">제출 완료 ✓</span> <span class="muted small">정답 공개 전까지 바꿀 수 있어요.</span>':"";
+ $("submit").textContent=mine?"답 바꾸기":"답 제출하기";
+}
+function applyRevealS(){
+ let x=questions[qi],mine=myRec(qi),btns=$("sopts").querySelectorAll("button");
+ btns.forEach(b=>{let i=+b.dataset.i;b.disabled=revealed;b.classList.remove("correct","wrongsel");
+  if(revealed){if(i===x.a)b.classList.add("correct");else if(mine&&mine.answer===i)b.classList.add("wrongsel")}});
+ $("submit").disabled=revealed;
+ if(!revealed){$("submit").textContent=mine?"답 바꾸기":"답 제출하기";hide("resultCard");return}
+ $("submit").textContent="정답 공개됨";
+ show("resultCard");
+ if(!mine)$("myResult").innerHTML=`<b class="muted">답을 제출하지 않았어요.</b><br>정답: ${x.a+1}번 ${esc(x.opts[x.a])}`;
+ else if(mine.correct)$("myResult").innerHTML='<b class="ok">정답입니다 ✓</b>';
+ else $("myResult").innerHTML=`<b class="err">다시 확인해 봅시다.</b><br>내 답: ${mine.answer+1}번 · 정답: ${x.a+1}번 ${esc(x.opts[x.a])}`;
+ $("myExp").textContent=x.exp||"";$("myExp").classList.toggle("hide",!x.exp);
+}
+$("submit").onclick=async()=>{
+ if(revealed)return;
+ if(selected===null)return $("smsg").innerHTML='<span class="err">답을 먼저 선택하세요.</span>';
+ let x=questions[qi],ans=selected,q=qi;$("submit").disabled=true;
+ try{
+  let cur=(await getDoc(roomRef())).data();
+  if(cur.revealed||cur.qIndex!==q){$("smsg").innerHTML='<span class="err">이미 정답이 공개되어 제출할 수 없어요.</span>';return}
+  await setDoc(doc(db,"live_class_responses",room+"_"+studentId+"_"+q),{room,sid:studentId,qIndex:q,answer:ans,correct:ans===x.a,submittedAt:serverTimestamp()});
+  localStorage.setItem(myKey(q),JSON.stringify({answer:ans,correct:ans===x.a}));
+  if(q===qi){$("smsg").innerHTML='<span class="ok">제출 완료 ✓</span> <span class="muted small">정답 공개 전까지 바꿀 수 있어요.</span>';$("submit").textContent="답 바꾸기"}
+ }catch(e){console.error(e);$("smsg").innerHTML='<span class="err">제출하지 못했습니다. 다시 눌러 주세요.</span>'}
+ finally{$("submit").disabled=revealed}
+};
+
+function showSummary(){
+ show("studentEnd");let right=0;
+ $("sumList").innerHTML=questions.map((x,i)=>{let r=myRec(i);if(r&&r.correct)right++;
+  let mark=!r?'<span class="muted">–</span>':r.correct?'<span class="ok">O</span>':'<span class="err">X</span>';
+  let detail=!r?"제출 안 함":r.correct?"정답":`내 답 ${r.answer+1}번 → 정답 ${x.a+1}번`;
+  return `<div class="sumrow"><div class="mark">${mark}</div><div><b>${i+1}. ${esc(x.q)}</b>${r&&r.correct?"":`<div class="small muted" style="margin-top:4px">${esc(x.exp||"")}</div>`}</div><div class="small ${r&&r.correct?"ok":"err"}" style="text-align:right">${detail}</div></div>`}).join("");
+ $("sumScore").textContent=`${questions.length}문제 중 ${right}개 정답`;
+}
+$("sumName").oninput=e=>{let v=e.target.value.trim();$("sumNameShow").textContent=v;$("sumNameShow").classList.toggle("hide",!v)};
+$("saveImg").onclick=async()=>{
+ if(!window.html2canvas)return alert("이미지 저장 도구를 불러오지 못했습니다. 화면을 캡처해 주세요.");
+ $("saveImg").disabled=true;$("saveImg").textContent="저장 중…";
+ try{
+  let c=await html2canvas($("sumCapture"),{scale:2,backgroundColor:"#ffffff",ignoreElements:el=>el.classList&&el.classList.contains("no-cap")});
+  let a=document.createElement("a");a.href=c.toDataURL("image/png");a.download=`힘_마무리결과_${$("sumName").value.trim()||room}.png`;a.click();
+ }catch(e){console.error(e);alert("이미지를 저장하지 못했습니다. 화면을 캡처해 주세요.")}
+ $("saveImg").disabled=false;$("saveImg").textContent="이미지 저장하기";
+};
+
+let prm=new URLSearchParams(location.search);
+if(prm.get("room")){hide("home");show("studentJoin");$("joinRoom").value=prm.get("room")}
 </script></body></html>
