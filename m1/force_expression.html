@@ -230,6 +230,17 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
 .exp-title input{flex:1}
 .exp-chg{display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px}
 .gtag{display:inline-block; font-size:12.5px; font-weight:800; color:#fff; border-radius:999px; padding:1px 8px; margin-left:6px; vertical-align:2px}
+.savebox{margin-top:30px; border:2px solid var(--ink); border-radius:14px; padding:16px 18px; background:#fff; text-align:center}
+.savebox h3{margin:0 0 4px; font-size:19px}
+.savebox .hint{margin:0 0 12px; color:var(--soft); font-size:14px}
+.picks{display:flex; flex-wrap:wrap; gap:8px; justify-content:center}
+.pick{display:inline-flex; align-items:center; gap:8px; font:inherit; font-size:15px; font-weight:700; padding:10px 16px; border:2px solid var(--line); border-radius:10px; background:#F6F8FC; color:var(--ink); cursor:pointer}
+.pick .box{width:20px; height:20px; border:2px solid #9AA5BA; border-radius:5px; background:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:14px; line-height:1}
+.pick[aria-pressed="true"]{border-color:var(--ink); background:#EEF4FF}
+.pick[aria-pressed="true"] .box{background:var(--ink); border-color:var(--ink); color:#fff}
+.pick[aria-pressed="true"] .box::after{content:"✓"}
+.savebox .save{margin-top:14px}
+.savebox .save .btn:disabled{background:#B8C0CE; cursor:not-allowed}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -246,8 +257,7 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
     </svg>
     <div class="who">
       <label>반 <select id="ban"><option value="">선택</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
-      <label>학번 <input type="text" id="sid" inputmode="numeric"></label>
-      <label>모둠 <input type="text" id="team"></label>
+      <label>번호 <input type="text" id="sid" inputmode="numeric"></label>
       <label>이름 <input type="text" id="sname" class="name"></label>
     </div>
   </header>
@@ -365,7 +375,17 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
     <div class="qsum" id="qsum"></div>
   </section>
 
-  <div class="save" data-html2canvas-ignore="true"><button class="btn" id="saveBtn">이미지로 저장하기</button><a class="btn pad" href="https://padlet.com/pad228_2/padlet-s024a6z382cwpzps6a82" target="_blank" rel="noopener">패들렛 바로가기</a></div>
+  <div class="savebox" data-html2canvas-ignore="true">
+    <h3>활동지 이미지 만들기</h3>
+    <p class="hint">선생님이 말씀하신 영역을 모두 골라 주세요. 고른 영역만 한 장의 이미지로 만들어져요.</p>
+    <div class="picks" role="group" aria-label="저장할 영역">
+      <button type="button" class="pick" data-part="1" aria-pressed="false"><span class="box"></span>1. 사진 속 힘 찾기</button>
+      <button type="button" class="pick" data-part="2" aria-pressed="false"><span class="box"></span>2. 내가 경험한 힘</button>
+      <button type="button" class="pick" data-part="3" aria-pressed="false"><span class="box"></span>3. 스스로 확인하기</button>
+      <button type="button" class="pick" data-part="4" aria-pressed="false"><span class="box"></span>4. 마무리 문제</button>
+    </div>
+    <div class="save"><button class="btn" id="saveBtn" disabled>저장할 영역을 골라 주세요</button><a class="btn pad" href="https://padlet.com/pad228_2/padlet-s024a6z382cwpzps6a82" target="_blank" rel="noopener">패들렛 바로가기</a></div>
+  </div>
   <div class="ver" data-html2canvas-ignore="true">저장 방식 v5</div>
 </div>
 
@@ -471,7 +491,7 @@ const tap = (el, fn) => {
 const setMsg = (n, t, cls) => { const m = document.getElementById('msg' + n); m.className = 'result ' + (cls || ''); m.textContent = t; };
 function who() {
   const ban = document.getElementById('ban').value, sid = document.getElementById('sid').value.trim(), name = document.getElementById('sname').value.trim();
-  if (!ban || !sid || !name) { alert('반, 학번, 이름을 먼저 적어 주세요.'); return null; }
+  if (!ban || !sid || !name) { alert('반, 번호, 이름을 먼저 적어 주세요.'); return null; }
   return { ban, sid, name };
 }
 document.getElementById('shareSt').textContent = db ? '🟢 우리 반과 공유돼요' : '⚪ 혼자 확인 모드';
@@ -1023,14 +1043,27 @@ if (window.claude && typeof window.claude.use === 'function') {
   window.claude.use('downloads').then(ns => { downloadsNS = ns; }).catch(() => {});
 }
 const ovMsg = document.getElementById('ovMsg');
+// 저장할 영역 고르기
+const sheetSecs = [...document.querySelectorAll('#sheet section')].filter(x => x.querySelector('.sec-head'));
+sheetSecs.forEach((x, i) => x.dataset.part = String(i + 1));
+const parts = new Set();
+function syncPicks() {
+  document.querySelectorAll('.picks .pick').forEach(b => b.setAttribute('aria-pressed', String(parts.has(b.dataset.part))));
+  const b = document.getElementById('saveBtn'); b.disabled = !parts.size;
+  b.textContent = parts.size ? `고른 ${parts.size}개 영역 이미지로 저장하기` : '저장할 영역을 골라 주세요';
+}
+document.querySelectorAll('.picks .pick').forEach(b => b.onclick = () => { const p = b.dataset.part; parts.has(p) ? parts.delete(p) : parts.add(p); syncPicks(); });
+syncPicks();
 document.getElementById('saveBtn').onclick = async () => {
   const name = document.getElementById('sname').value.trim(), sid = document.getElementById('sid').value.trim();
-  if (!name || !sid) { alert('학번과 이름을 먼저 적어 주세요.'); document.getElementById(sid ? 'sname' : 'sid').focus(); return; }
+  if (!name || !sid) { alert('번호와 이름을 먼저 적어 주세요.'); document.getElementById(sid ? 'sname' : 'sid').focus(); return; }
+  if (!parts.size) return;
   if (typeof html2canvas !== 'function') { alert('이미지 도구를 불러오지 못했어요. 페이지를 새로 고친 뒤 다시 눌러 주세요.'); return; }
   const btn = document.getElementById('saveBtn'); btn.textContent = '이미지 만드는 중…'; btn.disabled = true;
   try {
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    const canvas = await html2canvas(document.getElementById('sheet'), { scale: 2, backgroundColor: '#FBFCFE', useCORS: true });
+    const canvas = await html2canvas(document.getElementById('sheet'), { scale: 2, backgroundColor: '#FBFCFE', useCORS: true,
+      ignoreElements: el => el.tagName === 'SECTION' && el.dataset.part && !parts.has(el.dataset.part) });
     const url = canvas.toDataURL('image/png');
     shotBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
     shotName = `force_${(sid.replace(/[^0-9A-Za-z-]/g, '') || 'report')}_${Date.now().toString().slice(-6)}.png`;
@@ -1039,7 +1072,7 @@ document.getElementById('saveBtn').onclick = async () => {
     ovMsg.innerHTML = "미리 보기예요. <b>갤러리에 저장</b>을 누른 뒤 <b>패들렛 바로가기</b>로 올려 주세요.<br>저장이 안 되면 그림을 길게 눌러 이미지 저장(사진에 추가)을 고르거나 화면을 캡처하세요.";
     overlay.style.display = 'flex';
   } catch (err) { alert('이미지를 만들지 못했어요. 잠시 뒤 다시 눌러 주세요.'); }
-  btn.textContent = '이미지로 저장하기'; btn.disabled = false;
+  btn.disabled = false; syncPicks();
 };
 function anchorDownload() {
   const u = URL.createObjectURL(shotBlob);
