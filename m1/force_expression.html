@@ -750,11 +750,14 @@ function teacherView() {
   }
 
   // ----- 그림 함께 보기 -----
-  let lbList = [], lbIdx = 0;
+  let lbList = [], lbIdx = 0, lbKey = null;
+  const seen = {}; let seenN = 0;   // 처음 올라온 순서를 기억해 순서가 바뀌지 않게 함
+  const dKey = d => `${d.ban}_${d.sid}_${d.k}`;
+  const ord = d => { const k = dKey(d); if (!(k in seen)) seen[k] = seenN++; return seen[k]; };
   const lb = document.getElementById('lightbox');
   const gLabel = (d, i) => showName ? d.name : `그림 ${i + 1}`;
   function openLB(i) {
-    lbIdx = i; const d = lbList[i]; if (!d) return;
+    lbIdx = i; const d = lbList[i]; if (!d) return; lbKey = dKey(d);
     document.getElementById('lbTitle').textContent = `${gLabel(d, i)}${d.k === 'scene' && d.chg != null ? ' · ' + ZN[d.chg] : ''}  (${i + 1} / ${lbList.length})`;
     document.getElementById('lbImg').src = d.img;
     document.getElementById('lbTxt').textContent = d.txt || '';
@@ -772,7 +775,9 @@ function teacherView() {
   });
   function renderDrawT() {
     grid.className = 't-grid two';
-    lbList = draws.filter(d => d.k === gk && (gk !== 'scene' || gc < 0 || d.chg === gc)).sort((a, b) => a.t - b.t);
+    draws.slice().sort((a, b) => a.t - b.t).forEach(ord);
+    lbList = draws.filter(d => d.k === gk && (gk !== 'scene' || gc < 0 || d.chg === gc)).sort((a, b) => ord(a) - ord(b));
+    if (!lb.hidden && lbKey) { const j = lbList.findIndex(d => dKey(d) === lbKey); if (j >= 0) openLB(j); }
     const nS = draws.filter(d => d.k === 'scene').length, nC = draws.filter(d => d.k === 'check').length;
     grid.innerHTML = `<div class="g-sub">
         <button class="btn ${gk === 'scene' ? '' : 'light'}" data-gk="scene">2번 · 내가 경험한 힘 (${nS})</button>
