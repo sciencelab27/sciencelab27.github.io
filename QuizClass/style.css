@@ -8,3 +8,22 @@ button,input,select,textarea{font:inherit}button{border:0;cursor:pointer}.top{mi
 .barrow{display:flex;align-items:flex-end;gap:13px;height:205px;padding:18px 7px 0}.barcol{flex:1;text-align:center;font-weight:900}.bar{border-radius:9px 9px 0 0;min-height:7px}.barcol:nth-child(1) .bar{background:#ff6598}.barcol:nth-child(2) .bar{background:#4e98f6}.barcol:nth-child(3) .bar{background:#ffc93d}.barcol:nth-child(4) .bar{background:#37c97a}.rankrow{display:flex;justify-content:space-between;border-bottom:1px solid #e7edf5;padding:8px}.small{color:var(--muted);font-size:14px}
 .setup{max-width:1080px;margin:28px auto;padding:0 17px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:17px}.field{width:100%;padding:12px;border:1px solid #c9d5e5;border-radius:10px;margin:5px 0 11px}.qitem{padding:12px;border:1px solid #dce5ef;border-radius:12px;margin:8px 0}.student{max-width:560px;margin:28px auto;padding:15px}.student .card{text-align:center}.sopt{display:block;width:100%;padding:19px;margin:9px 0;border-radius:15px;font-size:18px;font-weight:850}.bigresult{font-size:48px;font-weight:950;margin:18px}.hearts{font-size:25px}.hidden{display:none!important}.statusdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#18b467;margin-right:6px}
 @media(max-width:1100px){.layout{grid-template-columns:175px 1fr}.right{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:13px}.right .card{margin:0}}@media(max-width:760px){.top .pill,.room{display:none}.layout{display:block}.side{min-height:auto;margin-bottom:12px}.answers,.grid2,.right{display:block}.right .card{margin-bottom:12px}.question h1{font-size:23px}}
+
+/* QuizClass 2.1 monitor layout fixes */
+html,body{max-width:100%;overflow-x:hidden}
+.layout{grid-template-columns:190px minmax(420px,1fr) minmax(280px,330px)}
+.side{min-width:0}
+main,.right{min-width:0}
+@media(max-width:1250px){
+ .layout{grid-template-columns:180px minmax(0,1fr)}
+ .right{grid-column:2;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+ .right .card:last-child{grid-column:1/-1}
+}
+@media(max-width:900px){
+ .layout{grid-template-columns:160px minmax(0,1fr);padding:8px;gap:8px}
+ .right{grid-column:1/-1}
+ .top{padding:8px 12px}
+ .logo{font-size:23px}
+ .question h1{font-size:23px;margin:20px 5px}
+ .ans{padding:15px;font-size:16px}
+}
