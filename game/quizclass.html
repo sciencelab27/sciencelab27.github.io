@@ -53,6 +53,8 @@ body.th-speed .circle{border-color:#ff8a00}body.th-gold .circle{border-color:#e0
 #studentView .modebar .mt{font-size:21px}#studentView .modebar .mi{font-size:32px}
 .stime{font-size:24px;font-weight:950;margin:6px 0}
 #game.out{background:#eceff3}#game.out .modebar{filter:grayscale(1)}
+.settabs{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.settab{padding:11px 15px;border-radius:13px;background:#e7f0fb;font-weight:850;color:#1e3552}.settab .cnt{font-size:12px;font-weight:750;opacity:.8;margin-left:4px}.settab.active{background:#4c55ff;color:#fff}
+.qhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.qbtns{white-space:nowrap}.mini{padding:6px 10px;border-radius:9px;font-weight:800;background:#e7eef6;margin-left:4px}.mini:disabled{opacity:.3;cursor:default}.mini.del{background:#ffe3e3}.qitem.editing{border:2px solid #4c55ff;background:#f3f2ff}
 #game.th-gold{border:4px solid #f5c518}#game.th-speed{border:4px solid #ffb300}#game.th-surv{border:4px solid #ff7b93}
 </style></head><body>
 
@@ -66,7 +68,7 @@ body.th-speed .circle{border-color:#ff8a00}body.th-gold .circle{border-color:#e0
 <div class=room>과학 수업<br>PIN <span class=pin id=pin>------</span></div></header>
 <div id="errorBox" class="errbox hidden"></div>
 
-<div id=playPane><div class=layout><aside class=side><h3>게임 모드</h3><button class="mode active" data-m="기본 퀴즈">🎯 기본 퀴즈</button><button class=mode data-m="스피드 퀴즈">⚡ 스피드 퀴즈</button><button class=mode data-m="골든벨">🔔 골든벨</button><button class=mode data-m="서바이벌">❤️ 서바이벌</button><button class=mode data-m="익명 형성평가">📊 익명 형성평가</button><hr><p>현재 문제</p><h2 id=progress>0 / 0</h2><button class="ctl gray hidden" id="reviveBtn" style="margin-bottom:8px">💖 모두 부활</button><br><button class="ctl gray" id="newRoomBtn">새 방 만들기<br><span style="font-size:12px;font-weight:700">(반이 바뀔 때)</span></button></aside>
+<div id=playPane><div class=layout><aside class=side><h3>게임 모드</h3><button class="mode active" data-m="기본 퀴즈">🎯 기본 퀴즈</button><button class=mode data-m="스피드 퀴즈">⚡ 스피드 퀴즈</button><button class=mode data-m="골든벨">🔔 골든벨</button><button class=mode data-m="서바이벌">❤️ 서바이벌</button><button class=mode data-m="익명 형성평가">📊 익명 형성평가</button><hr><p>현재 문제</p><h2 id=progress style="margin-bottom:2px">0 / 0</h2><p id=setSrc style="margin:0 0 12px;font-size:13px;color:#b9c8ff"></p><button class="ctl gray hidden" id="reviveBtn" style="margin-bottom:8px">💖 모두 부활</button><br><button class="ctl gray" id="newRoomBtn">새 방 만들기<br><span style="font-size:12px;font-weight:700">(반이 바뀔 때)</span></button></aside>
 <main><div id=modeBar class=modebar></div><section class="card question"><div class=qmeta><span class=qnum id=qnum>Q</span><span class=pill>중학교 과학</span></div><h1 id=qtext>학생 입장을 확인한 뒤 문제를 시작하세요.</h1><div class=answers id=answers></div></section>
 <section class=card><div class=controls><button class="ctl primary" id=prevBtn>◀ 이전</button><button class="ctl danger" id=startBtn>▶ 문제 시작</button><button class="ctl primary" id=nextBtn>다음 ▶</button><button class="ctl success" id=revealBtn>👁 정답 공개</button><button class="ctl warn" id=exBtn>📖 해설</button></div></section>
 <section class=card><h3 id=rankTitle>🏆 실시간 순위</h3><div id=ranking></div></section></main>
@@ -74,9 +76,19 @@ body.th-speed .circle{border-color:#ff8a00}body.th-gold .circle{border-color:#e0
 <section class=card><h3>응답 현황 <span id=submitted></span></h3><div class=barrow id=bars></div><p class=small id=waiting></p></section>
 <section class=card><h3>참여 학생 <span id=pcount></span></h3><div id=players></div></section></aside></div></div>
 
-<div id=managePane class="setup hidden"><p class=small>여기서 고친 문제는 새 방을 만들어도 그대로 이어집니다.</p><div class=grid2>
-<div class=card><h2>문제 추가</h2><textarea id=mq class=field placeholder="문제"></textarea><input id=o0 class=field placeholder="① 보기"><input id=o1 class=field placeholder="② 보기"><input id=o2 class=field placeholder="③ 보기"><input id=o3 class=field placeholder="④ 보기"><select id=mans class=field><option value=0>정답 ①</option><option value=1>정답 ②</option><option value=2>정답 ③</option><option value=3>정답 ④</option></select><label class=small>제한 시간(초)</label><input id=msec type=number class=field value=15 min=5><textarea id=mex class=field placeholder="해설"></textarea><button class="ctl success" id=addBtn>+ 문제 추가</button></div>
-<div class=card><h2>문제 목록 <span id=cnt></span></h2><div id=list></div></div></div></div>
+<div id=managePane class="setup hidden">
+<div class=card><h2 style="margin-top:0">📝 문제 관리</h2>
+<p class=small style="margin-top:-6px">① 어느 모드의 문제를 고칠지 고르세요. 모드마다 문제를 따로 만들 수 있고, 전용 문제가 없는 모드는 <b>🎯 기본 퀴즈 문제</b>를 그대로 씁니다.</p>
+<div id=setTabs class=settabs></div><p class=small id=setNote style="margin-bottom:0"></p></div>
+<div class=grid2>
+<div class=card><h2 id=formTitle>② 문제 한 개씩 넣기</h2><textarea id=mq class=field placeholder="문제"></textarea><input id=o0 class=field placeholder="① 보기"><input id=o1 class=field placeholder="② 보기"><input id=o2 class=field placeholder="③ 보기"><input id=o3 class=field placeholder="④ 보기"><select id=mans class=field><option value=0>정답 ①</option><option value=1>정답 ②</option><option value=2>정답 ③</option><option value=3>정답 ④</option></select><label class=small>제한 시간(초)</label><input id=msec type=number class=field value=15 min=5><textarea id=mex class=field placeholder="해설 (생략 가능)"></textarea>
+<button class="ctl success" id=addBtn>+ 문제 추가</button> <button class="ctl gray hidden" id=cancelEdit>수정 취소</button>
+<hr style="margin:22px 0 14px;border:0;border-top:2px dashed #c4dcf5">
+<h3 style="margin:0 0 6px">📋 여러 문제 한꺼번에 넣기</h3>
+<p class=small style="margin:0 0 6px">한 줄에 한 문제씩 <b>|</b> 로 나눠 적어요. 엑셀에서 칸을 복사해 붙여도 돼요. (시간은 위 ‘제한 시간’ 값)<br><b>문제 | 보기1 | 보기2 | 보기3 | 보기4 | 정답 번호 | 해설</b></p>
+<textarea id=bulk class=field rows=5 placeholder="물이 끓는 현상은? | 융해 | 응고 | 기화 | 액화 | 3 | 액체가 기체로 변해요&#10;얼음이 녹는 현상은? | 융해 | 응고 | 기화 | 액화 | 1"></textarea>
+<button class="ctl primary" id=bulkBtn>📋 한꺼번에 추가</button></div>
+<div class=card><h2 id=listTitle>③ 문제 목록</h2><div id=listTools class=controls style="margin-bottom:8px"></div><div id=list></div></div></div></div>
 
 <div id=qrModal class="modal hidden"><div class="card modalbox"><h2>📱 태블릿으로 찍고 입장하세요</h2><div id=qrcode></div><div class=qrpin id=qrPin></div><p class=small id=qrUrl></p><button class="ctl primary" id=qrClose>닫기</button></div></div>
 </div>
@@ -142,15 +154,25 @@ function teacher(){
  const pid=initDB();$("conn").textContent=pid?"🟢 "+pid:"🔴 연결 안 됨";if(!db)return;
  let state=null,questions=[],players={},unsub=null,stopping=false,room=localStorage.getItem("qc2_room")||"";
  const ref=()=>db.collection(QC_ROOT).doc(room);
- const savedQ=()=>{try{const a=JSON.parse(localStorage.getItem("qc2_questions"));return Array.isArray(a)&&a.length?a:null}catch(e){return null}};
+  const savedQ=()=>{try{const a=JSON.parse(localStorage.getItem("qc2_questions"));return Array.isArray(a)&&a.length?a:null}catch(e){return null}};
+ // 문제 은행: 모드마다 문제 목록을 따로 저장 (quizclass_v2/bank). 전용 문제가 없는 모드는 기본 퀴즈 문제를 씀
+ const bankRef=db.collection(QC_ROOT).doc("bank");
+ let bank={},editMode="기본 퀴즈",editIdx=-1;
+ const setOf=m=>Array.isArray(bank[m])?bank[m]:[];
+ const effective=m=>setOf(m).length?setOf(m):setOf("기본 퀴즈");
+ async function loadBank(){const s=await bankRef.get();
+  if(s.exists)bank=s.data().sets||{};
+  else{let first=null;if(room){try{const r=await ref().get();if(r.exists&&(r.data().questions||[]).length)first=r.data().questions}catch(e){}}
+   bank={"기본 퀴즈":first||savedQ()||DEFAULT_Q};await bankRef.set({sets:bank})}
+  renderManage();bankRef.onSnapshot(x=>{if(x.exists){bank=x.data().sets||{};renderManage()}},showErr)}
 
  async function newRoom(){try{
-  const qs=questions.length?questions:(savedQ()||DEFAULT_Q);
+  const mode=state?.mode||"기본 퀴즈";
   room=String(Math.floor(100000+Math.random()*900000));localStorage.setItem("qc2_room",room);
-  await ref().set({mode:state?.mode||"기본 퀴즈",idx:-1,running:false,reveal:false,endAt:0,createdAt:Date.now(),players:{},questions:qs});listen()}catch(e){showErr(e)}}
- async function ensure(){try{if(!room)return newRoom();const s=await ref().get();if(!s.exists)return newRoom();listen()}catch(e){showErr(e)}}
+  await ref().set({mode,idx:-1,running:false,reveal:false,endAt:0,createdAt:Date.now(),players:{},questions:effective(mode)});listen()}catch(e){showErr(e)}}
+ async function ensure(){try{await loadBank();if(!room)return newRoom();const s=await ref().get();if(!s.exists)return newRoom();listen()}catch(e){showErr(e)}}
  function listen(){if(unsub)unsub();unsub=ref().onSnapshot(s=>{if(!s.exists)return;state=s.data();questions=state.questions||[];players=state.players||{};
-  if(questions.length)localStorage.setItem("qc2_questions",JSON.stringify(questions));render();renderManage()},showErr)}
+  render()},showErr)}
  async function patch(o){try{await ref().update(o)}catch(e){showErr(e)}}
  // 학생 '답' 칸만 비우기 (명단 전체를 덮어쓰지 않음)
  async function patchReset(o){try{const a=[];Object.entries(o).forEach(([k,v])=>a.push(k,v));
@@ -166,7 +188,7 @@ function teacher(){
  // 모드를 바꾸면: 모두 부활·생명 3개·답 비우기 (점수는 유지)
  function reviveArgs(){const a=[];Object.keys(players).forEach(k=>a.push(FP("players",k,"alive"),true,FP("players",k,"lives"),3,FP("players",k,"answer"),null,FP("players",k,"correct"),null));return a}
  async function upd(a){try{await ref().update(...a)}catch(e){showErr(e)}}
- document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{if(!state||state.mode===b.dataset.m)return;upd(["mode",b.dataset.m,"running",false,"reveal",false,"endAt",0,...reviveArgs()])});
+ document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{if(!state||state.mode===b.dataset.m)return;upd(["mode",b.dataset.m,"questions",effective(b.dataset.m),"idx",-1,"running",false,"reveal",false,"endAt",0,...reviveArgs()])});
  $("reviveBtn").onclick=()=>{if(confirm("탈락한 학생을 모두 부활시키고 생명을 3개로 채울까요?"))upd(["running",false,"reveal",false,"endAt",0,...reviveArgs()])};
  // 골든벨·서바이벌: 시간 안에 못 낸 학생 처리 (answer=-1 은 '시간 초과')
  function penaltyArgs(){const a=[];if(!state||(state.mode!=="골든벨"&&state.mode!=="서바이벌"))return a;
@@ -183,6 +205,7 @@ function teacher(){
  function render(){
   if(!state)return;const anon=state.mode==="익명 형성평가";
   $("pin").textContent=room;$("modeLabel").textContent=state.mode;$("progress").textContent=`${Math.max(0,state.idx+1)} / ${questions.length}`;
+  $("setSrc").textContent=state.mode==="기본 퀴즈"?"":(setOf(state.mode).length?"✔ "+state.mode+" 전용 문제":"기본 퀴즈 문제 사용 중");
   document.querySelectorAll(".mode").forEach(x=>x.classList.toggle("active",x.dataset.m===state.mode));
   const M=modeOf(state.mode),all=Object.entries(players),alive=all.filter(([k,p])=>p.alive!==false);
   document.body.className="th-"+M.c;
@@ -211,15 +234,50 @@ function teacher(){
   if(state.running&&remain<=0&&!stopping){stopping=true;upd(["running",false,...penaltyArgs()]).finally(()=>stopping=false)}
  }
 
+ const DEF_SEC={"스피드 퀴즈":10,"골든벨":20};
  function renderManage(){
-  $("cnt").textContent=questions.length+"개";
-  $("list").innerHTML=questions.map((x,i)=>`<div class=qitem><b>${i+1}. ${esc(x.q)}</b><div class=small>${x.opts.map((o,j)=>(j===x.ans?"✅ ":"")+esc(o)).join(" / ")} · ${x.sec||15}초</div><button class="ctl danger" data-del="${i}">삭제</button></div>`).join("")||"<span class=small>문제가 없습니다.</span>";
-  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{if(!confirm("이 문제를 삭제할까요?"))return;const a=questions.slice();a.splice(+b.dataset.del,1);saveQ(a)})}
- async function saveQ(a){try{const o={questions:a};if(state&&state.idx>=a.length)Object.assign(o,{idx:a.length-1,running:false,reveal:false});await ref().update(o);if(a.length)localStorage.setItem("qc2_questions",JSON.stringify(a))}catch(e){showErr(e);alert("저장 오류: "+e.message)}}
- $("addBtn").onclick=()=>{const opts=["o0","o1","o2","o3"].map(id=>$(id).value.trim()),q=$("mq").value.trim();
-  if(!q||opts.some(x=>!x))return alert("문제와 보기 4개를 모두 입력하세요.");
-  saveQ(questions.concat([{q,opts,ans:+$("mans").value,sec:Math.max(5,+$("msec").value||15),ex:$("mex").value.trim()}]));
-  ["mq","o0","o1","o2","o3","mex"].forEach(id=>$(id).value="")};
+  $("setTabs").innerHTML=Object.keys(MODES).map(m=>{const n=setOf(m).length;
+   return `<button class="settab ${m===editMode?"active":""}" data-set="${esc(m)}">${modeOf(m).i} ${esc(m)}<span class=cnt>${m==="기본 퀴즈"||n?n+"문제":"기본 문제 사용"}</span></button>`}).join("");
+  $("setTabs").querySelectorAll("[data-set]").forEach(b=>b.onclick=()=>{editMode=b.dataset.set;cancelEdit();$("msec").value=DEF_SEC[editMode]||15;renderManage()});
+  const arr=setOf(editMode),M=modeOf(editMode);
+  $("setNote").innerHTML=editMode==="기본 퀴즈"?"🎯 기본 퀴즈 문제는 전용 문제가 없는 다른 모드에서도 쓰여요.":
+   arr.length?`${M.i} 수업 화면에서 <b>${esc(editMode)}</b>를 누르면 아래 전용 문제 ${arr.length}개가 나와요.`:
+   `${M.i} <b>${esc(editMode)}</b> 전용 문제가 아직 없어서, 지금은 기본 퀴즈 문제(${setOf("기본 퀴즈").length}개)가 나와요. 여기서 문제를 넣으면 전용 문제로 바뀌어요.`;
+  $("formTitle").textContent=editIdx>=0?`✏️ ${editIdx+1}번 문제 수정 중`:`② ${editMode} 문제 넣기`;
+  $("listTitle").textContent=`③ ${M.i} ${editMode} 문제 목록 (${arr.length}개)`;
+  $("listTools").innerHTML=(editMode!=="기본 퀴즈"?`<button class="ctl gray" id=copyBase>🎯 기본 퀴즈 문제 복사해 오기</button>`:"")+(arr.length?`<button class="ctl gray" id=clearSet>🗑 전체 삭제</button>`:"");
+  if($("copyBase"))$("copyBase").onclick=()=>{const bq=setOf("기본 퀴즈");if(!bq.length)return alert("기본 퀴즈 문제가 없어요.");
+   if(confirm(`기본 퀴즈 문제 ${bq.length}개를 ${editMode} 목록에 복사할까요?\n복사한 뒤 고치거나 지워도 기본 퀴즈 문제는 그대로예요.`))saveSet(editMode,arr.concat(JSON.parse(JSON.stringify(bq))))};
+  if($("clearSet"))$("clearSet").onclick=()=>{if(confirm(`${editMode} 문제 ${arr.length}개를 모두 지울까요?`)){cancelEdit();saveSet(editMode,[])}};
+  $("list").innerHTML=arr.map((x,i)=>`<div class="qitem ${i===editIdx?"editing":""}"><div class=qhead><b>${i+1}. ${esc(x.q)}</b><span class=qbtns><button class=mini data-up="${i}" ${i?"":"disabled"}>▲</button><button class=mini data-down="${i}" ${i<arr.length-1?"":"disabled"}>▼</button><button class=mini data-edit="${i}">✏️ 수정</button><button class="mini del" data-del="${i}">🗑</button></span></div><div class=small>${x.opts.map((o,j)=>(j===x.ans?"✅ ":"")+esc(o)).join(" / ")} · ${x.sec||15}초${x.ex?" · 해설 있음":""}</div></div>`).join("")||
+   `<span class=small>${editMode==="기본 퀴즈"?"문제가 없습니다. 왼쪽에서 추가하세요.":"전용 문제가 없어요. 왼쪽에서 넣거나 ‘기본 퀴즈 문제 복사해 오기’를 누르세요."}</span>`;
+  const L=$("list");
+  L.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{if(!confirm("이 문제를 삭제할까요?"))return;const a=arr.slice();a.splice(+b.dataset.del,1);cancelEdit();saveSet(editMode,a)});
+  L.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>{const i=+b.dataset.up,a=arr.slice();[a[i-1],a[i]]=[a[i],a[i-1]];cancelEdit();saveSet(editMode,a)});
+  L.querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>{const i=+b.dataset.down,a=arr.slice();[a[i],a[i+1]]=[a[i+1],a[i]];cancelEdit();saveSet(editMode,a)});
+  L.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>{const i=+b.dataset.edit,x=arr[i];editIdx=i;
+   $("mq").value=x.q;x.opts.forEach((o,j)=>$("o"+j).value=o);$("mans").value=x.ans;$("msec").value=x.sec||15;$("mex").value=x.ex||"";
+   $("addBtn").textContent="✔ 수정 저장";$("cancelEdit").classList.remove("hidden");renderManage();$("formTitle").scrollIntoView({behavior:"smooth",block:"center"})});
+ }
+ function cancelEdit(){editIdx=-1;$("addBtn").textContent="+ 문제 추가";$("cancelEdit").classList.add("hidden");["mq","o0","o1","o2","o3","mex"].forEach(id=>$(id).value="");$("mans").value=0}
+ $("cancelEdit").onclick=()=>{cancelEdit();renderManage()};
+ async function saveSet(m,a){const prevLen=setOf(m).length;bank[m]=a;renderManage();
+  try{await bankRef.update(FP("sets",m),a);
+   if(state&&(m===state.mode||(m==="기본 퀴즈"&&!setOf(state.mode).length))){const eff=effective(state.mode),o=["questions",eff];
+    if(m===state.mode&&m!=="기본 퀴즈"&&(prevLen===0)!==(a.length===0))o.push("idx",-1,"running",false,"reveal",false);
+    else if(state.idx>=eff.length)o.push("idx",eff.length-1,"running",false,"reveal",false);
+    await ref().update(...o)}}catch(e){showErr(e);alert("저장 오류: "+e.message)}}
+ function readForm(){const opts=["o0","o1","o2","o3"].map(id=>$(id).value.trim()),q=$("mq").value.trim();
+  if(!q||opts.some(x=>!x)){alert("문제와 보기 4개를 모두 입력하세요.");return null}
+  return {q,opts,ans:+$("mans").value,sec:Math.max(5,+$("msec").value||15),ex:$("mex").value.trim()}}
+ $("addBtn").onclick=()=>{const it=readForm();if(!it)return;const a=setOf(editMode).slice();if(editIdx>=0)a[editIdx]=it;else a.push(it);cancelEdit();saveSet(editMode,a)};
+ $("bulkBtn").onclick=()=>{const lines=$("bulk").value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean),out=[],bad=[];
+  lines.forEach((l,n)=>{const f=l.split(/\t|\|/).map(x=>x.trim());
+   const ans=parseInt(String(f[5]||"").replace("①","1").replace("②","2").replace("③","3").replace("④","4").replace(/\D/g,""));
+   if(f.length>=6&&f.slice(0,5).every(Boolean)&&ans>=1&&ans<=4)out.push({q:f[0],opts:f.slice(1,5),ans:ans-1,sec:Math.max(5,+$("msec").value||15),ex:f[6]||""});else bad.push(n+1)});
+  if(!out.length)return alert("형식이 맞는 줄이 없어요.\n문제 | 보기1 | 보기2 | 보기3 | 보기4 | 정답 번호 | 해설");
+  if(bad.length&&!confirm(`${bad.join(", ")}번째 줄은 형식이 맞지 않아요.\n그 줄은 빼고 ${out.length}문제만 추가할까요?`))return;
+  saveSet(editMode,setOf(editMode).concat(out));$("bulk").value="";alert(`${editMode}에 ${out.length}문제를 추가했어요.`)};
 
  setInterval(render,500);ensure();
 }
