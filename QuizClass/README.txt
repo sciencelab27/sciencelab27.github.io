@@ -1,14 +1,9 @@
-QuizClass 2.2 수정본
+QuizClass 2.4
+- firebase.js를 완전히 제거했습니다.
+- teacher.html / student.html / manage.html 각각이 기존 Firebase 프로젝트에 직접 연결합니다.
+- 기존 Firebase 프로젝트와 기존 보안 규칙은 변경하지 않습니다.
 
-핵심 수정
-- 학생 '입장하기'가 멈추는 문제를 구조적으로 수정했습니다.
-- 학생 정보를 Firestore 하위 컬렉션이 아니라 기존 방 문서 안에 저장합니다.
-  → 기존 Firebase 규칙을 건드리지 않고 작동할 가능성을 높였습니다.
-- 학생 입장 실패 시 화면에 오류 원인을 표시합니다.
-- 교사 화면의 참여 학생/응답/순위도 새 저장 구조에 맞게 수정했습니다.
-- 새 방 만들기, 기본/스피드/골든벨/서바이벌/익명 형성평가 유지.
-
-업데이트
-ZIP을 풀고 GitHub QuizClass 저장소에 같은 이름 파일들을 모두 업로드하여 교체한 뒤 Commit changes.
-1~2분 후 교사/학생 화면에서 Ctrl+F5.
-교사 화면에서 새 방 만들기 → 새 PIN 확인 → 학생 화면에서 새 PIN과 이름으로 입장.
+GitHub 업데이트:
+기존 QuizClass 저장소의 firebase.js는 삭제하세요.
+그 다음 이 ZIP의 index.html, teacher.html, student.html, manage.html, style.css, README.txt를 업로드하여 교체하고 Commit changes 하세요.
+1~2분 후 Ctrl+F5.

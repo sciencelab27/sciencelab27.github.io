@@ -9,14 +9,25 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="firebase.js"></script>
+
 <script>
 (function(){
+
+const QC_CONFIG={
+ apiKey:"AIzaSyAis4MfE6-oamhQZ_iD7ND-qfcD2Dcr8BQ",
+ authDomain:"sciencelab27-5b82f.firebaseapp.com",
+ projectId:"sciencelab27-5b82f",
+ storageBucket:"sciencelab27-5b82f.firebasestorage.app",
+ messagingSenderId:"412075132650",
+ appId:"1:412075132650:web:5630ae2484e7dcd1393993"
+};
+const QC_ROOT="quizclass_v2";
+
  const $=id=>document.getElementById(id); let db=null,who="",room="",state=null,player=null,last=-99,busy=false,key="";
  function err(e){console.error(e);let b=$("joinError");b.classList.remove("hidden");b.textContent="⚠️ "+(e&&e.message?e.message:e)}
  function safeKey(x){return x.replace(/[.~*/\[\]]/g,"_")}
  try{
-   firebase.initializeApp(window.QC_FIREBASE_CONFIG); db=firebase.firestore();
+   firebase.initializeApp(QC_CONFIG); db=firebase.firestore();
    $("jscheck").textContent="✓ 참여 준비 완료"; $("jscheck").style.color="#159447";
  }catch(e){$("jscheck").textContent="⚠️ Firebase 준비 실패";err(e)}
  async function join(){
@@ -26,7 +37,7 @@
    if(!db){err("Firebase가 아직 준비되지 않았습니다. 새로고침해 주세요.");return}
    busy=true;$("joinBtn").textContent="입장 중...";
    try{
-     const ref=db.collection(window.QC_ROOT).doc(room), snap=await ref.get();
+     const ref=db.collection(QC_ROOT).doc(room), snap=await ref.get();
      if(!snap.exists)throw new Error("방을 찾을 수 없습니다. PIN을 확인해 주세요.");
      const d=snap.data(), ps=d.players||{}; key=safeKey(who);
      if(!ps[key])ps[key]={name:who,score:0,answer:null,correct:null,alive:true,lives:3,joinedAt:Date.now()};
@@ -43,7 +54,7 @@
    if(!correct&&state.mode==="골든벨")alive=false;
    if(!correct&&state.mode==="서바이벌"){lives=Math.max(0,lives-1);if(lives===0)alive=false}
    let ps=Object.assign({},state.players||{});ps[key]=Object.assign({},player,{answer:i,correct,score,lives,alive,answeredAt:Date.now()});
-   try{await db.collection(window.QC_ROOT).doc(room).update({players:ps})}catch(e){alert("답 제출 오류: "+e.message)}
+   try{await db.collection(QC_ROOT).doc(room).update({players:ps})}catch(e){alert("답 제출 오류: "+e.message)}
  }
  window.answer=answer;
  function render(){
