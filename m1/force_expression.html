@@ -164,7 +164,8 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
 .tcard img{display:block; width:100%; aspect-ratio:200/140; object-fit:cover; border-radius:8px}
 .tcard .tt{font-weight:700; font-size:15px; line-height:1.4; margin:6px 0}
 .tcard .ans{font-weight:800; font-size:15px; margin-top:6px}
-.tcard.right{border-color:var(--mint); box-shadow:0 0 0 2px var(--mint)}
+.tcard.right{border-width:3px}
+.tcard .ans.pill{display:inline-block; color:#fff; padding:5px 14px; border-radius:999px; font-size:16px}
 .split{position:absolute; top:14px; right:14px; background:var(--yellow); color:var(--ink); font-weight:800; font-size:14px; padding:3px 10px; border-radius:999px; border:2px solid var(--ink)}
 .bar{display:flex; height:30px; border-radius:7px; overflow:hidden; background:#EEF1F6}
 .bar span{display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:14px; min-width:0; overflow:hidden; white-space:nowrap}
@@ -722,7 +723,7 @@ function teacherView() {
       let segs, split;
       if (tab === 1) {
         const x = n1.filter(s => s.s1.includes(i)).length, n = n1.length;
-        segs = [[x, '#8A93A6', '힘 아님으로 고른 학생']];
+        segs = [[x, '#F08A24', '힘 아님으로 고른 학생']];
         split = n ? Math.min(x, n - x) / n : 0;
         return { i, segs, split, tot: n };
       } else {
@@ -738,11 +739,12 @@ function teacherView() {
       const tot = (r.tot != null ? r.tot : r.segs.reduce((a, s) => a + s[0], 0)) || 1;
       const ans = ITEMS[r.i][1];
       const ansTxt = tab === 1 ? (ans === 3 ? '힘 아님' : '과학에서의 힘') : ZN[ans];
-      return `<div class="tcard${shown ? ' right' : ''}">${(r === top || r.split >= 0.3) ? '<span class="split">의견이 갈렸어요</span>' : ''}
+      const ansCol = tab === 1 ? (ans === 3 ? '#F08A24' : '#2E3A55') : ZC[ans];
+      return `<div class="tcard${shown ? ' right' : ''}"${shown ? ` style="border-color:${ansCol};box-shadow:0 0 0 2px ${ansCol}"` : ''}>${(r === top || r.split >= 0.3) ? '<span class="split">의견이 갈렸어요</span>' : ''}
         <img src="${ITEMS[r.i][3]}" alt=""><div class="tt">${r.i + 1}. ${ITEMS[r.i][0]}</div>
         <div class="bar">${r.segs.map(s => s[0] ? `<span style="width:${s[0] / tot * 100}%;background:${s[1]}">${s[0]}</span>` : '').join('')}</div>
         <div class="leg">${r.segs.map(s => `<span><i style="background:${s[1]}"></i>${s[2]} ${s[0]}명</span>`).join('')}</div>
-        ${shown ? `<div class="ans ok">정답: ${ansTxt}</div>` : ''}</div>`;
+        ${shown ? `<div class="ans pill" style="background:${ansCol}">정답: ${ansTxt}</div>` : ''}</div>`;
     }).join('');
   }
 
