@@ -41,6 +41,19 @@ main,.right{min-width:0}
 .student{max-width:900px}.sopt:disabled{opacity:.5;cursor:default}.sopt.picked{opacity:1;outline:5px solid #10203b}
 @media(min-width:700px){#sopts{display:grid;grid-template-columns:1fr 1fr;gap:12px}#sopts .sopt{margin:0}}
 @media(max-width:760px){.top .tab,#qrBtn{display:inline-block}}
+/* 모드별 모습 */
+.modebar{display:flex;align-items:center;gap:14px;border-radius:19px;padding:14px 20px;margin-bottom:13px;color:#fff;box-shadow:0 8px 24px #204a7718;text-align:left}
+.modebar .mi{font-size:40px;line-height:1}.modebar .mt{font-size:25px;font-weight:950}.modebar .md{font-size:15px;font-weight:750;opacity:.95}
+.modebar .ms{margin-left:auto;font-size:21px;font-weight:950;background:#ffffff40;padding:8px 14px;border-radius:12px;white-space:nowrap}
+.m-basic{background:linear-gradient(90deg,#2879f4,#5b8cff)}.m-speed{background:linear-gradient(90deg,#ff6a00,#ffb300)}
+.m-gold{background:linear-gradient(90deg,#b88400,#f5c518);color:#2e2100}.m-surv{background:linear-gradient(90deg,#e53958,#ff7b93)}.m-anon{background:linear-gradient(90deg,#5b50ff,#8f84ff)}
+body.th-speed .question{border:4px solid #ffb300}body.th-gold .question{border:4px solid #f5c518;background:#fffbea}body.th-surv .question{border:4px solid #ff7b93}body.th-anon .question{border:4px solid #8f84ff}
+body.th-speed .circle{border-color:#ff8a00}body.th-gold .circle{border-color:#e0b000}body.th-surv .circle{border-color:#e53958}
+.dead{opacity:.45;text-decoration:line-through}
+#studentView .modebar .mt{font-size:21px}#studentView .modebar .mi{font-size:32px}
+.stime{font-size:24px;font-weight:950;margin:6px 0}
+#game.out{background:#eceff3}#game.out .modebar{filter:grayscale(1)}
+#game.th-gold{border:4px solid #f5c518}#game.th-speed{border:4px solid #ffb300}#game.th-surv{border:4px solid #ff7b93}
 </style></head><body>
 
 <!-- ================= 교사 화면 (주소 끝에 ?t) ================= -->
@@ -53,10 +66,10 @@ main,.right{min-width:0}
 <div class=room>과학 수업<br>PIN <span class=pin id=pin>------</span></div></header>
 <div id="errorBox" class="errbox hidden"></div>
 
-<div id=playPane><div class=layout><aside class=side><h3>게임 모드</h3><button class="mode active" data-m="기본 퀴즈">🎯 기본 퀴즈</button><button class=mode data-m="스피드 퀴즈">⚡ 스피드 퀴즈</button><button class=mode data-m="골든벨">🔔 골든벨</button><button class=mode data-m="서바이벌">❤️ 서바이벌</button><button class=mode data-m="익명 형성평가">📊 익명 형성평가</button><hr><p>현재 문제</p><h2 id=progress>0 / 0</h2><button class="ctl gray" id="newRoomBtn">새 방 만들기<br><span style="font-size:12px;font-weight:700">(반이 바뀔 때)</span></button></aside>
-<main><section class="card question"><div class=qmeta><span class=qnum id=qnum>Q</span><span class=pill>중학교 과학</span></div><h1 id=qtext>학생 입장을 확인한 뒤 문제를 시작하세요.</h1><div class=answers id=answers></div></section>
+<div id=playPane><div class=layout><aside class=side><h3>게임 모드</h3><button class="mode active" data-m="기본 퀴즈">🎯 기본 퀴즈</button><button class=mode data-m="스피드 퀴즈">⚡ 스피드 퀴즈</button><button class=mode data-m="골든벨">🔔 골든벨</button><button class=mode data-m="서바이벌">❤️ 서바이벌</button><button class=mode data-m="익명 형성평가">📊 익명 형성평가</button><hr><p>현재 문제</p><h2 id=progress>0 / 0</h2><button class="ctl gray hidden" id="reviveBtn" style="margin-bottom:8px">💖 모두 부활</button><br><button class="ctl gray" id="newRoomBtn">새 방 만들기<br><span style="font-size:12px;font-weight:700">(반이 바뀔 때)</span></button></aside>
+<main><div id=modeBar class=modebar></div><section class="card question"><div class=qmeta><span class=qnum id=qnum>Q</span><span class=pill>중학교 과학</span></div><h1 id=qtext>학생 입장을 확인한 뒤 문제를 시작하세요.</h1><div class=answers id=answers></div></section>
 <section class=card><div class=controls><button class="ctl primary" id=prevBtn>◀ 이전</button><button class="ctl danger" id=startBtn>▶ 문제 시작</button><button class="ctl primary" id=nextBtn>다음 ▶</button><button class="ctl success" id=revealBtn>👁 정답 공개</button><button class="ctl warn" id=exBtn>📖 해설</button></div></section>
-<section class=card><h3>🏆 실시간 순위</h3><div id=ranking></div></section></main>
+<section class=card><h3 id=rankTitle>🏆 실시간 순위</h3><div id=ranking></div></section></main>
 <aside class=right><section class="card timer"><div><h3>⌛ 남은 시간</h3><div class=small id=modeLabel></div></div><div class=circle id=time>--</div></section>
 <section class=card><h3>응답 현황 <span id=submitted></span></h3><div class=barrow id=bars></div><p class=small id=waiting></p></section>
 <section class=card><h3>참여 학생 <span id=pcount></span></h3><div id=players></div></section></aside></div></div>
@@ -75,7 +88,7 @@ main,.right{min-width:0}
 <input id=room class=field inputmode=numeric maxlength=6 placeholder="6자리 PIN"><input id=name class=field placeholder="번호와 이름 (예: 3 김과학)">
 <button class="ctl primary" id=joinBtn type=button>입장하기</button>
 <p class=small id=jscheck>페이지 준비 중...</p></div>
-<div class="card hidden" id=game><div class=small id=status></div><div class=hearts id=hearts></div><h2 id=sq>교사가 문제를 시작할 때까지 기다려 주세요.</h2><div id=sopts></div><div class=bigresult id=result></div><p id=explain></p></div></div>
+<div class="card hidden" id=game><div id=smodeBar class=modebar></div><div class=small id=status></div><div class=stime id=stime></div><div class=hearts id=hearts></div><h2 id=sq>교사가 문제를 시작할 때까지 기다려 주세요.</h2><div id=sopts></div><div class=bigresult id=result></div><p id=explain></p></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -96,6 +109,14 @@ const FP=(...p)=>new firebase.firestore.FieldPath(...p);
 const params=new URLSearchParams(location.search);
 const isTeacher=params.has("t");
 let db=null;
+const MODES={"기본 퀴즈":{c:"basic",i:"🎯",d:"맞히면 100점"},
+ "스피드 퀴즈":{c:"speed",i:"⚡",d:"빨리 맞힐수록 보너스! 100점 + 남은 초 × 5점"},
+ "골든벨":{c:"gold",i:"🔔",d:"틀리거나 시간 안에 못 내면 탈락! 끝까지 살아남으세요"},
+ "서바이벌":{c:"surv",i:"❤️",d:"생명 3개 · 틀리거나 못 내면 하트 하나가 사라져요"},
+ "익명 형성평가":{c:"anon",i:"📊",d:"이름·순위 없이 결과만 봐요 · 부담 없이 답하세요"}};
+const modeOf=m=>MODES[m]||MODES["기본 퀴즈"];
+function paintBar(el,mode,extra){const M=modeOf(mode);el.className="modebar m-"+M.c;
+ el.innerHTML=`<span class=mi>${M.i}</span><div><div class=mt>${esc(mode)}</div><div class=md>${M.d}</div></div>`+(extra?`<span class=ms>${extra}</span>`:"")}
 
 function showErr(e){console.error(e);let m=(e&&e.message)?e.message:String(e);
  if(/permission/i.test(m))m+=" → 파이어베이스 보안 규칙이 막고 있어요.";
@@ -142,17 +163,35 @@ function teacher(){
   $("qrPin").textContent="PIN "+room;$("qrUrl").textContent=url;$("qrModal").classList.remove("hidden")};
  $("qrClose").onclick=()=>$("qrModal").classList.add("hidden");
  $("newRoomBtn").onclick=()=>{if(!state||confirm("새 방을 만들면 PIN이 바뀌고 학생 명단·점수가 비워집니다.\n(문제는 그대로 이어집니다) 만들까요?"))newRoom()};
- document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>patch({mode:b.dataset.m}));
+ // 모드를 바꾸면: 모두 부활·생명 3개·답 비우기 (점수는 유지)
+ function reviveArgs(){const a=[];Object.keys(players).forEach(k=>a.push(FP("players",k,"alive"),true,FP("players",k,"lives"),3,FP("players",k,"answer"),null,FP("players",k,"correct"),null));return a}
+ async function upd(a){try{await ref().update(...a)}catch(e){showErr(e)}}
+ document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{if(!state||state.mode===b.dataset.m)return;upd(["mode",b.dataset.m,"running",false,"reveal",false,"endAt",0,...reviveArgs()])});
+ $("reviveBtn").onclick=()=>{if(confirm("탈락한 학생을 모두 부활시키고 생명을 3개로 채울까요?"))upd(["running",false,"reveal",false,"endAt",0,...reviveArgs()])};
+ // 골든벨·서바이벌: 시간 안에 못 낸 학생 처리 (answer=-1 은 '시간 초과')
+ function penaltyArgs(){const a=[];if(!state||(state.mode!=="골든벨"&&state.mode!=="서바이벌"))return a;
+  Object.entries(players).forEach(([k,p])=>{if(p.alive===false||p.answer!=null)return;
+   if(state.mode==="골든벨")a.push(FP("players",k,"alive"),false);
+   else{const l=Math.max(0,(p.lives??3)-1);a.push(FP("players",k,"lives"),l);if(!l)a.push(FP("players",k,"alive"),false)}
+   a.push(FP("players",k,"answer"),-1,FP("players",k,"correct"),false)});return a}
  $("startBtn").onclick=()=>{const q=questions[state?.idx];if(!q)return alert("먼저 '다음'을 눌러 문제를 선택하세요.");patchReset({running:true,reveal:false,endAt:Date.now()+(q.sec||15)*1000})};
  $("nextBtn").onclick=()=>state&&state.idx<questions.length-1&&patchReset({idx:state.idx+1,running:false,reveal:false,endAt:0});
  $("prevBtn").onclick=()=>state&&state.idx>0&&patchReset({idx:state.idx-1,running:false,reveal:false,endAt:0});
- $("revealBtn").onclick=()=>state&&questions[state.idx]&&patch({reveal:true,running:false});
+ $("revealBtn").onclick=()=>state&&questions[state.idx]&&upd(["reveal",true,"running",false,...(state.running?penaltyArgs():[])]);
  $("exBtn").onclick=()=>alert(questions[state?.idx]?.ex||"등록된 해설이 없습니다.");
 
  function render(){
   if(!state)return;const anon=state.mode==="익명 형성평가";
   $("pin").textContent=room;$("modeLabel").textContent=state.mode;$("progress").textContent=`${Math.max(0,state.idx+1)} / ${questions.length}`;
   document.querySelectorAll(".mode").forEach(x=>x.classList.toggle("active",x.dataset.m===state.mode));
+  const M=modeOf(state.mode),all=Object.entries(players),alive=all.filter(([k,p])=>p.alive!==false);
+  document.body.className="th-"+M.c;
+  $("reviveBtn").classList.toggle("hidden",!(state.mode==="골든벨"||state.mode==="서바이벌"));
+  let extra="";
+  if(state.mode==="골든벨"||state.mode==="서바이벌")extra=`생존 ${alive.length} / ${all.length}명`;
+  else if(state.mode==="스피드 퀴즈"){const f=all.filter(([k,p])=>p.correct&&p.answeredAt).sort((a,b)=>a[1].answeredAt-b[1].answeredAt)[0];extra=f&&state.reveal?"⚡ 가장 빨리 맞힘: "+esc(f[1].name||f[0]):"⚡ 속도 대결"}
+  else if(state.mode==="익명 형성평가")extra="🙈 이름 숨김";
+  paintBar($("modeBar"),state.mode,extra);
   const q=questions[state.idx];
   if(q){$("qnum").textContent="Q "+(state.idx+1);$("qtext").textContent=q.q;$("answers").innerHTML=q.opts.map((x,i)=>`<div class="ans a${i+1} ${state.reveal&&i===q.ans?'correct':''}">${i+1}　${esc(x)}</div>`).join("")}
   else{$("qnum").textContent="Q";$("qtext").textContent="학생 입장을 확인한 뒤 '다음 ▶'으로 문제를 선택하세요.";$("answers").innerHTML=""}
@@ -161,12 +200,15 @@ function teacher(){
   $("submitted").textContent=`${sub} / ${arr.length}명 제출`;
   $("bars").innerHTML=counts.map((n,i)=>`<div class=barcol><b>${n}명</b><div class=bar style="height:${Math.max(7,n/mx*145)}px"></div>${i+1}</div>`).join("");
   $("waiting").textContent=!arr.length?"":arr.length-sub?`미제출 ${arr.length-sub}명`:"모두 제출했습니다.";$("pcount").textContent=`${arr.length}명`;
-  $("players").innerHTML=arr.map(([k,p])=>`<div class=rankrow><span>${anon?"학생":esc(p.name||k)}</span><span>${p.answer==null?"대기":"제출 ✓"}${p.alive===false?" · 탈락":""}</span></div>`).join("")||"<span class=small>아직 입장한 학생이 없습니다.</span>";
-  $("ranking").innerHTML=anon?"<span class=small>익명 모드에서는 순위를 표시하지 않습니다.</span>":
+  $("players").innerHTML=arr.map(([k,p])=>`<div class="rankrow ${p.alive===false?"dead":""}"><span>${anon?"학생":esc(p.name||k)}</span><span>${state.mode==="서바이벌"&&p.alive!==false?"❤️".repeat(p.lives??3)+" ":""}${p.answer==null?"대기":p.answer===-1?"⏰ 시간 초과":"제출 ✓"}${p.alive===false?" · 탈락":""}</span></div>`).join("")||"<span class=small>아직 입장한 학생이 없습니다.</span>";
+  $("rankTitle").textContent=state.mode==="골든벨"?"🔔 생존자":state.mode==="서바이벌"?"❤️ 생명 순위":state.mode==="스피드 퀴즈"?"⚡ 스피드 순위":"🏆 실시간 순위";
+  if(state.mode==="골든벨")$("ranking").innerHTML=alive.length?`<div style="display:flex;flex-wrap:wrap;gap:8px">${alive.map(([k,p])=>`<span class=pill style="background:#fff3c4">🔔 ${esc(p.name||k)}</span>`).join("")}</div>`:"<span class=small>생존자가 없습니다. 💖 모두 부활로 다시 시작하세요.</span>";
+  else if(state.mode==="서바이벌")$("ranking").innerHTML=arr.slice().sort((a,b)=>((b[1].alive!==false)-(a[1].alive!==false))||((b[1].lives??3)-(a[1].lives??3))||((b[1].score||0)-(a[1].score||0))).slice(0,8).map(([k,p],i)=>`<div class="rankrow ${p.alive===false?"dead":""}"><b>${i+1}. ${esc(p.name||k)}</b><b>${p.alive===false?"💔":"❤️".repeat(p.lives??3)} · ${p.score||0}점</b></div>`).join("")||"<span class=small>응답 후 순위가 표시됩니다.</span>";
+  else $("ranking").innerHTML=anon?"<span class=small>익명 모드에서는 순위를 표시하지 않습니다.</span>":
    arr.slice().sort((a,b)=>(b[1].score||0)-(a[1].score||0)).slice(0,5).map(([k,p],i)=>`<div class=rankrow><b>${i+1}. ${esc(p.name||k)}</b><b>${p.score||0}점</b></div>`).join("")||"<span class=small>응답 후 순위가 표시됩니다.</span>";
   const remain=state.running?Math.max(0,Math.ceil((state.endAt-Date.now())/1000)):0;
   $("time").textContent=q?(state.running?remain:"Ⅱ"):"--";
-  if(state.running&&remain<=0&&!stopping){stopping=true;patch({running:false}).finally(()=>stopping=false)}
+  if(state.running&&remain<=0&&!stopping){stopping=true;upd(["running",false,...penaltyArgs()]).finally(()=>stopping=false)}
  }
 
  function renderManage(){
@@ -205,6 +247,7 @@ function student(){
    localStorage.setItem("qc_student",JSON.stringify({room,name:who}));
    $("joinbox").classList.add("hidden");$("game").classList.remove("hidden");
    ref.onSnapshot(s=>{if(s.exists){state=s.data();player=(state.players||{})[key]||null;render()}},showErr);
+   setInterval(tick,500);
   }catch(e){showErr(e);busy=false;$("joinBtn").textContent="입장하기"}
  }
  $("joinBtn").onclick=join;
@@ -212,6 +255,7 @@ function student(){
 
  async function answer(i){
   if(sending||!state||!state.running||!player||player.answer!=null||player.alive===false)return;
+  if(state.endAt&&Date.now()>state.endAt+1500)return;
   const q=state.questions[state.idx],correct=i===q.ans;let score=player.score||0,lives=player.lives==null?3:player.lives,alive=player.alive!==false;
   if(correct){const bonus=state.mode==="스피드 퀴즈"?Math.max(0,Math.ceil((state.endAt-Date.now())/1000))*5:0;score+=100+bonus}
   if(!correct&&state.mode==="골든벨")alive=false;
@@ -228,18 +272,28 @@ function student(){
   if(!state)return;
   if(!player){$("sq").textContent="명단에서 빠졌어요. 새로고침 후 다시 입장해 주세요.";$("sopts").innerHTML="";return}
   const q=state.questions&&state.questions[state.idx];
-  $("status").textContent=state.mode+" · "+who+" · "+(player.score||0)+"점";
-  $("hearts").textContent=state.mode==="서바이벌"?"내 생명 "+"❤️".repeat(player.lives==null?3:player.lives):state.mode==="골든벨"?(player.alive===false?"🔔 탈락":"🔔 생존 중"):"";
+  const M=modeOf(state.mode);
+  paintBar($("smodeBar"),state.mode,state.mode==="서바이벌"?(player.alive===false?"💔":"❤️".repeat(player.lives??3)):state.mode==="골든벨"?(player.alive===false?"탈락":"생존 중"):"");
+  $("game").className="card th-"+M.c+(player.alive===false?" out":"");
+  $("status").textContent=who+" · "+(player.score||0)+"점";
+  $("hearts").textContent="";tick();
   if(!q){$("sq").textContent="교사가 문제를 시작할 때까지 기다려 주세요.";$("sopts").innerHTML="";$("result").textContent="";$("explain").textContent="";return}
   if(state.idx!==last){last=state.idx;$("result").textContent=""}
   $("sq").textContent=q.q;
   const lock=player.alive===false||!state.running||player.answer!=null;
   $("sopts").innerHTML=q.opts.map((x,i)=>`<button class="sopt a${i+1}${player.answer===i?" picked":""}" data-i="${i}" ${lock?"disabled":""}>${i+1}. ${esc(x)}</button>`).join("");
-  $("result").textContent=player.alive===false?(state.mode==="서바이벌"?"💔 탈락":"❌ 골든벨 탈락"):
-   (state.reveal&&player.answer!=null)?(player.correct?"⭕ 정답!":"❌ 오답"):player.answer!=null?"제출 완료 ✓":"";
+  $("result").textContent=player.answer===-1?(player.alive===false?"⏰ 시간 초과 · 탈락":"⏰ 시간 초과"):
+   player.alive===false&&!(state.reveal&&player.answer!=null)?(state.mode==="서바이벌"?"💔 탈락 · 관전 중":"🔔 탈락 · 관전 중"):
+   (state.reveal&&player.answer!=null)?(player.correct?"⭕ 정답!":(player.alive===false?"❌ 오답 · 탈락":"❌ 오답")):player.answer!=null?"제출 완료 ✓":"";
   $("explain").textContent=(state.reveal&&player.answer!=null)?(q.ex||""):
    (!state.running&&!state.reveal&&player.answer==null&&player.alive!==false)?"⏸ 선생님이 ‘문제 시작’을 누르면 답을 고를 수 있어요.":"";
  }
+ // 0.5초마다: 남은 시간·스피드 보너스 표시
+ function tick(){if(!state||!player)return;
+  const remain=state.running?Math.max(0,Math.ceil((state.endAt-Date.now())/1000)):0;
+  const open=state.running&&player.answer==null&&player.alive!==false;
+  $("stime").textContent=open?"⏱ "+remain+"초"+(state.mode==="스피드 퀴즈"?"  ·  지금 맞히면 +"+(100+remain*5)+"점":""):"";
+  $("stime").style.color=open&&remain<=5?"#e53958":"";}
 }
 
 if(isTeacher)teacher();else student();
