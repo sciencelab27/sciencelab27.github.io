@@ -246,8 +246,6 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
     </svg>
     <div class="who">
       <label>반 <select id="ban"><option value="">선택</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
-      <label>학번 <input type="text" id="sid" inputmode="numeric"></label>
-      <label>모둠 <input type="text" id="team"></label>
       <label>이름 <input type="text" id="sname" class="name"></label>
     </div>
   </header>
@@ -470,8 +468,8 @@ const tap = (el, fn) => {
 };
 const setMsg = (n, t, cls) => { const m = document.getElementById('msg' + n); m.className = 'result ' + (cls || ''); m.textContent = t; };
 function who() {
-  const ban = document.getElementById('ban').value, sid = document.getElementById('sid').value.trim(), name = document.getElementById('sname').value.trim();
-  if (!ban || !sid || !name) { alert('반, 학번, 이름을 먼저 적어 주세요.'); return null; }
+  const ban = document.getElementById('ban').value, name = document.getElementById('sname').value.trim(), sid = name.replace(/[\/\s]/g, '');
+  if (!ban || !name) { alert('반과 이름을 먼저 적어 주세요.'); return null; }
   return { ban, sid, name };
 }
 document.getElementById('shareSt').textContent = db ? '🟢 우리 반과 공유돼요' : '⚪ 혼자 확인 모드';
@@ -660,7 +658,7 @@ document.getElementById('ban').addEventListener('change', listen);
 // 새로고침했을 때 이미 제출한 마무리 문제 답 되살리기
 async function restoreQuiz() {
   if (!db) return;
-  const b = document.getElementById('ban').value, sid = document.getElementById('sid').value.trim();
+  const b = document.getElementById('ban').value, sid = document.getElementById('sname').value.trim().replace(/[\/\s]/g, '');
   if (!b || !sid) return;
   try {
     const q = await db.collection(QCOL).where('ban', '==', b).get();
@@ -669,7 +667,7 @@ async function restoreQuiz() {
   } catch (e) {}
 }
 document.getElementById('ban').addEventListener('change', restoreQuiz);
-document.getElementById('sid').addEventListener('change', restoreQuiz);
+document.getElementById('sname').addEventListener('change', restoreQuiz);
 // 새로고침 뒤 반이 이미 선택돼 있으면 바로 연결
 window.addEventListener('load', () => { listen(); restoreQuiz(); });
 
@@ -1025,8 +1023,8 @@ if (window.claude && typeof window.claude.use === 'function') {
 }
 const ovMsg = document.getElementById('ovMsg');
 document.getElementById('saveBtn').onclick = async () => {
-  const name = document.getElementById('sname').value.trim(), sid = document.getElementById('sid').value.trim();
-  if (!name || !sid) { alert('학번과 이름을 먼저 적어 주세요.'); document.getElementById(sid ? 'sname' : 'sid').focus(); return; }
+  const name = document.getElementById('sname').value.trim(), ban = document.getElementById('ban').value;
+  if (!name) { alert('이름을 먼저 적어 주세요.'); document.getElementById('sname').focus(); return; }
   if (typeof html2canvas !== 'function') { alert('이미지 도구를 불러오지 못했어요. 페이지를 새로 고친 뒤 다시 눌러 주세요.'); return; }
   const btn = document.getElementById('saveBtn'); btn.textContent = '이미지 만드는 중…'; btn.disabled = true;
   try {
@@ -1034,7 +1032,7 @@ document.getElementById('saveBtn').onclick = async () => {
     const canvas = await html2canvas(document.getElementById('sheet'), { scale: 2, backgroundColor: '#FBFCFE', useCORS: true });
     const url = canvas.toDataURL('image/png');
     shotBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-    shotName = `force_${(sid.replace(/[^0-9A-Za-z-]/g, '') || 'report')}_${Date.now().toString().slice(-6)}.png`;
+    shotName = `force_${ban ? ban + 'ban_' : ''}${Date.now().toString().slice(-6)}.png`;
     document.getElementById('shot').src = url;
     document.getElementById('galleryBtn').textContent = '갤러리에 저장';
     ovMsg.innerHTML = "미리 보기예요. <b>갤러리에 저장</b>을 누른 뒤 <b>패들렛 바로가기</b>로 올려 주세요.<br>저장이 안 되면 그림을 길게 눌러 이미지 저장(사진에 추가)을 고르거나 화면을 캡처하세요.";
