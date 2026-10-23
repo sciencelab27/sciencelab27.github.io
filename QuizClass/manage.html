@@ -1,0 +1,21 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="style.css"><title>QuizClass 문제 관리</title></head><body><div class=setup>
+<div class=card><div class=logo>Quiz<b>Class</b> 문제 관리</div><p class=small>현재 교사 방의 문제를 편집합니다.</p><a href=teacher.html>← 교사 화면</a><div id=err style="color:#b22;margin-top:10px"></div></div><div class=grid2>
+<div class=card><h2>문제 추가</h2><textarea id=q class=field placeholder="문제"></textarea><input id=o0 class=field placeholder="① 보기"><input id=o1 class=field placeholder="② 보기"><input id=o2 class=field placeholder="③ 보기"><input id=o3 class=field placeholder="④ 보기"><select id=ans class=field><option value=0>정답 ①</option><option value=1>정답 ②</option><option value=2>정답 ③</option><option value=3>정답 ④</option></select><input id=sec type=number class=field value=15 min=5><textarea id=ex class=field placeholder="해설"></textarea><button class="ctl success" id=addBtn>+ 문제 추가</button></div><div class=card><h2>문제 목록 <span id=cnt></span></h2><div id=list></div></div></div></div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script><script>
+
+const QC_CONFIG={
+ apiKey:"AIzaSyAis4MfE6-oamhQZ_iD7ND-qfcD2Dcr8BQ",
+ authDomain:"sciencelab27-5b82f.firebaseapp.com",
+ projectId:"sciencelab27-5b82f",
+ storageBucket:"sciencelab27-5b82f.firebasestorage.app",
+ messagingSenderId:"412075132650",
+ appId:"1:412075132650:web:5630ae2484e7dcd1393993"
+};
+const QC_ROOT="quizclass_v2";
+
+firebase.initializeApp(QC_CONFIG);const db=firebase.firestore(),$=id=>document.getElementById(id);let room=localStorage.getItem("qc2_room")||"",data=null;
+async function load(){try{if(!room){$("list").innerHTML="교사 화면에서 먼저 방을 만들어 주세요.";return}let s=await db.collection(QC_ROOT).doc(room).get();if(!s.exists)return;data=s.data();render()}catch(e){$("err").textContent=e.message}}
+function render(){let a=data?.questions||[];$("cnt").textContent=a.length+"개";$("list").innerHTML=a.map((x,i)=>`<div class=qitem><b>${i+1}. ${x.q}</b><div class=small>${x.opts.join(" / ")}</div><button class="ctl danger" data-del="${i}">삭제</button></div>`).join("");document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>del(+b.dataset.del))}
+$("addBtn").onclick=async()=>{if(!data)return alert("교사 화면에서 먼저 방을 만드세요.");let opts=[$("o0").value,$("o1").value,$("o2").value,$("o3").value];if(!$("q").value||opts.some(x=>!x))return alert("문제와 보기 4개를 입력하세요.");let a=data.questions||[];a.push({q:$("q").value,opts,ans:+$("ans").value,sec:+$("sec").value||15,ex:$("ex").value});await db.collection(QC_ROOT).doc(room).update({questions:a});data.questions=a;render()}
+async function del(i){let a=data.questions||[];a.splice(i,1);await db.collection(QC_ROOT).doc(room).update({questions:a});data.questions=a;render()}load();
+</script></body></html>

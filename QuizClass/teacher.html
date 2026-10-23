@@ -1,0 +1,54 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="style.css"><title>QuizClass 교사</title></head><body>
+<header class=top><div class=logo>⚗ Quiz<b>Class</b></div><a href=index.html><button class=pill>⌂ 홈</button></a><a href=manage.html><button class=pill>▣ 문제 관리</button></a><div class=spacer></div><div class=room>과학 수업<br>PIN <span class=pin id=pin>------</span></div></header>
+<div id="errorBox" class="hidden" style="max-width:1500px;margin:12px auto 0;padding:14px 18px;background:#fff0f0;border:2px solid #ef5350;border-radius:14px;color:#9b1c1c;font-weight:800"></div><div class=layout><aside class=side><h3>게임 모드</h3><button class="mode active" data-m="기본 퀴즈">🎯 기본 퀴즈</button><button class=mode data-m="스피드 퀴즈">⚡ 스피드 퀴즈</button><button class=mode data-m="골든벨">🔔 골든벨</button><button class=mode data-m="서바이벌">❤️ 서바이벌</button><button class=mode data-m="익명 형성평가">📊 익명 형성평가</button><hr><p>현재 문제</p><h2 id=progress>0 / 0</h2><button class="ctl gray" id="newRoomBtn">새 방 만들기</button></aside>
+<main><section class="card question"><div class=qmeta><span class=qnum id=qnum>Q</span><span class=pill>중학교 과학</span></div><h1 id=qtext>학생 입장을 확인한 뒤 문제를 시작하세요.</h1><div class=answers id=answers></div></section>
+<section class=card><div class=controls><button class="ctl primary" id=prevBtn>◀ 이전</button><button class="ctl danger" id=startBtn>▶ 문제 시작</button><button class="ctl primary" id=nextBtn>다음 ▶</button><button class="ctl success" id=revealBtn>👁 정답 공개</button><button class="ctl warn" id=exBtn>📖 해설</button></div></section>
+<section class=card><h3>🏆 실시간 순위</h3><div id=ranking></div></section></main>
+<aside class=right><section class="card timer"><div><h3>⌛ 남은 시간</h3><div class=small id=modeLabel></div></div><div class=circle id=time>--</div></section>
+<section class=card><h3>응답 현황 <span id=submitted></span></h3><div class=barrow id=bars></div><p class=small id=waiting></p></section>
+<section class=card><h3>참여 학생 <span id=pcount></span></h3><div id=players></div></section></aside></div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+
+const QC_CONFIG={
+ apiKey:"AIzaSyAis4MfE6-oamhQZ_iD7ND-qfcD2Dcr8BQ",
+ authDomain:"sciencelab27-5b82f.firebaseapp.com",
+ projectId:"sciencelab27-5b82f",
+ storageBucket:"sciencelab27-5b82f.firebasestorage.app",
+ messagingSenderId:"412075132650",
+ appId:"1:412075132650:web:5630ae2484e7dcd1393993"
+};
+const QC_ROOT="quizclass_v2";
+
+const DEFAULT_Q=[
+ {q:"다음 중 기체의 성질로 옳은 것은?",opts:["일정한 모양과 부피가 있다.","흐르지 않는다.","쉽게 압축할 수 있다.","부피가 변하지 않는다."],ans:2,sec:15,ex:"기체는 입자 사이의 거리가 멀어 비교적 쉽게 압축됩니다."},
+ {q:"물이 끓을 때 일어나는 변화로 가장 알맞은 것은?",opts:["액체가 기체로 변한다.","기체가 액체로 변한다.","고체가 액체로 변한다.","액체가 고체로 변한다."],ans:0,sec:20,ex:"끓음은 액체가 기체로 변하는 기화 현상입니다."}
+];
+const $=id=>document.getElementById(id);let db,state=null,questions=[],players={},unsub=null,room=localStorage.getItem("qc2_room")||"";
+function showError(e){console.error(e);let b=$("errorBox");b.classList.remove("hidden");b.innerHTML="⚠️ Firebase 연결 오류: "+(e?.message||e)}
+try{firebase.initializeApp(QC_CONFIG);db=firebase.firestore()}catch(e){showError(e)}
+function code(){return String(Math.floor(100000+Math.random()*900000))}
+async function newRoom(){try{room=code();localStorage.setItem("qc2_room",room);state={mode:"기본 퀴즈",idx:-1,running:false,reveal:false,endAt:0,createdAt:Date.now(),players:{},questions:DEFAULT_Q};await db.collection(QC_ROOT).doc(room).set(state);listen()}catch(e){showError(e)}}
+async function ensure(){try{if(!room)return newRoom();let s=await db.collection(QC_ROOT).doc(room).get();if(!s.exists)return newRoom();listen()}catch(e){showError(e)}}
+function listen(){if(unsub)unsub();unsub=db.collection(QC_ROOT).doc(room).onSnapshot(s=>{if(s.exists){state=s.data();questions=state.questions||[];players=state.players||{};render()}},showError)}
+async function patch(o){try{await db.collection(QC_ROOT).doc(room).update(o)}catch(e){showError(e)}}
+$("newRoomBtn").onclick=newRoom;
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>patch({mode:b.dataset.m}));
+$("startBtn").onclick=async()=>{let q=questions[state?.idx];if(!q)return alert("먼저 '다음'을 눌러 문제를 선택하세요.");let ps={};Object.entries(players).forEach(([n,p])=>ps[n]={...p,answer:null,correct:null,answeredAt:null});await patch({players:ps,running:true,reveal:false,endAt:Date.now()+q.sec*1000})};
+$("nextBtn").onclick=()=>state&&state.idx<questions.length-1&&patch({idx:state.idx+1,running:false,reveal:false,endAt:0});
+$("prevBtn").onclick=()=>state&&state.idx>0&&patch({idx:state.idx-1,running:false,reveal:false,endAt:0});
+$("revealBtn").onclick=()=>patch({reveal:true,running:false});
+$("exBtn").onclick=()=>alert(questions[state?.idx]?.ex||"등록된 해설이 없습니다.");
+function render(){
+ if(!state)return;$("pin").textContent=room;$("modeLabel").textContent=state.mode;$("progress").textContent=`${state.idx+1<1?0:state.idx+1} / ${questions.length}`;
+ document.querySelectorAll(".mode").forEach(x=>x.classList.toggle("active",x.dataset.m===state.mode));
+ let q=questions[state.idx];if(q){$("qnum").textContent="Q "+(state.idx+1);$("qtext").textContent=q.q;$("answers").innerHTML=q.opts.map((x,i)=>`<div class="ans a${i+1} ${state.reveal&&i===q.ans?'correct':''}">${i+1}　${x}</div>`).join("")}else{$("qtext").textContent="학생 입장을 확인한 뒤 다음 문제를 선택하세요.";$("answers").innerHTML=""}
+ let arr=Object.entries(players),counts=[0,0,0,0];arr.forEach(([k,p])=>{if(Number.isInteger(p.answer))counts[p.answer]++});let mx=Math.max(1,...counts),sub=counts.reduce((a,b)=>a+b,0);
+ $("submitted").textContent=`${sub} / ${arr.length}명 제출`;$("bars").innerHTML=counts.map((n,i)=>`<div class=barcol><b>${n}명</b><div class=bar style="height:${Math.max(7,n/mx*145)}px"></div>${i+1}</div>`).join("");$("waiting").textContent=arr.length-sub?`미제출 ${arr.length-sub}명`:"모두 제출했습니다.";$("pcount").textContent=`${arr.length}명`;
+ $("players").innerHTML=arr.map(([k,p])=>`<div class=rankrow><span>${state.mode==="익명 형성평가"?"학생":(p.name||k)}</span><span>${p.answer==null?"대기":"제출 ✓"} ${p.alive===false?" · 탈락":""}</span></div>`).join("")||"<span class=small>아직 입장한 학생이 없습니다.</span>";
+ let ranked=arr.filter(x=>state.mode!=="익명 형성평가").sort((a,b)=>(b[1].score||0)-(a[1].score||0));$("ranking").innerHTML=state.mode==="익명 형성평가"?"<span class=small>익명 모드에서는 순위를 표시하지 않습니다.</span>":ranked.slice(0,5).map(([k,p],i)=>`<div class=rankrow><b>${i+1}. ${p.name||k}</b><b>${p.score||0}점</b></div>`).join("")||"<span class=small>응답 후 순위가 표시됩니다.</span>";
+ let remain=state.running?Math.max(0,Math.ceil((state.endAt-Date.now())/1000)):0;$("time").textContent=q?(state.running?remain:"Ⅱ"):"--";if(state.running&&remain<=0)patch({running:false});
+}
+setInterval(render,500);ensure();
+</script></body></html>
