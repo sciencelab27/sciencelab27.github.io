@@ -686,7 +686,7 @@ function teacherView() {
     banBox.querySelectorAll('.btn').forEach(b => b.classList.toggle('light', b.dataset.b !== ban));
     if (!db) { render(); return; }
     u1 && u1(); u2 && u2(); u3 && u3(); u4 && u4();
-    u4 = db.collection(DCOL).where('ban', '==', ban).onSnapshot(q => { draws = q.docs.map(d => d.data()); if (tab === 4) render(); }, () => {});
+    u4 = db.collection(DCOL).where('ban', '==', ban).onSnapshot(q => { draws = q.docs.map(d => d.data()); render(); }, e => { msg.textContent = '학생 그림을 불러오지 못했어요. 새로고침해 주세요.'; });
     u3 = db.collection(QCOL).where('ban', '==', ban).onSnapshot(q => { qres = q.docs.map(d => d.data()); render(); }, () => {});
     u1 = db.collection(COL).where('ban', '==', ban).onSnapshot(q => { subs = q.docs.map(d => d.data()); render(); }, e => { msg.textContent = '학생 답을 불러오지 못했어요. (보안 규칙을 확인하세요)'; });
     u2 = db.collection(STATE).doc(ban).onSnapshot(d => { st = d.data() || {}; render(); }, () => {});
@@ -711,6 +711,7 @@ function teacherView() {
     T.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('light', +b.dataset.tab !== tab));
     const n1 = subs.filter(s => Array.isArray(s.s1)), n2 = subs.filter(s => s.s2);
     document.getElementById('tCount').textContent = `${ban}반 · 1단계 ${n1.length}명 · 2단계 ${n2.length}명 제출`;
+    const tb4 = T.querySelector('[data-tab="4"]'); if (tb4) tb4.textContent = `그림 함께 보기 (${draws.length})`;
     const rv = document.getElementById('tReveal');
     rv.hidden = tab === 3 || tab === 4;
     if (tab === 3) { renderQuizT(); return; }
@@ -1009,7 +1010,7 @@ async function shareDraw(kind) {
   set('올리는 중…', '');
   try {
     await db.collection(DCOL).doc(`${w.ban}_${w.sid}_${kind}`).set({ ban: w.ban, sid: w.sid, name: w.name, k: kind, img, txt: txt.trim(), ok, chg, t: Date.now() });
-    set('선생님 화면에 올렸어요! 고친 뒤 다시 누르면 새 그림으로 바뀌어요.', 'ok');
+    set(`${w.ban}반 선생님 화면에 올렸어요! 고친 뒤 다시 누르면 새 그림으로 바뀌어요.`, 'ok');
   } catch (e) { set('올리지 못했어요. 잠시 뒤 다시 눌러 주세요.', 'no'); }
 }
 document.getElementById('shareScene').onclick = () => shareDraw('scene');
