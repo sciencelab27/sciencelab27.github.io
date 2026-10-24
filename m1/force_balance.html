@@ -110,6 +110,25 @@ canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crossha
 .howbox{margin-top:10px; border:1.5px dashed var(--blue); border-radius:10px; padding:10px 12px; font-size:15px; line-height:1.7}
 .howbox[hidden],#saveReport[hidden],#goPadlet[hidden],#repImg[hidden]{display:none}
 #repImg{display:block; width:100%; max-width:620px; margin-top:12px; border:1.5px solid var(--line); border-radius:10px}
+.tvbtns{display:flex; gap:8px; margin-left:auto; flex-wrap:wrap}
+.tvbtn{font:inherit; font-weight:800; font-size:15px; border:2px solid var(--ink); border-radius:10px; padding:8px 14px; background:var(--ink); color:#fff; cursor:pointer; min-height:44px}
+.tvbtn.alt{background:#fff; color:var(--red); border-color:var(--red)}
+.tvbtn[hidden]{display:none}
+.qpick-row{display:flex; justify-content:flex-end; margin-top:8px}
+#teacher{position:fixed; inset:0; z-index:45; overflow:auto; max-width:none; padding:calc(16px + env(safe-area-inset-top,0px)) 22px calc(16px + env(safe-area-inset-bottom,0px))}
+#pwBox{position:fixed; inset:0; z-index:55; background:rgba(20,30,50,.55); display:flex; align-items:center; justify-content:center; padding:16px}
+#pwBox[hidden]{display:none}
+.pw-card{background:#fff; border:2.5px solid var(--ink); border-radius:16px; padding:20px 22px; width:min(340px,100%); display:flex; flex-direction:column; gap:12px}
+.pw-card h3{font-size:24px; margin:0}
+.pw-dots{display:flex; justify-content:center; gap:14px; padding:10px 0; background:var(--paper); border:2px solid var(--line); border-radius:10px; min-height:52px; align-items:center}
+.pw-dots i{width:18px; height:18px; border-radius:50%; border:2px solid var(--ink)}
+.pw-dots i.on{background:var(--ink)}
+.pw-pad{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+.pw-pad button{min-height:56px; font:inherit; font-size:24px; font-weight:800; border:1.5px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); cursor:pointer; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:manipulation}
+.pw-pad button:active,.pw-pad button:focus,.pw-pad button:hover{background:#fff; outline:none; box-shadow:none}
+.pw-pad button.fn{font-size:16px}
+.pw-msg{color:var(--red); font-weight:700; min-height:1.2em; margin:0}
+.pw-row{display:flex; gap:8px; justify-content:flex-end}
 /* 발표 학생 뽑기 (구슬 레이스) */
 #marble{position:fixed; inset:0; z-index:60; background:#fff; display:flex; flex-direction:column}
 #marble[hidden]{display:none}
@@ -236,6 +255,7 @@ input[type=number]{font:inherit; font-size:15px; color:var(--ink); border:1.5px 
       <label>반 <select id="ban"><option value="">선택</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
       <label>번호 <input type="text" id="sid" inputmode="numeric"></label>
       <label>이름 <input type="text" id="sname" class="name"></label>
+      <span class="tvbtns" data-html2canvas-ignore="true"><button type="button" class="tvbtn alt" id="pkOpen" hidden>🎯 발표 학생 뽑기</button><button type="button" class="tvbtn" id="tvOpen" hidden>공유화면 보기</button></span>
     </div>
   </header>
 
@@ -285,6 +305,7 @@ input[type=number]{font:inherit; font-size:15px; color:var(--ink); border:1.5px 
         방향으로 작용해야 한다.
       </div>
       <label class="tbook"><span class="bk-t">📖 어떤 조건에서 합력이 0이 되는지 근거를 들어 교과서 161쪽에 써 보세요. 선생님이 번호를 뽑아 발표를 시킬 거예요!</span><span class="bk-c"><input type="checkbox" id="book2"> 교과서에 썼어요</span></label>
+      <div class="qpick-row" data-html2canvas-ignore="true"><button type="button" class="tvbtn alt qpick" hidden>🎯 이 문제 발표 학생 뽑기</button></div>
       <p class="guide" style="margin:12px 0 6px">크기만 같으면 될까요? 방향만 반대이면 될까요? 합력 연습실 문제에서 찾아 설명해 보세요.</p>
       <textarea placeholder="두 조건 중 하나가 빠지면 합력은 어떻게 되나요?"></textarea>
     </div>
@@ -381,8 +402,10 @@ input[type=number]{font:inherit; font-size:15px; color:var(--ink); border:1.5px 
 
 <div id="teacher" hidden>
   <div class="t-top">
-    <h1>합력과 평형 · 우리 반 생각</h1>
+    <h1>합력과 평형 · 공유화면</h1>
     <div class="t-ban" id="tBan"></div>
+    <span style="flex:1"></span>
+    <button class="btn" id="tClose">활동지로 돌아가기 ✕</button>
   </div>
   <div class="t-bar">
     <div class="t-tabs"><button class="btn light" data-tab="draw">그림 함께 보기</button><button class="btn" data-tab="quiz">마무리 문제</button></div>
@@ -394,6 +417,16 @@ input[type=number]{font:inherit; font-size:15px; color:var(--ink); border:1.5px 
   <div id="tGrid"></div>
 </div>
 
+<div id="pwBox" hidden role="dialog" aria-modal="true" aria-labelledby="pwTitle">
+  <div class="pw-card">
+    <h3 id="pwTitle">교사 확인</h3>
+    <p style="margin:0;color:var(--soft)">비밀번호 숫자 4자리를 누르세요.</p>
+    <div class="pw-dots" id="pwDots" role="img" aria-label="입력한 자리 수"><i></i><i></i><i></i><i></i></div>
+    <div class="pw-pad" id="pwPad"></div>
+    <p class="pw-msg" id="pwMsg" aria-live="polite"></p>
+    <div class="pw-row"><button type="button" class="btn light" id="pwCancel">취소</button><button type="button" class="btn" id="pwOk">확인</button></div>
+  </div>
+</div>
 <div id="marble" hidden>
   <div class="mb-bar"><b>🎯 발표 학생 뽑기</b><span class="sp"></span><button type="button" class="btn" id="mbClose">닫기 ✕</button></div>
   <iframe id="mbFrame" title="구슬 레이스 발표자 뽑기" allow="fullscreen"></iframe>
@@ -1777,8 +1810,39 @@ window.addEventListener('load', () => { listen(); restoreQuiz(); });
 /* ===== 선생님 화면 (주소 끝에 ?teacher) ===== */
 if (/[?&#]teacher/.test(location.href)) teacherView();
 function teacherView() {
-  document.getElementById('sheet').style.display = 'none';
-  const T = document.getElementById('teacher'); T.hidden = false;
+  /* 선생님도 학생과 같은 활동지를 쓰고, 위쪽 버튼으로 공유화면·발표 학생 뽑기를 열어요 */
+  const TEACHER_PW = '2026';   // ← 비밀번호를 바꾸려면 여기 숫자만 고치세요
+  const T = document.getElementById('teacher'); T.hidden = true;
+  const ssn = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) {} } };
+  let unlocked = ssn.get('balanceTV') === 'ok';
+  ['pkOpen', 'tvOpen'].forEach(id => document.getElementById(id).hidden = false);
+  document.querySelectorAll('.qpick').forEach(b => { b.hidden = false; b.onclick = openMarble; });
+  document.getElementById('pkOpen').onclick = openMarble;   // 발표 학생 뽑기는 비밀번호 없이 바로
+  document.getElementById('tvOpen').onclick = () => unlocked ? openTV() : openPW();
+  function openTV() { const sb = document.getElementById('ban').value; if (sb && sb !== ban) { ban = sb; st = {}; qres = []; draws = []; sub(); } T.hidden = false; T.scrollTop = 0; }
+  document.getElementById('tClose').onclick = () => { T.hidden = true; };
+  // 비밀번호: 미러링 중에도 보이지 않게 화면 숫자판(열 때마다 섞임)으로 입력, ●로만 표시
+  let pwVal = '';
+  const pwDots = () => document.querySelectorAll('#pwDots i').forEach((d, k) => d.classList.toggle('on', k < pwVal.length));
+  function pwPad() {
+    const p = document.getElementById('pwPad'), ds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    for (let k = ds.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [ds[k], ds[j]] = [ds[j], ds[k]]; }
+    p.textContent = '';
+    const add = (t, fn, cls) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; if (cls) b.className = cls;
+      b.addEventListener('pointerdown', e => { e.preventDefault(); fn(); }); b.addEventListener('click', e => { if (e.detail === 0) fn(); }); p.appendChild(b); };
+    ds.slice(0, 9).forEach(n => add(String(n), () => pwKey(String(n))));
+    add('지우기', () => { pwVal = ''; pwDots(); }, 'fn'); add(String(ds[9]), () => pwKey(String(ds[9]))); add('⌫', () => { pwVal = pwVal.slice(0, -1); pwDots(); }, 'fn');
+  }
+  function pwKey(n) { if (pwVal.length >= 4) return; pwVal += n; pwDots(); if (pwVal.length === 4) setTimeout(checkPW, 120); }
+  function openPW() { pwVal = ''; pwDots(); pwPad(); document.getElementById('pwMsg').textContent = ''; document.getElementById('pwBox').hidden = false; }
+  function closePW() { document.getElementById('pwBox').hidden = true; pwVal = ''; }
+  function checkPW() {
+    if (pwVal === TEACHER_PW) { unlocked = true; ssn.set('balanceTV', 'ok'); closePW(); openTV(); }
+    else { document.getElementById('pwMsg').textContent = '비밀번호가 맞지 않아요.'; pwVal = ''; pwDots(); pwPad(); }
+  }
+  document.getElementById('pwOk').onclick = checkPW; document.getElementById('pwCancel').onclick = closePW;
+  document.addEventListener('keydown', e => { if (document.getElementById('pwBox').hidden) return;
+    if (/^[0-9]$/.test(e.key)) pwKey(e.key); else if (e.key === 'Backspace') { pwVal = pwVal.slice(0, -1); pwDots(); } else if (e.key === 'Enter') checkPW(); else if (e.key === 'Escape') closePW(); });
   const grid = document.getElementById('tGrid'), msg = document.getElementById('tMsg');
   let ban = '1', tab = 'draw', st = {}, qres = [], draws = [], showName = false, u1 = null, u2 = null, u3 = null;
   const banBox = document.getElementById('tBan');
@@ -1883,18 +1947,19 @@ function teacherView() {
   }
   // ----- 발표 학생 뽑기 (구슬 레이스) : 지금 고른 반으로 열기 -----
   let mbBan = null;
-  document.getElementById('tPick').onclick = () => {
-    const fr = document.getElementById('mbFrame');
-    if (mbBan !== ban) {
+  document.getElementById('tPick').onclick = openMarble;
+  function openMarble() {
+    const fr = document.getElementById('mbFrame'), pb = document.getElementById('ban').value || ban;
+    if (mbBan !== pb) {
       try { // 구슬 레이스가 기억하는 반을 선생님 화면에서 고른 반으로 맞추기
         const K = 'marble-presenter-v1', o = JSON.parse(localStorage.getItem(K) || '{}') || {};
-        o.cls = +ban; localStorage.setItem(K, JSON.stringify(o));
+        o.cls = +pb; localStorage.setItem(K, JSON.stringify(o));
       } catch (e) {}
       fr.srcdoc = document.getElementById('marbleSrc').textContent.replace(/<\\\/script/g, '<' + '/script');
-      mbBan = ban;
+      mbBan = pb;
     }
     document.getElementById('marble').hidden = false;
-  };
+  }
   document.getElementById('mbClose').onclick = () => { document.getElementById('marble').hidden = true; };
   sub();
 }
