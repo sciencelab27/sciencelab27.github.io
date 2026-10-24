@@ -408,7 +408,7 @@ input[type=number]{font:inherit; font-size:15px; color:var(--ink); border:1.5px 
     <button class="btn" id="tClose">활동지로 돌아가기 ✕</button>
   </div>
   <div class="t-bar">
-    <div class="t-tabs"><button class="btn light" data-tab="draw">그림 함께 보기</button><button class="btn" data-tab="quiz">마무리 문제</button></div>
+    <div class="t-tabs"><button class="btn" data-tab="quiz">마무리 문제</button><button class="btn light" data-tab="draw">그림 함께 보기</button></div>
     <span id="tCount" class="t-count"></span>
     <button class="btn" id="tPick" style="background:var(--red)">🎯 발표 학생 뽑기</button>
     <button class="btn light" id="tReset">이 반 초기화</button>
@@ -1727,6 +1727,7 @@ const QUIZ = [
   { q: '물체에 작용하는 힘이 평형을 이룰 때에 대한 설명으로 옳은 것은?', o: ['정지해 있던 물체가 움직이기 시작한다.', '물체에 작용하는 알짜힘이 0이다.', '움직이던 물체가 점점 빨라진다.', '물체에는 힘이 하나도 작용하지 않는다.'], a: 1, e: '힘의 평형을 이루면 알짜힘이 0이라서 물체의 운동 상태가 변하지 않아요. 힘이 없는 게 아니라 여러 힘이 작용하지만 합력이 0인 상태예요.' },
   { q: '낙하산이 일정한 빠르기로 똑바로 내려오고 있어요. 이때 낙하산에 작용하는 아래로 당기는 힘(중력)과 위로 받치는 힘(공기 저항)이 평형을 이룬다면, 낙하산은 앞으로 어떻게 될까요?', o: ['점점 빨라진다.', '점점 느려지다가 멈춘다.', '같은 빠르기와 방향으로 계속 내려온다.', '위로 올라간다.'], a: 2, e: '알짜힘이 0이면 운동 상태가 변하지 않아요. 움직이던 물체는 속력과 운동 방향이 그대로라서, 낙하산은 같은 빠르기로 똑바로 계속 내려와요.' }
 ];
+const IS_T = /[?&#]teacher/.test(location.href);
 const quizBox = document.getElementById('quizBox'), qsum = document.getElementById('qsum');
 let QS = db ? { q: -1, qr: false, done: false } : { q: 0, qr: false, done: false };
 const myQ = {}; let qSel = null, qShown = -1;
@@ -1737,7 +1738,10 @@ function renderQuiz() {
     const ok = QUIZ.filter((_, i) => myQ[i] && myQ[i].ok).length;
     quizBox.innerHTML = `<div class="qscore">마무리 문제를 모두 풀었어요! ${QUIZ.length}문제 중 ${ok}개 정답</div><div class="small" style="color:var(--soft)">틀린 문제는 아래 해설을 다시 읽어 보세요.</div>`;
   } else if (QS.q < 0) {
-    quizBox.innerHTML = '<div class="qwait">선생님이 마무리 문제를 시작하면 여기에 문제가 나와요.<br><small>맨 위에서 반을 꼭 골라 주세요.</small></div>';
+    quizBox.innerHTML = IS_T
+      ? '<div class="qwait">마무리 문제는 <b>공유화면</b>에서 시작해요.<br><button type="button" class="btn" id="qOpenTV" style="margin-top:10px">공유화면에서 마무리 문제 열기</button></div>'
+      : '<div class="qwait">선생님이 마무리 문제를 시작하면 여기에 문제가 나와요.<br><small>맨 위에서 반을 꼭 골라 주세요.</small></div>';
+    const ob = document.getElementById('qOpenTV'); if (ob) ob.onclick = () => window.openQuizTV && window.openQuizTV();
   } else {
     const i = QS.q, x = QUIZ[i], mine = myQ[i];
     if (qShown !== i) { qSel = mine ? mine.a : null; qShown = i; }
@@ -1819,6 +1823,7 @@ function teacherView() {
   document.querySelectorAll('.qpick').forEach(b => { b.hidden = false; b.onclick = openMarble; });
   document.getElementById('pkOpen').onclick = openMarble;   // 발표 학생 뽑기는 비밀번호 없이 바로
   document.getElementById('tvOpen').onclick = () => unlocked ? openTV() : openPW();
+  window.openQuizTV = () => { tab = 'quiz'; unlocked ? (openTV(), render()) : openPW(); };
   function openTV() { const sb = document.getElementById('ban').value; if (sb && sb !== ban) { ban = sb; st = {}; qres = []; draws = []; sub(); } T.hidden = false; T.scrollTop = 0; }
   document.getElementById('tClose').onclick = () => { T.hidden = true; };
   // 비밀번호: 미러링 중에도 보이지 않게 화면 숫자판(열 때마다 섞임)으로 입력, ●로만 표시
@@ -1844,7 +1849,7 @@ function teacherView() {
   document.addEventListener('keydown', e => { if (document.getElementById('pwBox').hidden) return;
     if (/^[0-9]$/.test(e.key)) pwKey(e.key); else if (e.key === 'Backspace') { pwVal = pwVal.slice(0, -1); pwDots(); } else if (e.key === 'Enter') checkPW(); else if (e.key === 'Escape') closePW(); });
   const grid = document.getElementById('tGrid'), msg = document.getElementById('tMsg');
-  let ban = '1', tab = 'draw', st = {}, qres = [], draws = [], showName = false, u1 = null, u2 = null, u3 = null;
+  let ban = '1', tab = 'quiz', st = {}, qres = [], draws = [], showName = false, u1 = null, u2 = null, u3 = null;
   const banBox = document.getElementById('tBan');
   banBox.innerHTML = [1, 2, 3, 4, 5].map(n => `<button class="btn light" data-b="${n}">${n}반</button>`).join('');
   if (!db) msg.textContent = '공유 연결이 안 됐어요. 인터넷 연결을 확인하세요.';
