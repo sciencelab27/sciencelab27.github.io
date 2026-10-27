@@ -90,9 +90,14 @@ const store = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } cat
 let device = load("drawbooth-device", null);
 if (!device){ device = Math.random().toString(36).slice(2,10); store("drawbooth-device", device); }
 let me = load("drawbooth-me", null);          // {grade, cls, name}
-let doneRound = load("drawbooth-done", 0);     // 이미 낸 라운드
+let doneKey = load("drawbooth-done2", "");     // 이미 낸 판 (회차:판)
 let lastPic = null;                            // 방금 낸 그림 (이미지 저장용)
-let S = {round:0, status:"ready", word:"", seconds:60};
+let S = {round:0, status:"ready", word:"", seconds:60, session:""};
+const keyOf = r => (S.session||"") + ":" + r;
+let stay = load("drawbooth-stay", false);      // 한 판 끝낸 뒤 다음 판에 자동으로 끌려가지 않게
+let skipKey = "";                              // 들어왔을 때 이미 진행 중이던 판은 건너뜀
+let firstState = true;
+const markSkip = () => { skipKey = S.status === "drawing" ? keyOf(S.round) : ""; };
 let view = "";                                 // 지금 화면
 let pad = null, tick = null, localStart = 0, submitting = false;
 let drawRound = 0, drawWord = "", drawSeconds = 60;
@@ -143,14 +148,16 @@ function renderRegister(){
     if (!cls) return err.textContent = "반을 골라 주세요.";
     if (!name) return err.textContent = "이름을 써 주세요.";
     me = {grade:+grade, cls:+cls, name}; store("drawbooth-me", me);
+    stay = false; store("drawbooth-stay", false); markSkip();
     route();
   };
 }
 
 function renderWait(){
   view = "wait"; stopTimer();
-  const msg = S.status === "drawing" && doneRound === S.round
+  const msg = S.status === "drawing" && doneKey === keyOf(S.round)
     ? "이번 판 그림은 이미 보냈어요. 다음 판을 기다려요."
+    : S.status === "drawing" && skipKey === keyOf(S.round) ? "지금 다른 모둠이 그리는 중이에요. 다음 판에 함께해요."
     : S.status === "closed" ? "이번 판이 끝났어요. 다음 판을 기다려요."
     : "선생님이 시작하면 제시어가 나와요.";
   app.innerHTML = `<div class="screen"><div class="center">
@@ -224,7 +231,7 @@ async function submit(){
     catch(e){ await new Promise(r=>setTimeout(r, 1200)); }
   }
   submitting = false;
-  if (ok){ doneRound = round; store("drawbooth-done", round); renderDone(); }
+  if (ok){ doneKey = keyOf(round); store("drawbooth-done2", doneKey); stay = true; store("drawbooth-stay", true); renderDone(); }
   else renderSendFail(data);
 }
 
@@ -242,7 +249,7 @@ function renderSendFail(data){
   document.getElementById("save").onclick = saveImage;
   document.getElementById("re").onclick = async () => {
     renderSending();
-    try { await db.collection(ENTRIES).doc(`${data.round}_${device}`).set(data); doneRound = data.round; store("drawbooth-done", data.round); renderDone(); }
+    try { await db.collection(ENTRIES).doc(`${data.round}_${device}`).set(data); doneKey = keyOf(data.round); store("drawbooth-done2", doneKey); stay = true; store("drawbooth-stay", true); renderDone(); }
     catch(e){ renderSendFail(data); }
   };
 }
@@ -250,17 +257,15 @@ function renderSendFail(data){
 function renderDone(){
   view = "done"; stopTimer();
   app.innerHTML = `<div class="screen"><div class="center">
-    <span class="stampok">보냈어요!</span>
-    <img class="done-pic" src="${lastPic.img}" alt="${esc(lastPic.word)} 그림">
-    <p style="font-size:1.15rem">AI 채점 결과는 선생님 화면(TV)에서 함께 봐요.</p>
-    <div class="actions">
-      <button class="btn" id="save">이미지 저장하기</button>
-      <button class="btn ghost" id="next">다음 사람 차례</button>
-    </div>
-    <p class="note">같은 사람이 계속하면 그대로 두세요. 다음 판이 시작되면 자동으로 넘어가요.</p>
+    <span class="stampok">${lastPic ? "보냈어요!" : "참가 완료!"}</span>
+    ${lastPic ? `<img class="done-pic" src="${lastPic.img}" alt="${esc(lastPic.word)} 그림">` : ""}
+    <p style="font-size:1.15rem">AI 채점 결과는 TV에서 함께 봐요.</p>
+    ${lastPic ? `<div class="actions"><button class="btn ghost" id="save">이미지 저장하기</button></div>` : ""}
+    <p class="note" style="margin-top:10px">결승에 올라가면 아래 버튼을 눌러 주세요.</p>
+    <button class="btn" id="again">결승 참가하기</button>
   </div></div>`;
-  document.getElementById("save").onclick = saveImage;
-  document.getElementById("next").onclick = () => { me = null; store("drawbooth-me", null); renderRegister(); };
+  const sv = document.getElementById("save"); if (sv) sv.onclick = saveImage;
+  document.getElementById("again").onclick = () => { stay = false; store("drawbooth-stay", false); markSkip(); renderWait(); };
 }
 
 function saveImage(){
@@ -280,14 +285,18 @@ function route(){
     if (S.status !== "drawing" || S.round !== drawRound) submit();   // 선생님이 끝냄 → 자동 제출
     return;
   }
-  if (S.status === "drawing" && doneRound !== S.round){ renderDraw(); return; }
-  if (view === "done" && lastPic && lastPic.round === S.round) return;
+  if (stay){ if (view !== "done") renderDone(); return; }          // 한 판 참가한 학생은 그대로 머묾
+  const k = keyOf(S.round);
+  if (S.status === "drawing" && doneKey !== k && skipKey !== k){ renderDraw(); return; }
   renderWait();
 }
 
 db.doc(STATE_DOC).onSnapshot(snap => {
   const d = snap.data() || {};
-  S = {round: d.round||0, status: d.status||"ready", word: d.word||"", seconds: d.seconds||60};
+  const oldSession = S.session;
+  S = {round: d.round||0, status: d.status||"ready", word: d.word||"", seconds: d.seconds||60, session: d.session||""};
+  if (firstState){ firstState = false; markSkip(); }                  // 새로고침 때 진행 중인 판에 끼어들지 않음
+  else if (oldSession && S.session !== oldSession){ stay = false; store("drawbooth-stay", false); }  // 선생님이 처음부터 다시
   route();
 }, () => {
   if (view !== "draw") app.innerHTML = `<div class="screen"><div class="center"><p class="me">연결이 끊겼어요</p><p>와이파이를 확인한 뒤 새로고침해 주세요.</p></div></div>`;
