@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>알록달록 미술부 · 다 함께 그림 챌린지</title>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--board:#2C4FD8;--board-deep:#1F3BB0;--dot:rgba(255,255,255,.13);--paper:#fff;--paper-edge:#E3E7F5;--ink:#1B1D2A;--muted:#5D6278;--marker:#FFD23F;--pink:#FF5C8A;--field:#F3F5FC;--on-board:#fff;--on-board-soft:rgba(255,255,255,.82);--shadow:0 3px 0 #1A2E8C,0 14px 30px rgba(10,20,80,.35);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;background:var(--board)}
+body{height:100%;margin:0;color:var(--on-board);font-family:"IBM Plex Sans KR","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;font-size:16px;line-height:1.5;background:var(--board) radial-gradient(var(--dot) 1.4px,transparent 1.6px) 0 0/22px 22px;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+input{-webkit-user-select:text;user-select:text}
+#app{height:100%}
+.hand{font-family:"Gaegu","Nanum Pen Script",cursive}
+button{font:inherit;cursor:pointer;border:0;color:inherit;background:none}
+button:focus-visible,input:focus-visible{outline:3px solid var(--marker);outline-offset:2px}
+.screen{height:100%;display:flex;flex-direction:column;padding:16px;gap:14px;max-width:1100px;margin:0 auto}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px}
+.center p{margin:0;color:var(--on-board-soft)}
+.sheet{background:var(--paper);color:var(--ink);border-radius:10px;box-shadow:var(--shadow);padding:28px 26px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:56px;padding:10px 28px;border-radius:14px;background:var(--marker);color:var(--ink);font-weight:700;font-size:1.1rem;box-shadow:0 4px 0 #C99A00}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #C99A00}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btn.ghost{background:transparent;color:var(--on-board);box-shadow:inset 0 0 0 2px var(--on-board-soft)}
+.sheet .btn.ghost{color:var(--ink);box-shadow:inset 0 0 0 2px var(--paper-edge)}
+.btn.huge{min-height:72px;font-size:1.4rem;padding:12px 44px;border-radius:18px}
+.title{font-size:clamp(2.6rem,7vw,4.4rem);line-height:.95;margin:0;font-weight:700;transform:rotate(-2deg)}
+.club{margin:0;color:var(--on-board-soft)}
+.reg{width:min(560px,100%);text-align:left}
+.reg label{display:block;font-weight:700;margin:16px 0 8px}
+.reg label:first-child{margin-top:0}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{flex:1 0 52px;min-height:48px;border-radius:10px;background:var(--field);font-weight:700;color:var(--muted);font-size:1.1rem}
+.seg button[aria-pressed=true]{background:var(--board);color:#fff}
+input[type=text]{width:100%;font:inherit;font-size:1.2rem;color:var(--ink);background:var(--field);border:2px solid transparent;border-radius:10px;padding:10px 12px;min-height:52px}
+input[type=text]:focus{border-color:var(--board);outline:none}
+.reg .btn{width:100%;margin-top:22px}
+.err{color:var(--pink);font-weight:700;min-height:1.5em;margin:10px 0 0}
+.wait-dot{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--marker);animation:bob 1.2s infinite ease-in-out}
+.wait-dot:nth-child(2){animation-delay:.2s}.wait-dot:nth-child(3){animation-delay:.4s}
+@keyframes bob{50%{transform:translateY(-10px)}}
+.me{font-family:"Gaegu",cursive;font-size:clamp(2.4rem,6vw,3.6rem);line-height:1.05;margin:0}
+.taskbar{display:flex;align-items:center;gap:12px}
+.prompt{flex:1;background:var(--paper);color:var(--ink);border-radius:12px;padding:6px 16px;box-shadow:var(--shadow)}
+.prompt small{display:block;color:var(--muted);font-size:.82rem}
+.prompt strong{font-family:"Gaegu",cursive;font-size:clamp(1.8rem,4vw,2.4rem);line-height:1.1}
+.timer{min-width:84px;text-align:center;font-weight:700;font-size:1.8rem;font-variant-numeric:tabular-nums;padding:6px 10px;border-radius:12px;background:var(--board-deep)}
+.timer.low{background:var(--pink)}
+.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+.stage canvas{display:block;background:#fff;border-radius:8px;box-shadow:var(--shadow);touch-action:none}
+.tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+.toolgroup{display:flex;gap:6px;align-items:center;background:var(--board-deep);padding:6px;border-radius:14px;flex-wrap:wrap}
+.swatch{width:38px;height:38px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.5)}
+.swatch[aria-pressed=true]{box-shadow:0 0 0 3px var(--board-deep),0 0 0 6px #fff}
+.sz{width:42px;height:42px;border-radius:10px;display:grid;place-items:center}
+.sz span{display:block;border-radius:50%;background:#fff}
+.sz[aria-pressed=true],.tool[aria-pressed=true]{background:rgba(255,255,255,.22)}
+.tool{min-height:42px;padding:0 12px;border-radius:10px;font-weight:500}
+.done-pic{width:min(460px,80vw);border-radius:8px;box-shadow:var(--shadow);background:#fff;display:block;transform:rotate(-1.5deg)}
+.actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.stampok{display:inline-block;padding:8px 22px 4px;border:5px solid var(--marker);color:var(--marker);border-radius:14px;transform:rotate(-5deg);font-family:"Gaegu",cursive;font-weight:700;font-size:2.4rem;line-height:1}
+.note{font-size:.95rem;color:var(--on-board-soft)}
+@media (prefers-reduced-motion:reduce){.wait-dot{animation:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- 파이어베이스: game 폴더의 firebase-config.js 를 그대로 사용 -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+/* firebase-config.js 를 못 읽을 때만 아래 null 자리에 설정을 붙여 넣으세요. 예) { apiKey:"...", projectId:"sciencelab27-game", ... } */
+const MANUAL_CONFIG = null;
+
+(function(){
+"use strict";
+const STATE_DOC = "drawBooth/state", ENTRIES = "drawBooth_entries";
+const INK = ["#1B1D2A","#E63946","#FF9F1C","#FFB703","#06A77D","#3A86FF","#7B61FF","#FF5C8A","#8D5524"];
+const LETTERS = ["K","R","O","Y","G","B","P","M","N"];
+const SIZES = [6,14,30];
+const app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const load = (k,d) => { try { const v = JSON.parse(localStorage.getItem(k)||"null"); return v ?? d; } catch(e){ return d; } };
+const store = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+
+let device = load("drawbooth-device", null);
+if (!device){ device = Math.random().toString(36).slice(2,10); store("drawbooth-device", device); }
+let me = load("drawbooth-me", null);          // {grade, cls, name}
+let doneRound = load("drawbooth-done", 0);     // 이미 낸 라운드
+let lastPic = null;                            // 방금 낸 그림 (이미지 저장용)
+let S = {round:0, status:"ready", word:"", seconds:60};
+let view = "";                                 // 지금 화면
+let pad = null, tick = null, localStart = 0, submitting = false;
+let drawRound = 0, drawWord = "", drawSeconds = 60;
+
+/* ---------- 파이어베이스 연결 ---------- */
+let db = null;
+try {
+  let cfg = MANUAL_CONFIG;
+  if (!cfg && window.firebaseConfig) cfg = window.firebaseConfig;
+  if (!cfg) { try { cfg = firebaseConfig; } catch(e){} }
+  if (!firebase.apps.length){ if (cfg) firebase.initializeApp(cfg); }
+  if (firebase.apps.length) db = firebase.firestore();
+} catch(e){ db = null; }
+
+if (!db){
+  app.innerHTML = `<div class="screen"><div class="center"><div class="sheet" style="max-width:520px">
+    <h1 class="hand" style="margin:0 0 8px">연결 설정이 필요해요</h1>
+    <p style="color:var(--muted);margin:0">이 파일을 깃허브 <b>game 폴더</b>(firebase-config.js가 있는 곳)에 올려 주세요.</p></div></div></div>`;
+  return;
+}
+
+/* ---------- 화면 ---------- */
+function renderRegister(){
+  view = "register"; stopTimer();
+  const g = me?.grade || "", c = me?.cls || "";
+  app.innerHTML = `<div class="screen"><div class="center">
+    <p class="club">언동중학교 알록달록 미술부</p>
+    <h1 class="title hand">다 함께 그림 챌린지</h1>
+    <div class="sheet reg">
+      <label>학년</label>
+      <div class="seg" id="grade">${[1,2,3].map(n=>`<button data-v="${n}" aria-pressed="${g==n}">${n}학년</button>`).join("")}</div>
+      <label>반</label>
+      <div class="seg" id="cls">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button data-v="${n}" aria-pressed="${c==n}">${n}</button>`).join("")}</div>
+      <label for="nm">이름</label>
+      <input type="text" id="nm" maxlength="10" autocomplete="off" placeholder="이름을 써 주세요" value="${esc(me?.name||"")}">
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn huge" id="go">참가하기</button>
+    </div></div></div>`;
+  let grade = g, cls = c;
+  const segs = (id, set) => app.querySelectorAll(`#${id} button`).forEach(b => b.onclick = () => {
+    app.querySelectorAll(`#${id} button`).forEach(x => x.setAttribute("aria-pressed", x===b)); set(b.dataset.v);
+  });
+  segs("grade", v => grade = v); segs("cls", v => cls = v);
+  document.getElementById("go").onclick = () => {
+    const name = document.getElementById("nm").value.trim();
+    const err = document.getElementById("err");
+    if (!grade) return err.textContent = "학년을 골라 주세요.";
+    if (!cls) return err.textContent = "반을 골라 주세요.";
+    if (!name) return err.textContent = "이름을 써 주세요.";
+    me = {grade:+grade, cls:+cls, name}; store("drawbooth-me", me);
+    route();
+  };
+}
+
+function renderWait(){
+  view = "wait"; stopTimer();
+  const msg = S.status === "drawing" && doneRound === S.round
+    ? "이번 판 그림은 이미 보냈어요. 다음 판을 기다려요."
+    : S.status === "closed" ? "이번 판이 끝났어요. 다음 판을 기다려요."
+    : "선생님이 시작하면 제시어가 나와요.";
+  app.innerHTML = `<div class="screen"><div class="center">
+    <p class="club">${me.grade}학년 ${me.cls}반</p>
+    <p class="me">${esc(me.name)} 님, 준비됐어요!</p>
+    <div aria-hidden="true"><span class="wait-dot"></span> <span class="wait-dot"></span> <span class="wait-dot"></span></div>
+    <p style="font-size:1.15rem">${msg}</p>
+    <button class="btn ghost" id="who">내가 아니에요 (이름 바꾸기)</button>
+  </div></div>`;
+  document.getElementById("who").onclick = () => { me = null; store("drawbooth-me", null); renderRegister(); };
+}
+
+function renderDraw(){
+  view = "draw"; drawRound = S.round; drawWord = S.word; drawSeconds = S.seconds;
+  app.innerHTML = `<div class="screen">
+    <div class="taskbar">
+      <div class="prompt"><small>제시어</small><strong>${esc(drawWord)}</strong></div>
+      <div class="timer" id="timer"></div>
+    </div>
+    <div class="stage" id="stage"></div>
+    <div class="tools">
+      <div class="toolgroup" role="group" aria-label="색">
+        ${INK.map((c,i)=>`<button class="swatch" data-color="${c}" style="background:${c}" aria-pressed="${i===0}" aria-label="색 ${i+1}"></button>`).join("")}
+      </div>
+      <div class="toolgroup" role="group" aria-label="굵기와 도구">
+        ${SIZES.map((s,i)=>`<button class="sz" data-size="${s}" aria-pressed="${i===1}" aria-label="굵기 ${i+1}"><span style="width:${6+i*7}px;height:${6+i*7}px"></span></button>`).join("")}
+        <button class="tool" id="eraser" aria-pressed="false">지우개</button>
+        <button class="tool" id="undo">되돌리기</button>
+        <button class="tool" id="clear">전부 지우기</button>
+      </div>
+      <button class="btn" id="done">다 그렸어요</button>
+    </div></div>`;
+  pad = makePad(document.getElementById("stage"));
+  app.querySelectorAll("[data-color]").forEach(b => b.onclick = () => {
+    app.querySelectorAll("[data-color]").forEach(x=>x.setAttribute("aria-pressed", x===b));
+    pad.tool.color = b.dataset.color; pad.tool.erase = false;
+    document.getElementById("eraser").setAttribute("aria-pressed","false");
+  });
+  app.querySelectorAll("[data-size]").forEach(b => b.onclick = () => {
+    app.querySelectorAll("[data-size]").forEach(x=>x.setAttribute("aria-pressed", x===b)); pad.tool.size = +b.dataset.size;
+  });
+  const er = document.getElementById("eraser");
+  er.onclick = () => { pad.tool.erase = !pad.tool.erase; er.setAttribute("aria-pressed", pad.tool.erase); };
+  document.getElementById("undo").onclick = pad.undo;
+  document.getElementById("clear").onclick = pad.clear;
+  document.getElementById("done").onclick = submit;
+  localStart = Date.now();
+  const el = document.getElementById("timer");
+  const show = () => {
+    const left = Math.max(0, Math.ceil(drawSeconds - (Date.now()-localStart)/1000));
+    el.textContent = left; el.classList.toggle("low", left <= 10);
+    if (left <= 0) submit();
+  };
+  show(); stopTimer(); tick = setInterval(show, 250);
+}
+
+async function submit(){
+  if (submitting || view !== "draw" || !pad) return;
+  submitting = true; stopTimer();
+  const round = drawRound, word = drawWord;
+  const pic = {img: pad.dataUrl(), grid: pad.grid(), lines: pad.lines(), empty: pad.isEmpty()};
+  pad.destroy(); pad = null;
+  lastPic = {img: pic.img, word, round};
+  renderSending();
+  const data = {round, word, grade: me.grade, cls: me.cls, name: me.name, device,
+    img: pic.img, grid: pic.grid, lines: pic.lines.text, strokes: pic.lines.count, erased: pic.lines.erased, empty: pic.empty,
+    at: firebase.firestore.FieldValue.serverTimestamp()};
+  let ok = false;
+  for (let i=0; i<3 && !ok; i++){
+    try { await db.collection(ENTRIES).doc(`${round}_${device}`).set(data); ok = true; }
+    catch(e){ await new Promise(r=>setTimeout(r, 1200)); }
+  }
+  submitting = false;
+  if (ok){ doneRound = round; store("drawbooth-done", round); renderDone(); }
+  else renderSendFail(data);
+}
+
+function renderSending(){
+  view = "sending";
+  app.innerHTML = `<div class="screen"><div class="center"><p class="me">선생님께 보내는 중…</p></div></div>`;
+}
+function renderSendFail(data){
+  view = "fail";
+  app.innerHTML = `<div class="screen"><div class="center">
+    <p class="me">그림을 보내지 못했어요</p><p>와이파이 연결을 확인하고 다시 보내 주세요.</p>
+    <img class="done-pic" src="${lastPic.img}" alt="내 그림">
+    <div class="actions"><button class="btn" id="re">다시 보내기</button><button class="btn ghost" id="save">이미지 저장하기</button></div>
+  </div></div>`;
+  document.getElementById("save").onclick = saveImage;
+  document.getElementById("re").onclick = async () => {
+    renderSending();
+    try { await db.collection(ENTRIES).doc(`${data.round}_${device}`).set(data); doneRound = data.round; store("drawbooth-done", data.round); renderDone(); }
+    catch(e){ renderSendFail(data); }
+  };
+}
+
+function renderDone(){
+  view = "done"; stopTimer();
+  app.innerHTML = `<div class="screen"><div class="center">
+    <span class="stampok">보냈어요!</span>
+    <img class="done-pic" src="${lastPic.img}" alt="${esc(lastPic.word)} 그림">
+    <p style="font-size:1.15rem">AI 채점 결과는 선생님 화면(TV)에서 함께 봐요.</p>
+    <div class="actions">
+      <button class="btn" id="save">이미지 저장하기</button>
+      <button class="btn ghost" id="next">다음 사람 차례</button>
+    </div>
+    <p class="note">같은 사람이 계속하면 그대로 두세요. 다음 판이 시작되면 자동으로 넘어가요.</p>
+  </div></div>`;
+  document.getElementById("save").onclick = saveImage;
+  document.getElementById("next").onclick = () => { me = null; store("drawbooth-me", null); renderRegister(); };
+}
+
+function saveImage(){
+  if (!lastPic) return;
+  const a = document.createElement("a");
+  a.href = lastPic.img; a.download = `그림챌린지_${lastPic.round}판_${lastPic.word}_${me ? me.name : "그림"}.jpg`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+const stopTimer = () => { if (tick){ clearInterval(tick); tick = null; } };
+
+/* 상태에 따라 화면 고르기 */
+function route(){
+  if (!me){ if (view !== "register") renderRegister(); return; }
+  if (view === "sending" || view === "fail") return;
+  if (view === "draw"){
+    if (S.status !== "drawing" || S.round !== drawRound) submit();   // 선생님이 끝냄 → 자동 제출
+    return;
+  }
+  if (S.status === "drawing" && doneRound !== S.round){ renderDraw(); return; }
+  if (view === "done" && lastPic && lastPic.round === S.round) return;
+  renderWait();
+}
+
+db.doc(STATE_DOC).onSnapshot(snap => {
+  const d = snap.data() || {};
+  S = {round: d.round||0, status: d.status||"ready", word: d.word||"", seconds: d.seconds||60};
+  route();
+}, () => {
+  if (view !== "draw") app.innerHTML = `<div class="screen"><div class="center"><p class="me">연결이 끊겼어요</p><p>와이파이를 확인한 뒤 새로고침해 주세요.</p></div></div>`;
+});
+
+if (!me) renderRegister(); else app.innerHTML = `<div class="screen"><div class="center"><p class="me">연결하는 중…</p></div></div>`;
+
+/* ---------- 그림판 ---------- */
+function makePad(stage){
+  const W=1200, H=900;
+  const c = document.createElement("canvas"); c.width=W; c.height=H; c.setAttribute("aria-label","그림판");
+  stage.appendChild(c);
+  const ctx = c.getContext("2d"); ctx.lineCap="round"; ctx.lineJoin="round";
+  const tool = {color:INK[0], size:SIZES[1], erase:false};
+  let strokes = [], cur = null, curId = null;
+  function fit(){ const r=stage.getBoundingClientRect(); let w=r.width,h=w*3/4; if(h>r.height){h=r.height;w=h*4/3;} c.style.width=Math.max(0,w)+"px"; c.style.height=Math.max(0,h)+"px"; }
+  const ro = new ResizeObserver(fit); ro.observe(stage); fit();
+  function paint(s){
+    if (s.clear){ ctx.fillStyle="#fff"; ctx.fillRect(0,0,W,H); return; }
+    const p=s.pts; ctx.strokeStyle=s.color; ctx.fillStyle=s.color; ctx.lineWidth=s.size;
+    if (p.length===1){ ctx.beginPath(); ctx.arc(p[0][0],p[0][1],s.size/2,0,Math.PI*2); ctx.fill(); return; }
+    ctx.beginPath(); ctx.moveTo(p[0][0],p[0][1]); for (let i=1;i<p.length;i++) ctx.lineTo(p[i][0],p[i][1]); ctx.stroke();
+  }
+  function redraw(){ ctx.fillStyle="#fff"; ctx.fillRect(0,0,W,H); strokes.forEach(paint); }
+  redraw();
+  const pos = e => { const r=c.getBoundingClientRect(); return [(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]; };
+  c.addEventListener("pointerdown", e => {
+    if (cur) return; e.preventDefault(); c.setPointerCapture(e.pointerId); curId=e.pointerId;
+    cur = {color: tool.erase?"#fff":tool.color, size: tool.erase?tool.size*2.5:tool.size, erase:tool.erase, pts:[pos(e)]};
+    strokes.push(cur); paint(cur);
+  });
+  c.addEventListener("pointermove", e => {
+    if (!cur || e.pointerId!==curId) return;
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    for (const ev of (evs.length?evs:[e])){
+      const pt=pos(ev), prev=cur.pts[cur.pts.length-1]; cur.pts.push(pt);
+      ctx.strokeStyle=cur.color; ctx.lineWidth=cur.size; ctx.beginPath(); ctx.moveTo(prev[0],prev[1]); ctx.lineTo(pt[0],pt[1]); ctx.stroke();
+    }
+  });
+  const end = e => { if (e.pointerId===curId){ cur=null; curId=null; } };
+  c.addEventListener("pointerup", end); c.addEventListener("pointercancel", end);
+  return {
+    tool,
+    undo(){ strokes.pop(); redraw(); },
+    clear(){ if (strokes.length && !strokes.at(-1).clear){ strokes.push({clear:true}); redraw(); } },
+    isEmpty(){ let lc=-1; strokes.forEach((s,i)=>{ if(s.clear) lc=i; }); return !strokes.slice(lc+1).some(s=>!s.erase); },
+    dataUrl(){ const t=document.createElement("canvas"); t.width=800; t.height=600; t.getContext("2d").drawImage(c,0,0,800,600); return t.toDataURL("image/jpeg", .8); },
+    grid(){
+      const GW=48, GH=36, cw=W/GW, ch=H/GH, d=ctx.getImageData(0,0,W,H).data;
+      const pal = INK.map(h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]);
+      const rows=[];
+      for (let gy=0; gy<GH; gy++){ let row="";
+        for (let gx=0; gx<GW; gx++){ const cnt=new Array(INK.length).fill(0); let ink=0;
+          for (let sy=0; sy<5; sy++) for (let sx=0; sx<5; sx++){
+            const x=Math.floor(gx*cw+(sx+.5)*cw/5), y=Math.floor(gy*ch+(sy+.5)*ch/5), i=(y*W+x)*4, r=d[i],g=d[i+1],b=d[i+2];
+            if (r>232&&g>232&&b>232) continue; ink++; let best=0,bd=1e9;
+            pal.forEach((p,k)=>{ const dd=(p[0]-r)**2+(p[1]-g)**2+(p[2]-b)**2; if(dd<bd){bd=dd;best=k;} }); cnt[best]++;
+          }
+          row += ink>=2 ? LETTERS[cnt.indexOf(Math.max(...cnt))] : ".";
+        } rows.push(row); }
+      return rows.join("\n");
+    },
+    lines(){
+      let lc=-1; strokes.forEach((s,i)=>{ if(s.clear) lc=i; });
+      const list = strokes.slice(lc+1).filter(s=>!s.clear && !s.erase);
+      let gap=14, out;
+      for (let tries=0; tries<6; tries++){ let total=0;
+        out = list.map(s=>{ const kept=[s.pts[0]];
+          for (const p of s.pts){ const q=kept[kept.length-1]; if (Math.hypot(p[0]-q[0],p[1]-q[1])>=gap) kept.push(p); }
+          const last=s.pts[s.pts.length-1]; if (kept[kept.length-1]!==last && s.pts.length>1) kept.push(last);
+          total+=kept.length; const ci=INK.indexOf(s.color);
+          return (ci>=0?LETTERS[ci]:"K") + (s.size>=30?"(굵게)":"") + ": " + kept.map(p=>Math.round(p[0]/12)+","+Math.round(p[1]/12)).join(" ");
+        });
+        if (total<=900) break; gap*=1.6; }
+      return {text: out.join("\n"), count: list.length, erased: strokes.slice(lc+1).some(s=>s.erase)};
+    },
+    destroy(){ ro.disconnect(); }
+  };
+}
+})();
+</script>
+</body>
+</html>

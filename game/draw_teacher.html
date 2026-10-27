@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>다 함께 그림 챌린지 · 진행 화면</title>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--board:#2C4FD8;--board-deep:#1F3BB0;--dot:rgba(255,255,255,.13);--paper:#fff;--paper-edge:#E3E7F5;--ink:#1B1D2A;--muted:#5D6278;--marker:#FFD23F;--pink:#FF5C8A;--mint:#2EC4B6;--field:#F3F5FC;--on-board:#fff;--on-board-soft:rgba(255,255,255,.82);--shadow:0 3px 0 #1A2E8C,0 14px 30px rgba(10,20,80,.35);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{min-height:100%;background:var(--board)}
+body{margin:0;color:var(--on-board);font-family:"IBM Plex Sans KR","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;font-size:16px;line-height:1.5;background:var(--board) radial-gradient(var(--dot) 1.4px,transparent 1.6px) 0 0/22px 22px}
+button{font:inherit;cursor:pointer;border:0;color:inherit;background:none}
+button:focus-visible,input:focus-visible{outline:3px solid var(--marker);outline-offset:2px}
+.wrap{max-width:1400px;margin:0 auto;padding:18px;display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}}
+.panel{background:var(--paper);color:var(--ink);border-radius:12px;box-shadow:var(--shadow);padding:20px}
+.panel h2{font-family:"Gaegu",cursive;font-size:1.7rem;margin:0 0 6px;line-height:1.1}
+.label{display:block;font-weight:700;margin:16px 0 8px}
+.club{margin:0;color:var(--muted);font-size:.92rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:8px 22px;border-radius:13px;background:var(--marker);color:var(--ink);font-weight:700;font-size:1.05rem;box-shadow:0 4px 0 #C99A00}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #C99A00}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 2px var(--paper-edge)}
+.btn.pink{background:var(--pink);color:#fff;box-shadow:0 4px 0 #B8355B}
+.btn.small{min-height:40px;padding:6px 14px;font-size:.92rem;border-radius:10px}
+.btn.wide{width:100%}
+.seg{display:flex;background:var(--field);border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;min-height:40px;border-radius:9px;color:var(--muted);font-weight:500}
+.seg button[aria-pressed=true]{background:var(--paper);color:var(--ink);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:36px;padding:4px 12px;border-radius:999px;border:2px solid var(--paper-edge);color:var(--muted);font-weight:500;font-size:.92rem}
+.chip[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+.wordrow{display:flex;gap:8px}
+.wordrow input{flex:1;font:inherit;font-family:"Gaegu",cursive;font-size:1.9rem;font-weight:700;color:var(--ink);background:var(--field);border:2px solid transparent;border-radius:10px;padding:2px 12px;min-height:56px;width:100%}
+.wordrow input:focus{border-color:var(--board);outline:none}
+.stack{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.hint{color:var(--muted);font-size:.88rem;margin:8px 0 0}
+.status{padding:10px 12px;border-radius:10px;background:var(--field);font-size:.92rem;margin-top:14px}
+.status.bad{background:#FFE8EE;color:#9B1C3F}
+.link{word-break:break-all;font-weight:700;color:var(--board)}
+/* 진행 상황 */
+.hero{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:16px}
+.hero .round{font-family:"Gaegu",cursive;font-size:1.6rem;color:var(--on-board-soft)}
+.hero .word{font-family:"Gaegu",cursive;font-size:clamp(3rem,7vw,5.2rem);font-weight:700;line-height:.95;transform:rotate(-2deg)}
+.hero .word.hidden{color:var(--on-board-soft);font-size:2.4rem}
+.clock{margin-left:auto;font-weight:700;font-size:3rem;font-variant-numeric:tabular-nums;background:var(--board-deep);border-radius:14px;padding:4px 20px;min-width:130px;text-align:center}
+.clock.low{background:var(--pink)}
+.count{font-size:1.25rem;margin:0 0 12px}
+.count b{color:var(--marker);font-size:1.8rem}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.card{background:var(--paper);color:var(--ink);border-radius:8px;padding:8px;box-shadow:var(--shadow)}
+.card:nth-child(3n+1){transform:rotate(-1deg)}.card:nth-child(3n+2){transform:rotate(.8deg)}
+.card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:4px;border:1px solid var(--paper-edge);background:#fff}
+.card .who{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;gap:6px}
+.card .who b{font-size:1.05rem}
+.card .who small{color:var(--muted)}
+.empty{border:3px dashed rgba(255,255,255,.35);border-radius:12px;padding:40px;text-align:center;color:var(--on-board-soft);font-size:1.1rem}
+.after{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 0;align-items:center}
+.after p{margin:0;color:var(--on-board-soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="panel" id="side"></aside>
+  <main id="main"></main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+/* firebase-config.js 를 못 읽을 때만 아래 null 자리에 설정을 붙여 넣으세요. */
+const MANUAL_CONFIG = null;
+
+(function(){
+"use strict";
+const STATE_DOC = "drawBooth/state", ENTRIES = "drawBooth_entries";
+const WORDS = {
+  "동물": ["고양이","강아지","기린","펭귄","코끼리","문어","거북이","토끼","다람쥐","판다","고슴도치","악어","부엉이","해파리","돼지","돌고래","공룡","나비","달팽이","물고기"],
+  "음식": ["떡볶이","김밥","피자","라면","수박","아이스크림","햄버거","붕어빵","딸기","초밥","바나나","계란프라이","핫도그","도넛","케이크","사과","치킨","샌드위치","포도","당근"],
+  "물건": ["우산","안경","시계","냉장고","가위","자전거","칫솔","헤드폰","열쇠","풍선","텐트","연필","리모컨","의자","로봇","선풍기","사다리","카메라","촛불","컵"],
+  "자연과 장소": ["무지개","화산","눈사람","해바라기","선인장","등대","집","나무","구름","해변","산","달","별","번개","눈송이","꽃","성","다리","분수","놀이터"],
+  "탈것": ["비행기","버스","배","기차","헬리콥터","로켓","잠수함","소방차","오토바이","열기구","트럭","스케이트보드","택시","경찰차","돛단배","유모차","트랙터","포클레인","구급차","킥보드"]
+};
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const load = (k,d) => { try { const v = JSON.parse(localStorage.getItem(k)||"null"); return v ?? d; } catch(e){ return d; } };
+const store = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+const side = document.getElementById("side"), main = document.getElementById("main");
+
+const C = Object.assign({seconds:60, cats:Object.keys(WORDS), hideWord:false}, load("drawbooth-teacher", {}));
+const saveC = () => store("drawbooth-teacher", C);
+let S = {round:0, status:"ready", word:"", seconds:60, startedAt:0};
+let entries = [], unsubEntries = null, watchingRound = -1, tick = null, used = [];
+let draftWord = "";
+
+/* ---------- 파이어베이스 ---------- */
+let db = null;
+try {
+  let cfg = MANUAL_CONFIG;
+  if (!cfg && window.firebaseConfig) cfg = window.firebaseConfig;
+  if (!cfg) { try { cfg = firebaseConfig; } catch(e){} }
+  if (!firebase.apps.length && cfg) firebase.initializeApp(cfg);
+  if (firebase.apps.length) db = firebase.firestore();
+} catch(e){ db = null; }
+if (!db){
+  side.innerHTML = `<h2>연결 설정이 필요해요</h2><p>이 파일을 깃허브 <b>game 폴더</b>(firebase-config.js가 있는 곳)에 올려 주세요.</p>`;
+  return;
+}
+
+function pickWord(){
+  let pool = []; C.cats.forEach(c => WORDS[c] && pool.push(...WORDS[c]));
+  if (!pool.length) pool = WORDS["동물"];
+  const fresh = pool.filter(w => !used.includes(w));
+  const src = fresh.length ? fresh : pool;
+  return src[Math.floor(Math.random()*src.length)];
+}
+
+/* ---------- 왼쪽: 진행판 ---------- */
+function renderSide(){
+  const drawing = S.status === "drawing";
+  const studentUrl = location.href.replace(/draw_teacher\.html.*$/, "draw.html");
+  side.innerHTML = `
+    <p class="club">언동중학교 알록달록 미술부</p>
+    <h2>다 함께 그림 챌린지</h2>
+    <label class="label" for="w">다음 판 제시어</label>
+    <div class="wordrow"><input id="w" type="text" maxlength="12" value="${esc(draftWord)}" ${drawing?"disabled":""}>
+      <button class="btn small ghost" id="pick" ${drawing?"disabled":""}>뽑기</button></div>
+    <p class="hint">직접 써도 되고, 뽑기를 눌러도 돼요.</p>
+    <span class="label">뽑기에 쓸 주제</span>
+    <div class="chips">${Object.keys(WORDS).map(c=>`<button class="chip" data-cat="${esc(c)}" aria-pressed="${C.cats.includes(c)}">${esc(c)}</button>`).join("")}</div>
+    <span class="label">그리는 시간</span>
+    <div class="seg">${[30,45,60,90].map(v=>`<button data-sec="${v}" aria-pressed="${C.seconds===v}">${v}초</button>`).join("")}</div>
+    <label class="check" style="display:flex;gap:8px;align-items:center;margin-top:14px"><input type="checkbox" id="hide" ${C.hideWord?"checked":""}> TV 화면에서 제시어 가리기</label>
+    <div class="stack">
+      ${drawing
+        ? `<button class="btn pink wide" id="stop">지금 끝내기</button>`
+        : `<button class="btn wide" id="start">${S.round+1}판 시작하기</button>`}
+    </div>
+    <div class="status">학생 주소<br><span class="link">${esc(studentUrl)}</span></div>
+    <div class="stack">
+      <button class="btn small ghost" id="wipe">모든 판의 그림 지우기</button>
+    </div>
+    <div id="msg"></div>`;
+  const w = document.getElementById("w");
+  w.oninput = () => draftWord = w.value;
+  document.getElementById("pick").onclick = () => { draftWord = pickWord(); w.value = draftWord; };
+  side.querySelectorAll("[data-cat]").forEach(b => b.onclick = () => {
+    const c = b.dataset.cat; C.cats = C.cats.includes(c) ? C.cats.filter(x=>x!==c) : [...C.cats, c];
+    if (!C.cats.length) C.cats = [c]; saveC(); renderSide();
+  });
+  side.querySelectorAll("[data-sec]").forEach(b => b.onclick = () => { C.seconds = +b.dataset.sec; saveC(); renderSide(); });
+  document.getElementById("hide").onchange = e => { C.hideWord = e.target.checked; saveC(); renderMain(); };
+  const st = document.getElementById("start"); if (st) st.onclick = startRound;
+  const sp = document.getElementById("stop"); if (sp) sp.onclick = stopRound;
+  document.getElementById("wipe").onclick = wipeAll;
+}
+function say(text, bad){ const m = document.getElementById("msg"); if (m) m.innerHTML = `<div class="status ${bad?"bad":""}">${esc(text)}</div>`; }
+
+async function startRound(){
+  const word = (draftWord || "").trim() || pickWord();
+  used.push(word); if (used.length > 30) used.shift();
+  try {
+    await db.doc(STATE_DOC).set({round: S.round+1, status:"drawing", word, seconds: C.seconds, startedAt: Date.now()});
+    draftWord = "";
+  } catch(e){ say("시작하지 못했어요. 인터넷 연결을 확인해 주세요.", true); }
+}
+async function stopRound(){
+  try { await db.doc(STATE_DOC).set({status:"closed"}, {merge:true}); }
+  catch(e){ say("끝내지 못했어요. 다시 눌러 주세요.", true); }
+}
+async function wipeAll(){
+  if (!confirm("지금까지 들어온 모든 그림을 지울까요? (먼저 AI 채점용 파일을 내려받았는지 확인하세요)")) return;
+  try {
+    const snap = await db.collection(ENTRIES).get();
+    let batch = db.batch(), n = 0;
+    for (const d of snap.docs){ batch.delete(d.ref); if (++n % 400 === 0){ await batch.commit(); batch = db.batch(); } }
+    await batch.commit();
+    say(`그림 ${snap.size}장을 지웠어요.`);
+  } catch(e){ say("지우지 못했어요. 다시 시도해 주세요.", true); }
+}
+
+/* ---------- 오른쪽: TV 화면 ---------- */
+function renderMain(){
+  const drawing = S.status === "drawing";
+  const showWord = S.round > 0 && !(drawing && C.hideWord);
+  main.innerHTML = `
+    <div class="hero">
+      <div>
+        <div class="round">${S.round ? `${S.round}판 제시어` : "아직 시작 전이에요"}</div>
+        <div class="word ${showWord?"":"hidden"}">${S.round ? (showWord ? esc(S.word) : "비밀!") : "학생 태블릿에서 참가해 주세요"}</div>
+      </div>
+      ${drawing ? `<div class="clock" id="clock"></div>` : ""}
+    </div>
+    ${S.round ? `<p class="count">들어온 그림 <b>${entries.length}</b>장 ${drawing?"· 그리는 중…":S.status==="closed"?"· 이번 판 끝":""}</p>` : ""}
+    ${entries.length
+      ? `<div class="gallery">${entries.map(e=>`<figure class="card" style="margin:0"><img src="${e.img}" alt="${esc(e.name)}의 ${esc(e.word)} 그림"><figcaption class="who"><b>${esc(e.name)}</b><small>${e.grade}-${e.cls}</small></figcaption></figure>`).join("")}</div>`
+      : (S.round ? `<div class="empty">학생이 그림을 보내면 여기에 하나씩 붙어요.</div>` : "")}
+    ${S.status === "closed" && entries.length ? `
+      <div class="after">
+        <button class="btn" id="zip">AI 채점용으로 내려받기 (${entries.length}장)</button>
+        <p>내려받은 파일을 claude.ai의 AI 채점실에 끌어다 놓으세요.</p>
+      </div>` : ""}`;
+  const z = document.getElementById("zip"); if (z) z.onclick = downloadZip;
+  runClock();
+}
+function runClock(){
+  if (tick){ clearInterval(tick); tick = null; }
+  if (S.status !== "drawing") return;
+  const el = document.getElementById("clock");
+  const show = () => {
+    const left = Math.max(0, Math.ceil(S.seconds - (Date.now() - S.startedAt)/1000));
+    if (el){ el.textContent = left; el.classList.toggle("low", left <= 10); }
+    if (Date.now() - S.startedAt > (S.seconds + 3) * 1000){ clearInterval(tick); tick = null; stopRound(); }
+  };
+  show(); tick = setInterval(show, 250);
+}
+
+async function downloadZip(){
+  const btn = document.getElementById("zip"); btn.disabled = true; btn.textContent = "파일 만드는 중…";
+  try {
+    const zip = new JSZip();
+    const list = entries.map((e,i) => {
+      const file = `${String(i+1).padStart(2,"0")}_${e.grade}-${e.cls}_${e.name}.jpg`.replace(/[\\/:*?"<>|]/g,"");
+      zip.file(file, e.img.split(",")[1], {base64:true});
+      return {file, round:e.round, word:e.word, grade:e.grade, cls:e.cls, name:e.name, grid:e.grid||"", lines:e.lines||"", strokes:e.strokes||0, erased:!!e.erased, empty:!!e.empty};
+    });
+    zip.file("data.json", JSON.stringify({app:"drawbooth", round:S.round, word:S.word, seconds:S.seconds, entries:list}, null, 1));
+    const blob = await zip.generateAsync({type:"blob"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = `그림챌린지_${S.round}판_${S.word}.zip`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  } catch(e){ alert("파일을 만들지 못했어요. 다시 눌러 주세요."); }
+  renderMain();
+}
+
+function watchEntries(round){
+  if (watchingRound === round) return;
+  watchingRound = round;
+  if (unsubEntries) unsubEntries();
+  entries = [];
+  if (!round){ renderMain(); return; }
+  unsubEntries = db.collection(ENTRIES).where("round","==",round).onSnapshot(snap => {
+    entries = snap.docs.map(d => d.data()).sort((a,b) => (a.at?.seconds||9e9) - (b.at?.seconds||9e9));
+    renderMain();
+  });
+}
+
+db.doc(STATE_DOC).onSnapshot(snap => {
+  const d = snap.data() || {};
+  const prevStatus = S.status;
+  S = {round:d.round||0, status:d.status||"ready", word:d.word||"", seconds:d.seconds||60, startedAt:d.startedAt||0};
+  if (prevStatus !== S.status || !side.innerHTML) renderSide();
+  watchEntries(S.round);
+  renderMain();
+}, () => say("연결이 끊겼어요. 새로고침해 주세요.", true));
+renderSide(); renderMain();
+})();
+</script>
+</body>
+</html>
