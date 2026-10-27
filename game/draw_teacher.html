@@ -97,7 +97,7 @@ const load = (k,d) => { try { const v = JSON.parse(localStorage.getItem(k)||"nul
 const store = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
 const side = document.getElementById("side"), main = document.getElementById("main");
 
-const C = Object.assign({seconds:60, cats:Object.keys(WORDS), hideWord:false}, load("drawbooth-teacher", {}));
+const C = Object.assign({seconds:60, cats:Object.keys(WORDS), hideWord:false, shared:true}, load("drawbooth-teacher", {}));
 const saveC = () => store("drawbooth-teacher", C);
 let S = {round:0, status:"ready", word:"", seconds:60, startedAt:0, session:""};
 let entries = [], unsubEntries = null, watchingRound = -1, tick = null, used = [];
@@ -128,7 +128,7 @@ function pickWord(){
 /* ---------- 왼쪽: 진행판 ---------- */
 function renderSide(){
   const drawing = S.status === "drawing";
-  const studentUrl = location.href.replace(/draw_teacher\.html.*$/, "draw.html");
+  const studentUrl = location.href.replace(/draw_teacher\.html.*$/, C.shared ? "draw_shared.html" : "draw.html");
   side.innerHTML = `
     <p class="club">언동중학교 알록달록 미술부</p>
     <h2>다 함께 그림 챌린지</h2>
@@ -146,7 +146,9 @@ function renderSide(){
         ? `<button class="btn pink wide" id="stop">지금 끝내기</button>`
         : `<button class="btn wide" id="start">${S.round+1}판 시작하기</button>`}
     </div>
-    <div class="status qrbox"><b>학생 참가 QR</b><div class="qr" id="qr" title="누르면 크게 보여요"></div><small>QR을 누르면 TV에 크게 보여요</small></div>
+    <span class="label">학생 화면</span>
+    <div class="seg">${[[true,"부스 태블릿"],[false,"각자 태블릿"]].map(([v,t])=>`<button data-shared="${v}" aria-pressed="${C.shared===v}">${t}</button>`).join("")}</div>
+    <div class="status qrbox"><b>학생 참가 QR · ${C.shared ? "부스 태블릿용" : "각자 태블릿용"}</b><div class="qr" id="qr" title="누르면 크게 보여요"></div><small>QR을 누르면 TV에 크게 보여요</small></div>
     <div class="stack">
       <button class="btn small ghost" id="wipe" ${drawing?"disabled":""}>모두 지우고 1판부터 다시</button>
     </div>
@@ -161,6 +163,7 @@ function renderSide(){
     if (!C.cats.length) C.cats = [c]; saveC(); renderSide();
   });
   side.querySelectorAll("[data-sec]").forEach(b => b.onclick = () => { C.seconds = +b.dataset.sec; saveC(); renderSide(); });
+  side.querySelectorAll("[data-shared]").forEach(b => b.onclick = () => { C.shared = b.dataset.shared === "true"; saveC(); renderSide(); });
   document.getElementById("hide").onchange = e => { C.hideWord = e.target.checked; saveC(); renderMain(); };
   const st = document.getElementById("start"); if (st) st.onclick = startRound;
   const sp = document.getElementById("stop"); if (sp) sp.onclick = stopRound;
