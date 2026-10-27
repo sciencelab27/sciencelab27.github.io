@@ -39,7 +39,13 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--marker);outline
 .hint{color:var(--muted);font-size:.88rem;margin:8px 0 0}
 .status{padding:10px 12px;border-radius:10px;background:var(--field);font-size:.92rem;margin-top:14px}
 .status.bad{background:#FFE8EE;color:#9B1C3F}
-.link{word-break:break-all;font-weight:700;color:var(--board)}
+.qrbox{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.qr{background:#fff;padding:10px;border-radius:8px;cursor:pointer}
+.qr img,.qr canvas{display:block}
+.qrbig{position:fixed;inset:0;z-index:20;background:var(--board);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;cursor:pointer;padding:20px}
+.qrbig .qr{padding:22px;border-radius:16px;box-shadow:var(--shadow)}
+.qrbig p{margin:0;font-family:"Gaegu",cursive;font-size:clamp(2rem,5vw,3.4rem);font-weight:700;color:#fff}
+.qrbig small{color:var(--on-board-soft);font-size:1rem}
 /* 진행 상황 */
 .hero{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:16px}
 .hero .round{font-family:"Gaegu",cursive;font-size:1.6rem;color:var(--on-board-soft)}
@@ -70,6 +76,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--marker);outline
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="firebase-config.js"></script>
 <script>
 /* firebase-config.js 를 못 읽을 때만 아래 null 자리에 설정을 붙여 넣으세요. */
@@ -139,11 +146,13 @@ function renderSide(){
         ? `<button class="btn pink wide" id="stop">지금 끝내기</button>`
         : `<button class="btn wide" id="start">${S.round+1}판 시작하기</button>`}
     </div>
-    <div class="status">학생 주소<br><span class="link">${esc(studentUrl)}</span></div>
+    <div class="status qrbox"><b>학생 참가 QR</b><div class="qr" id="qr" title="누르면 크게 보여요"></div><small>QR을 누르면 TV에 크게 보여요</small></div>
     <div class="stack">
       <button class="btn small ghost" id="wipe">모든 판의 그림 지우기</button>
     </div>
     <div id="msg"></div>`;
+  makeQR(document.getElementById("qr"), studentUrl, 150);
+  document.getElementById("qr").onclick = () => showBigQR(studentUrl);
   const w = document.getElementById("w");
   w.oninput = () => draftWord = w.value;
   document.getElementById("pick").onclick = () => { draftWord = pickWord(); w.value = draftWord; };
@@ -156,6 +165,20 @@ function renderSide(){
   const st = document.getElementById("start"); if (st) st.onclick = startRound;
   const sp = document.getElementById("stop"); if (sp) sp.onclick = stopRound;
   document.getElementById("wipe").onclick = wipeAll;
+}
+function makeQR(el, text, size){
+  if (!el) return;
+  if (typeof QRCode === "undefined"){ el.textContent = text; return; }
+  el.innerHTML = ""; new QRCode(el, {text, width:size, height:size, correctLevel: QRCode.CorrectLevel.M});
+}
+function showBigQR(url){
+  const box = document.createElement("div");
+  box.className = "qrbig";
+  box.innerHTML = `<p>태블릿 카메라로 찍고 참가해요!</p><div class="qr" id="bigqr"></div><small>화면을 누르면 닫혀요</small>`;
+  document.body.appendChild(box);
+  const size = Math.min(window.innerWidth, window.innerHeight) * 0.55;
+  makeQR(document.getElementById("bigqr"), url, Math.round(size));
+  box.onclick = () => box.remove();
 }
 function say(text, bad){ const m = document.getElementById("msg"); if (m) m.innerHTML = `<div class="status ${bad?"bad":""}">${esc(text)}</div>`; }
 
