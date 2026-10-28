@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>힘 문장 경매</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --felt:#1F4D3A; --felt2:#2C6A50; --paper:#EEF3EF; --card:#FFFFFF; --ink:#17201C;
+  --muted:#5D6B64; --line:#CAD6CF; --gold:#D9A520; --gold-soft:#FBF1D2;
+  --true:#2F7D4F; --false:#C23B32;
+  --hd:'Jua','Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+  --bd:'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--bd);background:var(--paper);color:var(--ink);font-size:17px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+button{font-family:var(--hd);font-size:1.05rem;border:none;border-radius:12px;padding:12px 18px;cursor:pointer;background:var(--felt);color:#fff;transition:transform .08s}
+button:active:not(:disabled){transform:scale(.97)}
+button:disabled{opacity:.35;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn-ghost{background:transparent;color:var(--felt);border:2px solid var(--felt)}
+.btn-gold{background:var(--gold);color:#2A1F00}
+.btn-danger{background:transparent;color:var(--false);border:2px solid var(--false)}
+.btn-small{padding:6px 12px;font-size:.95rem;border-radius:9px}
+input,select,textarea{font-family:var(--bd);font-size:1rem;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+label{font-weight:500}
+.screen{display:none;min-height:100%}
+.screen.on{display:flex;flex-direction:column}
+.muted{color:var(--muted)}
+
+/* 시작 화면 */
+#scr-home{background:var(--felt);color:#fff;align-items:center;justify-content:center;padding:32px;text-align:center}
+.home-title{font-family:var(--hd);font-size:clamp(3rem,9vw,5.5rem);color:var(--gold);margin:0;line-height:1.1}
+.home-sub{font-size:1.15rem;opacity:.9;margin:12px 0 40px}
+.home-btns{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+.home-btns button{font-size:1.35rem;padding:20px 34px;min-width:240px}
+.home-btns .btn-ghost{color:#fff;border-color:#fff}
+.gavel{width:84px;height:84px;margin-bottom:8px}
+.warn{background:#FFF3F2;color:var(--false);border:2px solid var(--false);border-radius:12px;padding:12px 16px;margin-top:28px;max-width:640px;text-align:left;font-size:.95rem}
+
+/* 상단 바 */
+header.bar{background:var(--felt);color:#fff;padding:12px 20px;padding-top:calc(12px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header.bar h1{font-family:var(--hd);font-weight:400;font-size:1.45rem;margin:0}
+header.bar .phase{background:rgba(255,255,255,.14);border-radius:999px;padding:4px 14px;font-size:.95rem}
+header.bar .spacer{flex:1}
+header.bar .btn-ghost{color:#fff;border-color:rgba(255,255,255,.6)}
+
+/* 설정 */
+.setup{max-width:880px;margin:0 auto;padding:24px 20px 40px;width:100%}
+.setup h2{font-family:var(--hd);font-weight:400;font-size:1.6rem;margin:0 0 16px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+.form-grid > div{display:flex;flex-direction:column;gap:6px}
+.setup textarea{width:100%;min-height:300px;font-size:.95rem;line-height:1.6}
+.hint{font-size:.9rem;color:var(--muted);margin:6px 0 18px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+/* 교사 진행 화면 */
+.t-wrap{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;padding:18px 20px}
+.stage{background:var(--card);border-radius:18px;border:2px solid var(--line);padding:26px 30px;display:flex;flex-direction:column;min-height:420px;position:relative;overflow:hidden}
+.lot{font-family:var(--hd);color:var(--felt2);font-size:1.15rem}
+.sentence{font-family:var(--hd);font-size:clamp(1.7rem,3.4vw,2.7rem);line-height:1.35;margin:10px 0 18px;word-break:keep-all}
+.timer{font-family:var(--hd);font-size:2.4rem;color:var(--felt);position:absolute;top:18px;right:26px}
+.timer.low{color:var(--false)}
+.timer.over{font-size:1.4rem;color:var(--false)}
+.sub-count{font-size:1.2rem;margin-top:auto}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:18px}
+.rule{background:var(--paper);border-radius:12px;padding:14px 16px}
+.rule b{font-family:var(--hd);font-weight:400;font-size:1.3rem;display:block;color:var(--felt)}
+
+aside.groups{display:flex;flex-direction:column;gap:10px}
+.gcard{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center}
+.paddle{width:38px;height:38px;border-radius:50%;color:#fff;font-family:var(--hd);font-size:1.2rem;display:flex;align-items:center;justify-content:center;position:relative}
+.gname{font-family:var(--hd);font-size:1.15rem}
+.gmoney{font-family:var(--hd);font-size:1.25rem;text-align:right}
+.gmeta{grid-column:2 / 4;font-size:.85rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:.85rem;border-radius:999px;padding:2px 10px;background:var(--paper);color:var(--muted)}
+.badge.ok{background:#E2F2E8;color:var(--true);font-weight:700}
+.bonus-row{grid-column:1 / 4;display:flex;gap:6px;justify-content:flex-end}
+
+.controls{display:flex;gap:12px;flex-wrap:wrap;padding:12px 20px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:2px solid var(--line);align-items:center}
+.controls .spacer{flex:1}
+.controls .main-btn{font-size:1.25rem;padding:14px 28px}
+
+/* 입찰 공개 막대 */
+.bars{display:flex;gap:14px;align-items:flex-end;height:230px;margin-top:auto;padding-top:20px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.bar-amt{font-family:var(--hd);font-size:1.15rem;margin-bottom:4px}
+.bar{width:100%;max-width:70px;border-radius:10px 10px 4px 4px;animation:rise .7s cubic-bezier(.2,.8,.3,1) both}
+.bar-col.win .bar{box-shadow:0 0 0 4px var(--gold)}
+.bar-lab{font-family:var(--hd);margin-top:6px;font-size:1rem}
+@keyframes rise{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1);transform-origin:bottom}}
+.stamp{position:absolute;top:22px;right:26px;border:5px solid var(--false);color:var(--false);font-family:var(--hd);font-size:2rem;padding:4px 18px;border-radius:12px;transform:rotate(-8deg);background:rgba(255,255,255,.9);animation:stamp .45s .55s cubic-bezier(.3,1.6,.5,1) both;text-align:center;line-height:1.2}
+.stamp small{display:block;font-size:1.1rem}
+.stamp.none{border-color:var(--muted);color:var(--muted)}
+@keyframes stamp{from{transform:scale(2.2) rotate(-14deg);opacity:0}to{transform:scale(1) rotate(-8deg);opacity:1}}
+.tie{font-size:1rem;color:var(--muted);margin-top:8px}
+
+/* 정답 공개 */
+.focus{border-radius:14px;padding:18px 20px;margin-bottom:16px;position:relative}
+.focus.t{background:#E6F3EB;border:3px solid var(--true)}
+.focus.f{background:#FBE9E7;border:3px solid var(--false)}
+.focus .verdict{font-family:var(--hd);font-size:2.2rem}
+.focus.t .verdict{color:var(--true)}
+.focus.f .verdict{color:var(--false)}
+.focus .fs{font-family:var(--hd);font-size:1.6rem;line-height:1.35;word-break:keep-all;margin:4px 0 8px}
+.focus .exp{font-size:1.1rem}
+.focus .own{margin-top:8px;font-weight:700}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.tile{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;color:var(--ink);font-family:var(--bd);font-size:.92rem;display:flex;flex-direction:column;gap:6px;line-height:1.4}
+.tile .tn{font-family:var(--hd);font-size:1.05rem;color:var(--felt)}
+.tile .to{display:flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.tile.rev-t{border-color:var(--true);background:#EEF8F1}
+.tile.rev-f{border-color:var(--false);background:#FCF0EE}
+.tile.cur{box-shadow:0 0 0 3px var(--gold)}
+.dot{width:16px;height:16px;border-radius:50%;display:inline-block}
+
+/* 순위 */
+.rank-list{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.rank{display:grid;grid-template-columns:56px auto 1fr auto;gap:14px;align-items:center;background:var(--paper);border-radius:14px;padding:12px 18px}
+.rank .rn{font-family:var(--hd);font-size:1.8rem;color:var(--muted)}
+.rank.first{background:var(--gold-soft);border:3px solid var(--gold)}
+.rank.first .rn{color:var(--gold)}
+.rank .rm{font-family:var(--hd);font-size:1.6rem}
+
+/* 학생 화면 */
+.s-wrap{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px}
+.s-money{font-family:var(--hd);font-size:1.6rem;color:var(--gold)}
+.pad{margin-top:auto;display:flex;flex-direction:column;gap:12px}
+.pad-top{display:flex;align-items:center;gap:14px;justify-content:center}
+.pad-amt{font-family:var(--hd);font-size:3rem;min-width:180px;text-align:center}
+.pad-amt.zero{color:var(--muted)}
+.pad-step{width:64px;height:64px;font-size:1.6rem;padding:0;border-radius:50%}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chips button{background:var(--paper);color:var(--ink);border:2px solid var(--line);min-width:72px}
+.chips button.sel{background:var(--felt);color:#fff;border-color:var(--felt)}
+.submit-btn{font-size:1.35rem;padding:16px}
+.my-sub{text-align:center;font-size:1.05rem;background:var(--gold-soft);border-radius:12px;padding:10px}
+.ledger{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;align-self:start}
+.ledger h3{font-family:var(--hd);font-weight:400;font-size:1.3rem;margin:0}
+.ledger .lm{font-family:var(--hd);font-size:2rem}
+.litem{border-radius:10px;padding:8px 10px;background:var(--paper);font-size:.92rem}
+.litem .lr{font-weight:700;margin-top:2px}
+.litem.t{background:#EEF8F1}.litem.t .lr{color:var(--true)}
+.litem.f{background:#FCF0EE}.litem.f .lr{color:var(--false)}
+.wait{margin:auto;text-align:center;font-family:var(--hd);font-size:1.6rem;color:var(--felt)}
+.group-pick{display:flex;gap:10px;flex-wrap:wrap}
+.group-pick button{width:76px;height:76px;border-radius:50%;font-size:1.3rem;padding:0;opacity:.45}
+.group-pick button.sel{opacity:1;box-shadow:0 0 0 4px var(--gold)}
+
+@media (max-width:860px){
+  .t-wrap,.s-wrap{grid-template-columns:1fr}
+  .stage{padding:20px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+
+<!-- 시작 화면 -->
+<section class="screen on" id="scr-home">
+  <svg class="gavel" viewBox="0 0 64 64" aria-hidden="true">
+    <rect x="14" y="8" width="26" height="14" rx="4" transform="rotate(-35 27 15)" fill="#D9A520"/>
+    <rect x="25" y="20" width="6" height="34" rx="3" transform="rotate(-35 28 37)" fill="#F3E3B0"/>
+    <rect x="8" y="52" width="40" height="7" rx="3" fill="#F3E3B0"/>
+  </svg>
+  <h1 class="home-title">힘 문장 경매</h1>
+  <p class="home-sub">참이라고 확신하는 문장에 돈을 거는 모둠 대항전</p>
+  <div class="home-btns">
+    <button class="btn-gold" onclick="goTeacherSetup()">선생님 화면</button>
+    <button class="btn-ghost" onclick="goStudentJoin()">모둠 입찰 화면</button>
+  </div>
+  <div class="warn" id="fb-warn" hidden></div>
+</section>
+
+<!-- 교사 설정 -->
+<section class="screen" id="scr-tsetup">
+  <header class="bar"><h1>게임 준비</h1><span class="spacer"></span><button class="btn-ghost btn-small" onclick="show('scr-home')">처음으로</button></header>
+  <div class="setup">
+    <div class="form-grid">
+      <div><label for="t-ban">반</label><select id="t-ban"></select></div>
+      <div><label for="t-groups">모둠 수</label><select id="t-groups"></select></div>
+      <div><label for="t-budget">시작 금액(원)</label><input id="t-budget" type="number" value="1000" step="50" min="100"></div>
+      <div><label for="t-max">문장당 최대 입찰(원)</label><input id="t-max" type="number" value="300" step="50" min="50"></div>
+      <div><label for="t-time">입찰 제한 시간</label>
+        <select id="t-time"><option value="0">없음</option><option value="20">20초</option><option value="30" selected>30초</option><option value="45">45초</option><option value="60">60초</option></select></div>
+    </div>
+    <label for="t-sent">경매 문장</label>
+    <p class="hint">한 줄에 문장 하나씩, <b>정답 | 문장 | 해설</b> 순서로 적어요. 정답은 O(참) 또는 X(거짓)로 씁니다.</p>
+    <textarea id="t-sent"></textarea>
+    <div class="row" style="margin-top:18px">
+      <button class="btn-gold main-btn" onclick="createGame()">새 게임 만들기</button>
+      <button class="btn-ghost" onclick="resumeGame()">진행 중인 게임 이어하기</button>
+      <button class="btn-ghost" onclick="resetSentences()">기본 문장으로 되돌리기</button>
+    </div>
+    <p class="hint">새 게임을 만들면 그 반의 이전 입찰 기록과 입장 기록이 지워져요. 수업 중 화면을 새로 고쳤다면 ‘이어하기’를 누르세요.</p>
+  </div>
+</section>
+
+<!-- 교사 진행 -->
+<section class="screen" id="scr-teacher">
+  <header class="bar">
+    <h1 id="t-title">문장 경매</h1><span class="phase" id="t-phase"></span>
+    <span class="spacer"></span>
+    <button class="btn-ghost btn-small" onclick="backToSetup()">설정</button>
+  </header>
+  <div class="t-wrap">
+    <div class="stage" id="t-stage"></div>
+    <aside class="groups" id="t-groups-list"></aside>
+  </div>
+  <div class="controls" id="t-controls"></div>
+</section>
+
+<!-- 학생 입장 -->
+<section class="screen" id="scr-sjoin">
+  <header class="bar"><h1>모둠 입장</h1><span class="spacer"></span><button class="btn-ghost btn-small" onclick="show('scr-home')">처음으로</button></header>
+  <div class="setup">
+    <div class="form-grid">
+      <div><label for="s-ban">반</label><select id="s-ban" onchange="watchJoinRoom()"></select></div>
+      <div><label for="s-name">번호와 이름</label><input id="s-name" placeholder="예: 7. 김민준" maxlength="20"></div>
+    </div>
+    <label>우리 모둠</label>
+    <p class="hint" id="s-join-msg">반을 고르면 모둠 번호가 나와요.</p>
+    <div class="group-pick" id="s-group-pick"></div>
+    <div class="row" style="margin-top:24px"><button class="btn-gold main-btn" id="s-join-btn" onclick="joinGame()" disabled>입장하기</button></div>
+  </div>
+</section>
+
+<!-- 학생 진행 -->
+<section class="screen" id="scr-student">
+  <header class="bar">
+    <span class="paddle" id="s-paddle"></span>
+    <h1 id="s-title"></h1><span class="phase" id="s-phase"></span>
+    <span class="spacer"></span>
+    <span class="s-money" id="s-money"></span>
+  </header>
+  <div class="s-wrap">
+    <div class="stage" id="s-stage"></div>
+    <div>
+      <div class="ledger" id="s-ledger"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn-ghost" style="flex:1" onclick="saveImage('s-ledger')">이미지 저장하기</button>
+        <button class="btn-ghost btn-small" onclick="leaveGame()">나가기</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- game 폴더의 firebase-config.js를 그대로 사용해요 -->
+<script src="firebase-config.js"></script>
+<script>
+/* ------------------------------------------------------------
+   firebase-config.js를 못 찾을 때만 아래에 연결 정보를 붙여 넣으세요.
+   예) const INLINE_CONFIG = { apiKey:"...", authDomain:"...", projectId:"sciencelab27-game", ... };
+------------------------------------------------------------ */
+const INLINE_CONFIG = {};
+
+const COL = 'sentence_auction';
+const COLORS = ['#E4572E','#2E86AB','#E39B1F','#5E8F2F','#8E5BA8','#1E9A8E','#D35D8A','#6B705C'];
+const BONUS = 50;
+const DEFAULT_TEXT = [
+ 'O | 힘의 크기는 화살표의 길이로 나타낸다. | 화살표의 길이는 힘의 크기, 방향은 힘의 방향, 시작점은 힘의 작용점을 나타낸다.',
+ 'X | 힘의 단위는 kg이다. | 힘의 단위는 N(뉴턴)이다. kg은 질량의 단위이다.',
+ 'O | 같은 방향으로 3N, 5N의 힘이 작용하면 합력은 8N이다. | 같은 방향이면 두 힘을 더한다. 반대 방향이면 5N-3N=2N이 된다.',
+ 'X | 정지해 있는 물체에는 아무 힘도 작용하지 않는다. | 정지한 물체에도 중력 등 여러 힘이 작용한다. 힘들이 평형을 이루어 합력이 0일 뿐이다.',
+ 'O | 중력의 방향은 지구 중심 방향이다. | 지구는 물체를 지구 중심 방향으로 당긴다.',
+ 'X | 질량은 용수철저울로, 무게는 윗접시저울로 측정한다. | 반대이다. 무게는 용수철저울로, 질량은 윗접시저울(양팔저울)로 측정한다.',
+ 'O | 달에서는 몸무게가 줄어들지만 질량은 변하지 않는다. | 달의 중력은 지구의 약 1/6이라 무게는 줄지만, 질량은 장소가 바뀌어도 변하지 않는다.',
+ 'X | 탄성력은 탄성체를 변형시킨 힘과 같은 방향으로 작용한다. | 탄성력은 원래 모양으로 돌아가려는 힘이라 변형시킨 힘과 반대 방향으로 작용한다.',
+ 'O | 용수철을 많이 늘일수록 탄성력이 커진다. | 탄성 한계 안에서는 많이 변형될수록 탄성력이 커진다.',
+ 'X | 접촉면의 넓이가 넓을수록 마찰력이 커진다. | 마찰력의 크기는 접촉면의 넓이와 관계없다. 접촉면이 거칠수록, 무게가 무거울수록 커진다.',
+ 'O | 물체의 무게가 무거울수록 마찰력이 커진다. | 물체의 무게가 무거울수록 접촉면을 누르는 힘이 커져 마찰력이 커진다.',
+ 'X | 물에 가라앉는 물체에는 부력이 작용하지 않는다. | 물속의 모든 물체에는 부력이 작용한다. 가라앉는 것은 중력이 부력보다 크기 때문이다.'
+].join('\n');
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const won = n => (n||0).toLocaleString('ko-KR') + '원';
+const TS = () => firebase.firestore.FieldValue.serverTimestamp();
+function show(id){ document.querySelectorAll('.screen').forEach(e => e.classList.toggle('on', e.id === id)); }
+function store(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function load(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+function forget(k){ try{ localStorage.removeItem(k); }catch(e){} }
+function paddleHTML(g, size){ const s = size ? `width:${size}px;height:${size}px;font-size:${size/2.2}px` : ''; return `<span class="paddle" style="background:${COLORS[(g-1)%COLORS.length]};${s}">${g}</span>`; }
+function setHTML(el, html){ if(el._last !== html){ el.innerHTML = html; el._last = html; } }
+
+/* ---------- 파이어베이스 연결 ---------- */
+let db = null;
+(function initFirebase(){
+  try{
+    if(!firebase.apps.length){
+      let cfg = null;
+      if(typeof firebaseConfig !== 'undefined') cfg = firebaseConfig;
+      else if(window.firebaseConfig) cfg = window.firebaseConfig;
+      else if(INLINE_CONFIG && INLINE_CONFIG.projectId) cfg = INLINE_CONFIG;
+      if(!cfg) throw new Error('config');
+      firebase.initializeApp(cfg);
+    }
+    db = firebase.firestore();
+  }catch(e){
+    const w = $('#fb-warn'); w.hidden = false;
+    w.innerHTML = '<b>파이어베이스에 연결하지 못했어요.</b><br>이 파일을 firebase-config.js가 들어 있는 game 폴더에 올렸는지 확인해 주세요. 내 컴퓨터에서 바로 열 때는 파일 안의 INLINE_CONFIG에 연결 정보를 붙여 넣으면 돼요.';
+  }
+})();
+function needDb(){ if(!db){ alert('파이어베이스 연결이 안 되어 있어요. 첫 화면의 안내를 확인해 주세요.'); return false; } return true; }
+
+/* ---------- 공통 계산 ---------- */
+let room = null, roomRef = null, unsubs = [];
+function teardown(){ unsubs.forEach(u => { try{ u(); }catch(e){} }); unsubs = []; }
+function nSent(r = room){ return (r && r.sentences) ? r.sentences.length : 0; }
+function ownerOf(i, r = room){ const o = r.owner || {}; return (o[i] === undefined || o[i] === null) ? null : o[i]; }
+function moneyOf(g, r = room){
+  let m = r.budget + ((r.bonus || {})[g] || 0);
+  r.sentences.forEach((s, i) => {
+    if(ownerOf(i, r) === g){
+      const p = (r.price || {})[i] || 0;
+      m -= p;
+      if((r.revealed || {})[i] && s.a) m += 2 * p;
+    }
+  });
+  return m;
+}
+function ranking(r = room){
+  const arr = [];
+  for(let g = 1; g <= r.groups; g++) arr.push({ g, m: moneyOf(g, r) });
+  return arr.sort((a, b) => b.m - a.m || a.g - b.g);
+}
+const PHASE = { lobby:'입장 대기', bidding:'입찰 중', reveal:'입찰 공개', answers:'정답 공개', end:'최종 결과' };
+function parseSentences(text){
+  return text.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+    const p = l.split('|').map(x => x.trim());
+    if(p.length < 2) return null;
+    const a = /^(o|참|t|true)$/i.test(p[0]);
+    const isX = /^(x|거짓|f|false)$/i.test(p[0]);
+    if(!a && !isX) return null;
+    return { a, t: p[1], e: p[2] || '' };
+  }).filter(Boolean);
+}
+function resultText(i, r = room){
+  const s = r.sentences[i], p = (r.price || {})[i] || 0;
+  return s.a ? `참! ${won(2*p)} 돌려받음 (+${won(p)})` : `거짓! 산 값 ${won(p)}을 잃음`;
+}
+
+/* 남은 시간 표시 */
+function remaining(){ if(!room || !room.endsAt || room.status !== 'bidding') return null; return Math.max(0, Math.ceil((room.endsAt - Date.now()) / 1000)); }
+setInterval(() => {
+  const r = remaining();
+  document.querySelectorAll('.timer').forEach(el => {
+    if(r === null){ el.textContent = ''; return; }
+    el.textContent = r > 0 ? r + '초' : '시간 끝!';
+    el.classList.toggle('low', r > 0 && r <= 5);
+    el.classList.toggle('over', r === 0);
+  });
+  if(role === 'student') updatePadLock();
+}, 250);
+
+/* ---------- 이미지 저장 ---------- */
+function saveImage(id){
+  const el = document.getElementById(id);
+  if(!window.html2canvas){ alert('이미지 저장 도구를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'); return; }
+  html2canvas(el, { backgroundColor:'#ffffff', scale:2 }).then(c => {
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/png');
+    a.download = role === 'student' ? `문장경매_${sBan}반_${myG}모둠.png` : `문장경매_${tBan}반_결과.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+}
+
+/* ================= 교사 ================= */
+let role = null, tBan = 1, bids = {}, members = [];
+function fillSelect(el, from, to, sel, suffix){ el.innerHTML = ''; for(let i = from; i <= to; i++){ const o = document.createElement('option'); o.value = i; o.textContent = i + suffix; if(i === sel) o.selected = true; el.appendChild(o); } }
+function goTeacherSetup(){
+  fillSelect($('#t-ban'), 1, 5, load('auction_tban') || 1, '반');
+  fillSelect($('#t-groups'), 2, 8, 6, '모둠');
+  $('#t-sent').value = load('auction_text') || DEFAULT_TEXT;
+  show('scr-tsetup');
+}
+function resetSentences(){ if(confirm('기본 문장 12개로 되돌릴까요?')){ $('#t-sent').value = DEFAULT_TEXT; store('auction_text', DEFAULT_TEXT); } }
+async function clearRoom(ref){
+  for(const sub of ['bids','members']){
+    const snap = await ref.collection(sub).get();
+    let batch = db.batch(), n = 0;
+    for(const d of snap.docs){ batch.delete(d.ref); n++; if(n % 400 === 0){ await batch.commit(); batch = db.batch(); } }
+    await batch.commit();
+  }
+}
+async function createGame(){
+  if(!needDb()) return;
+  const ban = +$('#t-ban').value;
+  const sentences = parseSentences($('#t-sent').value);
+  if(!sentences.length){ alert('문장을 하나 이상 ‘O | 문장 | 해설’ 형식으로 적어 주세요.'); return; }
+  const bad = $('#t-sent').value.split('\n').filter(l => l.trim()).length - sentences.length;
+  if(bad > 0 && !confirm(`형식이 맞지 않는 줄 ${bad}개는 빠져요. 계속할까요?`)) return;
+  if(!confirm(`${ban}반의 이전 기록을 지우고 새 게임을 만들까요?`)) return;
+  store('auction_tban', ban); store('auction_text', $('#t-sent').value);
+  const ref = db.collection(COL).doc('c' + ban);
+  try{
+    await clearRoom(ref);
+    await ref.set({
+      status:'lobby', cur:0, groups:+$('#t-groups').value,
+      budget:Math.max(50, +$('#t-budget').value || 1000), maxBid:Math.max(50, +$('#t-max').value || 300),
+      timeLimit:+$('#t-time').value, endsAt:null, sentences,
+      owner:{}, price:{}, revealed:{}, bonus:{}, lastBids:{}, tie:false, focus:null, createdAt:TS()
+    });
+    enterTeacher(ban);
+  }catch(e){ alert('게임을 만들지 못했어요: ' + e.message); }
+}
+function resumeGame(){ if(!needDb()) return; const ban = +$('#t-ban').value; store('auction_tban', ban); enterTeacher(ban); }
+function backToSetup(){ teardown(); room = null; goTeacherSetup(); }
+function enterTeacher(ban){
+  teardown(); role = 'teacher'; tBan = ban; room = null; bids = {}; members = [];
+  roomRef = db.collection(COL).doc('c' + ban);
+  ['#t-stage','#t-groups-list','#t-controls'].forEach(s => { $(s)._last = null; });
+  unsubs.push(roomRef.onSnapshot(d => { room = d.exists ? d.data() : null; renderTeacher(); }, err => alert('연결 오류: ' + err.message)));
+  unsubs.push(roomRef.collection('bids').onSnapshot(s => { bids = {}; s.forEach(d => bids[d.id] = d.data()); renderTeacher(); }));
+  unsubs.push(roomRef.collection('members').onSnapshot(s => { members = []; s.forEach(d => members.push(d.data())); renderTeacher(); }));
+  show('scr-teacher'); renderTeacher();
+}
+function curBids(){ return Object.values(bids).filter(b => b.idx === room.cur); }
+
+async function startBidding(i){
+  await roomRef.update({ status:'bidding', cur:i, endsAt: room.timeLimit ? Date.now() + room.timeLimit * 1000 : null, lastBids:{}, tie:false });
+}
+async function closeBidding(){
+  const list = curBids();
+  const last = {};
+  list.forEach(b => { last[b.g] = b.amount; });
+  const valid = list.filter(b => b.amount > 0 && b.amount <= Math.min(room.maxBid, moneyOf(b.g)))
+    .map(b => ({ ...b, t: (b.at && b.at.toMillis) ? b.at.toMillis() : Date.now() }))
+    .sort((a, b) => b.amount - a.amount || a.t - b.t);
+  const win = valid[0] || null;
+  const tie = !!(win && valid[1] && valid[1].amount === win.amount);
+  await roomRef.update({
+    status:'reveal', endsAt:null, lastBids:last, tie,
+    ['owner.' + room.cur]: win ? win.g : null,
+    ['price.' + room.cur]: win ? win.amount : 0
+  });
+}
+async function goAnswers(){ await roomRef.update({ status:'answers', focus:null }); }
+async function revealAnswer(i){ await roomRef.update({ ['revealed.' + i]: true, focus:i }); }
+async function addBonus(g, d){ await roomRef.update({ ['bonus.' + g]: firebase.firestore.FieldValue.increment(d) }); }
+async function goEnd(){ await roomRef.update({ status:'end' }); }
+async function backAnswers(){ await roomRef.update({ status:'answers' }); }
+async function wipeRoom(){
+  if(!confirm(`${tBan}반의 게임 기록을 모두 지울까요? (학생 입찰·입장 기록 포함)`)) return;
+  try{ await clearRoom(roomRef); await roomRef.delete(); }catch(e){ alert('지우지 못했어요: ' + e.message); }
+}
+
+function rulesHTML(r){
+  return `<div class="rules">
+    <div class="rule"><b>${won(r.budget)}</b>모둠마다 처음에 받는 돈</div>
+    <div class="rule"><b>최대 ${won(r.maxBid)}</b>문장 하나에 걸 수 있는 돈</div>
+    <div class="rule"><b>참이면 2배</b>산 값의 두 배를 돌려받아요</div>
+    <div class="rule"><b>거짓이면 잃음</b>산 값을 그대로 잃어요</div>
+    <div class="rule"><b>+${BONUS}원</b>거짓인 이유를 설명하면 보너스</div>
+  </div>`;
+}
+function barsHTML(r){
+  const own = ownerOf(r.cur, r), last = r.lastBids || {};
+  const max = Math.max(r.maxBid, 1);
+  let cols = '';
+  for(let g = 1; g <= r.groups; g++){
+    const has = last[g] !== undefined, amt = has ? last[g] : 0;
+    const h = Math.max(4, Math.round(amt / max * 170));
+    cols += `<div class="bar-col ${own === g ? 'win' : ''}">
+      <div class="bar-amt">${has ? (amt ? won(amt) : '패스') : '미제출'}</div>
+      <div class="bar" style="height:${h}px;background:${COLORS[(g-1)%COLORS.length]};animation-delay:${(g-1)*0.06}s"></div>
+      <div class="bar-lab">${g}모둠</div></div>`;
+  }
+  const stamp = own ? `<div class="stamp">${own}모둠 낙찰<small>${won((r.price||{})[r.cur])}</small></div>` : `<div class="stamp none">유찰<small>아무도 사지 않음</small></div>`;
+  const tie = r.tie ? `<div class="tie">같은 금액이 나와서 먼저 제출한 모둠이 가져갔어요.</div>` : '';
+  return stamp + `<div class="bars">${cols}</div>` + tie;
+}
+function focusHTML(r){
+  const i = r.focus;
+  if(i === null || i === undefined || !(r.revealed || {})[i]) return '';
+  const s = r.sentences[i], own = ownerOf(i, r);
+  return `<div class="focus ${s.a ? 't' : 'f'}">
+    <div class="verdict">${i+1}번 문장은 ${s.a ? '참' : '거짓'}</div>
+    <div class="fs">${esc(s.t)}</div>
+    <div class="exp">${esc(s.e)}</div>
+    <div class="own">${own ? `${own}모둠 → ${resultText(i, r)}` : '아무도 사지 않은 문장이에요.'}</div>
+  </div>`;
+}
+function rankHTML(r){
+  return `<div class="rank-list">` + ranking(r).map((x, k) => {
+    const n = r.sentences.filter((s, i) => ownerOf(i, r) === x.g).length;
+    return `<div class="rank ${k === 0 ? 'first' : ''}"><span class="rn">${k+1}위</span>${paddleHTML(x.g, 44)}<span class="gname">${x.g}모둠 <span class="muted" style="font-family:var(--bd);font-size:.9rem">문장 ${n}개</span></span><span class="rm">${won(x.m)}</span></div>`;
+  }).join('') + `</div>`;
+}
+
+function renderTeacher(){
+  const stage = $('#t-stage'), gl = $('#t-groups-list'), ctl = $('#t-controls');
+  $('#t-title').textContent = `${tBan}반 문장 경매`;
+  if(!room){
+    $('#t-phase').textContent = '게임 없음';
+    setHTML(stage, `<div class="wait">이 반에는 진행 중인 게임이 없어요.<br><span style="font-size:1.1rem" class="muted">설정에서 ‘새 게임 만들기’를 눌러 주세요.</span></div>`);
+    setHTML(gl, ''); setHTML(ctl, `<button class="btn-gold main-btn" onclick="backToSetup()">설정으로</button>`);
+    return;
+  }
+  const r = room, N = nSent(r);
+  $('#t-phase').textContent = PHASE[r.status] || '';
+  let st = '', cb = '';
+  if(r.status === 'lobby'){
+    st = `<div class="lot">게임 규칙</div><div class="sentence">모둠별로 태블릿에서 입장해 주세요.</div>${rulesHTML(r)}<p class="sub-count muted">경매 문장 ${N}개</p>`;
+    cb = `<button class="btn-gold main-btn" onclick="startBidding(0)">첫 문장 경매 시작</button>`;
+  } else if(r.status === 'bidding'){
+    const subs = new Set(curBids().map(b => b.g)).size;
+    st = `<div class="timer"></div><div class="lot">경매 문장 ${r.cur+1} / ${N}</div><div class="sentence">${esc(r.sentences[r.cur].t)}</div>
+      <div class="sub-count">입찰한 모둠 <b style="font-family:var(--hd);font-size:1.6rem">${subs}</b> / ${r.groups}</div>`;
+    cb = `<button class="btn-gold main-btn" onclick="closeBidding()">입찰 마감하고 공개</button>`;
+  } else if(r.status === 'reveal'){
+    st = `<div class="lot">경매 문장 ${r.cur+1} / ${N}</div><div class="sentence">${esc(r.sentences[r.cur].t)}</div>${barsHTML(r)}`;
+    cb = r.cur < N - 1
+      ? `<button class="btn-gold main-btn" onclick="startBidding(${r.cur+1})">다음 문장 경매</button>`
+      : `<button class="btn-gold main-btn" onclick="goAnswers()">정답 공개 단계로</button>`;
+  } else if(r.status === 'answers'){
+    const tiles = r.sentences.map((s, i) => {
+      const rev = (r.revealed || {})[i], own = ownerOf(i, r);
+      return `<button class="tile ${rev ? (s.a ? 'rev-t' : 'rev-f') : ''} ${r.focus === i ? 'cur' : ''}" onclick="revealAnswer(${i})">
+        <span class="tn">${i+1}번 ${rev ? (s.a ? '참' : '거짓') : ''}</span><span>${esc(s.t)}</span>
+        <span class="to">${own ? `<span class="dot" style="background:${COLORS[(own-1)%COLORS.length]}"></span>${own}모둠 ${won((r.price||{})[i])}` : '유찰'}</span></button>`;
+    }).join('');
+    const left = r.sentences.filter((s, i) => !(r.revealed || {})[i]).length;
+    st = `<div class="lot">카드를 눌러 정답을 공개하세요 <span class="muted" style="font-family:var(--bd);font-size:.95rem">(남은 문장 ${left}개)</span></div>${focusHTML(r)}<div class="tiles" style="margin-top:8px">${tiles}</div>`;
+    cb = `<button class="btn-gold main-btn" onclick="goEnd()">최종 순위 보기</button>`;
+  } else if(r.status === 'end'){
+    st = `<div id="t-result"><div class="lot">최종 결과</div><div class="sentence" style="margin-bottom:6px">${tBan}반 문장 경매 순위</div>${rankHTML(r)}</div>`;
+    cb = `<button class="btn-ghost" onclick="backAnswers()">정답 공개 화면으로</button><button class="btn-gold main-btn" onclick="saveImage('t-result')">이미지 저장하기</button>`;
+  }
+  setHTML(stage, st);
+  setHTML(ctl, cb + `<span class="spacer"></span><button class="btn-danger btn-small" onclick="wipeRoom()">기록 지우기</button>`);
+
+  // 모둠 목록
+  let g_html = '';
+  const subG = r.status === 'bidding' ? new Set(curBids().map(b => b.g)) : null;
+  for(let g = 1; g <= r.groups; g++){
+    const names = members.filter(m => m.g === g).map(m => m.name).filter(Boolean);
+    let badge = '';
+    if(r.status === 'bidding') badge = subG.has(g) ? '<span class="badge ok">입찰 완료</span>' : '<span class="badge">고민 중</span>';
+    const bonus = (r.status === 'answers' || r.status === 'end') ? `<div class="bonus-row"><span class="muted" style="font-size:.85rem;align-self:center">이유 보너스</span><button class="btn-ghost btn-small" onclick="addBonus(${g},-${BONUS})">−${BONUS}</button><button class="btn-small" onclick="addBonus(${g},${BONUS})">+${BONUS}</button></div>` : '';
+    g_html += `<div class="gcard">${paddleHTML(g)}<span class="gname">${g}모둠 ${badge}</span><span class="gmoney">${won(moneyOf(g, r))}</span>
+      <span class="gmeta">${names.length ? esc(names.join(', ')) : '아직 아무도 입장하지 않음'}</span>${bonus}</div>`;
+  }
+  setHTML(gl, g_html);
+}
+
+/* ================= 학생 ================= */
+let sBan = 1, myG = null, myName = '', myId = null, myBids = {}, draft = 0, draftFor = -1, joinUnsub = null, joinGroups = 0;
+function goStudentJoin(){
+  if(!needDb()) return;
+  const saved = load('auction_me');
+  if(saved && saved.ban && saved.g && confirm(`${saved.ban}반 ${saved.g}모둠(${saved.name})으로 다시 입장할까요?`)){
+    sBan = saved.ban; myG = saved.g; myName = saved.name; myId = saved.id; enterStudent(); return;
+  }
+  fillSelect($('#s-ban'), 1, 5, (saved && saved.ban) || 1, '반');
+  myG = null; show('scr-sjoin'); watchJoinRoom();
+}
+function watchJoinRoom(){
+  if(joinUnsub){ joinUnsub(); joinUnsub = null; }
+  const ban = +$('#s-ban').value;
+  joinUnsub = db.collection(COL).doc('c' + ban).onSnapshot(d => {
+    const pick = $('#s-group-pick');
+    if(!d.exists){ joinGroups = 0; pick.innerHTML = ''; $('#s-join-msg').textContent = '선생님이 아직 이 반 게임을 만들지 않았어요. 잠시 기다려 주세요.'; updateJoinBtn(); return; }
+    joinGroups = d.data().groups;
+    $('#s-join-msg').textContent = '우리 모둠 번호를 눌러 주세요.';
+    pick.innerHTML = '';
+    for(let g = 1; g <= joinGroups; g++){
+      const b = document.createElement('button');
+      b.textContent = g; b.style.background = COLORS[(g-1)%COLORS.length];
+      if(g === myG) b.classList.add('sel');
+      b.onclick = () => { myG = g; pick.querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); updateJoinBtn(); };
+      pick.appendChild(b);
+    }
+    updateJoinBtn();
+  });
+}
+$('#s-name').addEventListener('input', () => updateJoinBtn());
+function updateJoinBtn(){ $('#s-join-btn').disabled = !(joinGroups && myG && myG <= joinGroups && $('#s-name').value.trim()); }
+async function joinGame(){
+  sBan = +$('#s-ban').value; myName = $('#s-name').value.trim();
+  myId = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  if(joinUnsub){ joinUnsub(); joinUnsub = null; }
+  try{
+    await db.collection(COL).doc('c' + sBan).collection('members').doc(myId).set({ g:myG, name:myName, at:TS() });
+  }catch(e){ alert('입장하지 못했어요: ' + e.message); return; }
+  store('auction_me', { ban:sBan, g:myG, name:myName, id:myId });
+  enterStudent();
+}
+function leaveGame(){ if(!confirm('게임에서 나갈까요? 다시 입장할 수 있어요.')) return; teardown(); forget('auction_me'); role = null; show('scr-home'); }
+function enterStudent(){
+  teardown(); role = 'student'; room = null; myBids = {}; draft = 0; draftFor = -1;
+  roomRef = db.collection(COL).doc('c' + sBan);
+  ['#s-stage','#s-ledger'].forEach(s => { $(s)._last = null; });
+  unsubs.push(roomRef.onSnapshot(d => { room = d.exists ? d.data() : null; renderStudent(); }));
+  unsubs.push(roomRef.collection('bids').where('g', '==', myG).onSnapshot(s => { myBids = {}; s.forEach(d => { const b = d.data(); myBids[b.idx] = b; }); renderStudent(); }));
+  // 기록이 지워졌다가 다시 만들어진 경우를 위해 입장 기록을 다시 남김
+  roomRef.collection('members').doc(myId).set({ g:myG, name:myName, at:TS() }).catch(() => {});
+  $('#s-paddle').style.background = COLORS[(myG-1)%COLORS.length]; $('#s-paddle').textContent = myG;
+  $('#s-title').textContent = `${sBan}반 ${myG}모둠`;
+  show('scr-student'); renderStudent();
+}
+function myLimit(){ return Math.max(0, Math.min(room.maxBid, moneyOf(myG))); }
+function setDraft(v){ draft = Math.max(0, Math.min(myLimit(), v)); renderPad(); }
+function timeOver(){ const r = remaining(); return r === 0; }
+async function submitBid(){
+  if(!room || room.status !== 'bidding' || timeOver()) return;
+  const amt = Math.max(0, Math.min(myLimit(), draft));
+  try{
+    await roomRef.collection('bids').doc(room.cur + '_' + myG).set({ idx:room.cur, g:myG, amount:amt, by:myName, at:TS() });
+  }catch(e){ alert('제출하지 못했어요: ' + e.message); }
+}
+function renderPad(){
+  const pad = document.getElementById('s-pad'); if(!pad || !room) return;
+  const lim = myLimit(), step = 50;
+  const chips = []; for(let v = 0; v <= room.maxBid; v += step) chips.push(v);
+  const mine = myBids[room.cur];
+  pad.innerHTML = `
+    <div class="pad-top">
+      <button class="pad-step btn-ghost" onclick="setDraft(draft-${step})" ${draft <= 0 ? 'disabled' : ''} aria-label="50원 내리기">−</button>
+      <div class="pad-amt ${draft ? '' : 'zero'}">${draft ? won(draft) : '패스'}</div>
+      <button class="pad-step btn-ghost" onclick="setDraft(draft+${step})" ${draft + step > lim ? 'disabled' : ''} aria-label="50원 올리기">+</button>
+    </div>
+    <div class="chips">${chips.map(v => `<button class="${v === draft ? 'sel' : ''}" onclick="setDraft(${v})" ${v > lim ? 'disabled' : ''}>${v ? v : '패스'}</button>`).join('')}</div>
+    <div class="muted" style="text-align:center;font-size:.9rem">지금 걸 수 있는 돈은 최대 ${won(lim)}이에요.</div>
+    <button class="btn-gold submit-btn" id="s-submit" onclick="submitBid()">${mine ? '입찰 바꾸기' : '입찰 제출하기'}</button>
+    ${mine ? `<div class="my-sub">우리 모둠 입찰: <b>${mine.amount ? won(mine.amount) : '패스'}</b> <span class="muted">(${esc(mine.by)} 제출)</span><br><span class="muted" style="font-size:.9rem">마감 전까지 모둠원 누구나 바꿀 수 있어요.</span></div>` : ''}`;
+  updatePadLock();
+}
+function updatePadLock(){
+  const b = document.getElementById('s-submit'); if(!b || !room) return;
+  const over = room.status !== 'bidding' || timeOver();
+  b.disabled = over;
+  if(over && room.status === 'bidding') b.textContent = '시간 끝! 공개를 기다려요';
+}
+function renderStudent(){
+  const stage = $('#s-stage'), led = $('#s-ledger');
+  if(!room){
+    $('#s-phase').textContent = ''; $('#s-money').textContent = '';
+    setHTML(stage, `<div class="wait">선생님이 게임을 준비하고 있어요.</div>`); setHTML(led, ''); return;
+  }
+  const r = room, N = nSent(r);
+  if(myG > r.groups){ setHTML(stage, `<div class="wait">${myG}모둠이 없는 게임이에요.<br>‘나가기’를 누르고 다시 입장해 주세요.</div>`); return; }
+  $('#s-phase').textContent = PHASE[r.status] || '';
+  $('#s-money').textContent = won(moneyOf(myG));
+  let st = '';
+  if(r.status === 'lobby'){
+    st = `<div class="lot">게임 규칙</div><div class="sentence">곧 경매가 시작돼요!</div>${rulesHTML(r)}`;
+    setHTML(stage, st);
+  } else if(r.status === 'bidding'){
+    if(draftFor !== r.cur){ draftFor = r.cur; draft = 0; }
+    st = `<div class="timer"></div><div class="lot">경매 문장 ${r.cur+1} / ${N}</div><div class="sentence">${esc(r.sentences[r.cur].t)}</div><div class="pad" id="s-pad"></div>`;
+    if(stage._last !== st || !document.getElementById('s-pad')) { stage.innerHTML = st; stage._last = st; }
+    if(draft > myLimit()) draft = myLimit();
+    renderPad();
+  } else if(r.status === 'reveal'){
+    const own = ownerOf(r.cur, r);
+    const msg = own === myG ? `<div class="my-sub" style="margin-top:6px"><b>우리 모둠이 샀어요!</b> 정답 공개 때 결과가 나와요.</div>` : '';
+    st = `<div class="lot">경매 문장 ${r.cur+1} / ${N}</div><div class="sentence">${esc(r.sentences[r.cur].t)}</div>${msg}${barsHTML(r)}`;
+    setHTML(stage, st);
+  } else if(r.status === 'answers'){
+    const f = focusHTML(r);
+    st = f ? `<div class="lot">정답 공개</div>${f}` : `<div class="wait">선생님이 정답을 공개해요.<br><span style="font-size:1.1rem" class="muted">거짓인 이유를 설명할 준비를 해 보세요!</span></div>`;
+    setHTML(stage, st);
+  } else if(r.status === 'end'){
+    const rk = ranking(r).findIndex(x => x.g === myG) + 1;
+    st = `<div class="lot">최종 결과</div><div class="sentence">우리 모둠은 ${rk}위!</div>${rankHTML(r)}`;
+    setHTML(stage, st);
+  }
+
+  // 우리 모둠 장부
+  const items = r.sentences.map((s, i) => ({ s, i })).filter(x => ownerOf(x.i, r) === myG);
+  const list = items.length ? items.map(({ s, i }) => {
+    const rev = (r.revealed || {})[i];
+    return `<div class="litem ${rev ? (s.a ? 't' : 'f') : ''}"><b>${i+1}번</b> ${esc(s.t)}<div class="lr">${won((r.price||{})[i])}에 삼${rev ? ' → ' + resultText(i, r) : ' · 정답 공개 전'}</div></div>`;
+  }).join('') : `<div class="muted">아직 산 문장이 없어요.</div>`;
+  const bonus = (r.bonus || {})[myG] || 0;
+  setHTML(led, `<h3>${sBan}반 ${myG}모둠 장부</h3>
+    <div class="muted" style="font-size:.9rem">${esc(myName)}</div>
+    <div class="lm">${won(moneyOf(myG))}</div>
+    ${bonus ? `<div class="muted">이유 설명 보너스 ${bonus > 0 ? '+' : ''}${won(bonus)}</div>` : ''}
+    ${list}`);
+}
+</script>
+</body>
+</html>
