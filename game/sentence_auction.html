@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>힘 문장 경매</title>
+<title>문장 경매</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
@@ -54,7 +54,29 @@ header.bar .btn-ghost{color:#fff;border-color:rgba(255,255,255,.6)}
 .setup h2{font-family:var(--hd);font-weight:400;font-size:1.6rem;margin:0 0 16px}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
 .form-grid > div{display:flex;flex-direction:column;gap:6px}
-.setup textarea{width:100%;min-height:300px;font-size:.95rem;line-height:1.6}
+.setup textarea{width:100%;min-height:160px;font-size:.95rem;line-height:1.6}
+.setbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:8px}
+.setbar > div{flex:1;min-width:200px;display:flex;flex-direction:column;gap:6px}
+.addform{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.addform.editing{border-color:var(--gold);background:var(--gold-soft)}
+.form-title{font-family:var(--hd);font-size:1.15rem;color:var(--felt)}
+.oxpick{display:flex;gap:8px}
+.oxpick button{background:var(--paper);color:var(--ink);border:2px solid var(--line);min-width:110px}
+.oxpick button.on-o{background:var(--true);border-color:var(--true);color:#fff}
+.oxpick button.on-x{background:var(--false);border-color:var(--false);color:#fff}
+.slist{display:flex;flex-direction:column;gap:8px}
+.sitem{display:grid;grid-template-columns:auto auto 1fr auto;gap:10px;align-items:start;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
+.sitem.editing{border-color:var(--gold)}
+.sno{font-family:var(--hd);color:var(--muted);min-width:30px;padding-top:4px}
+.ox{font-family:var(--hd);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff}
+.ox.o{background:var(--true)}.ox.x{background:var(--false)}
+.stx{padding-top:3px;word-break:keep-all}
+.stx .se{font-size:.88rem;color:var(--muted);margin-top:2px}
+.sbtns{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.sbtns button{padding:5px 10px;font-size:.88rem;border-radius:8px}
+.empty{background:var(--card);border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted)}
+.bulk{margin-top:14px}
+.bulk summary{cursor:pointer;font-weight:700;color:var(--felt);padding:6px 0}
 .hint{font-size:.9rem;color:var(--muted);margin:6px 0 18px}
 .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 
@@ -169,7 +191,7 @@ aside.groups{display:flex;flex-direction:column;gap:10px}
     <rect x="25" y="20" width="6" height="34" rx="3" transform="rotate(-35 28 37)" fill="#F3E3B0"/>
     <rect x="8" y="52" width="40" height="7" rx="3" fill="#F3E3B0"/>
   </svg>
-  <h1 class="home-title">힘 문장 경매</h1>
+  <h1 class="home-title">문장 경매</h1>
   <p class="home-sub">참이라고 확신하는 문장에 돈을 거는 모둠 대항전</p>
   <div class="home-btns">
     <button class="btn-gold" onclick="goTeacherSetup()">선생님 화면</button>
@@ -186,17 +208,37 @@ aside.groups{display:flex;flex-direction:column;gap:10px}
       <div><label for="t-ban">반</label><select id="t-ban"></select></div>
       <div><label for="t-groups">모둠 수</label><select id="t-groups"></select></div>
       <div><label for="t-budget">시작 금액(원)</label><input id="t-budget" type="number" value="1000" step="50" min="100"></div>
-      <div><label for="t-max">문장당 최대 입찰(원)</label><input id="t-max" type="number" value="300" step="50" min="50"></div>
+      <div><label for="t-max">문장당 최대 입찰(원)</label><input id="t-max" type="number" value="1000" step="50" min="50"></div>
       <div><label for="t-time">입찰 제한 시간</label>
         <select id="t-time"><option value="0">없음</option><option value="20">20초</option><option value="30" selected>30초</option><option value="45">45초</option><option value="60">60초</option></select></div>
     </div>
-    <label for="t-sent">경매 문장</label>
-    <p class="hint">한 줄에 문장 하나씩, <b>정답 | 문장 | 해설</b> 순서로 적어요. 정답은 O(참) 또는 X(거짓)로 씁니다.</p>
-    <textarea id="t-sent"></textarea>
-    <div class="row" style="margin-top:18px">
+    <div class="setbar">
+      <div><label for="t-set">문제 세트</label><select id="t-set" onchange="pickSet(this.value)"></select></div>
+      <button class="btn-ghost" onclick="addSet()">새 세트 추가</button>
+      <button class="btn-ghost" onclick="renameSet()">이름 바꾸기</button>
+      <button class="btn-danger" onclick="deleteSet()">세트 삭제</button>
+    </div>
+    <p class="hint">단원마다 세트를 만들어 두면 다음에 골라서 바로 쓸 수 있어요. 세트는 어느 기기에서 열어도 똑같이 보여요.</p>
+    <div class="addform" id="t-form">
+      <div class="form-title" id="f-title">문장 추가</div>
+      <div class="oxpick" role="group" aria-label="정답">
+        <button type="button" id="f-o" onclick="setOX(true)">O 참</button>
+        <button type="button" id="f-x" onclick="setOX(false)">X 거짓</button>
+      </div>
+      <input id="f-text" placeholder="경매 문장을 적어 주세요" maxlength="200">
+      <input id="f-exp" placeholder="해설 (정답을 공개할 때 보여요)" maxlength="300">
+      <div class="row"><button class="btn-gold" id="f-add" onclick="saveSentence()">문장 추가</button><button class="btn-ghost" id="f-cancel" onclick="cancelEdit()" hidden>수정 취소</button></div>
+    </div>
+    <div class="slist" id="t-slist"></div>
+    <details class="bulk">
+      <summary>여러 문장 한꺼번에 추가하기</summary>
+      <p class="hint">한 줄에 하나씩 <b>정답 | 문장 | 해설</b> 순서로 붙여 넣어요. 정답은 O(참) 또는 X(거짓)로 씁니다. 지금 세트의 문장 뒤에 이어서 추가돼요.</p>
+      <textarea id="t-bulk"></textarea>
+      <button class="btn-ghost" onclick="bulkAdd()" style="margin-top:8px">붙여 넣은 문장 추가</button>
+    </details>
+    <div class="row" style="margin-top:22px">
       <button class="btn-gold main-btn" onclick="createGame()">새 게임 만들기</button>
       <button class="btn-ghost" onclick="resumeGame()">진행 중인 게임 이어하기</button>
-      <button class="btn-ghost" onclick="resetSentences()">기본 문장으로 되돌리기</button>
     </div>
     <p class="hint">새 게임을 만들면 그 반의 이전 입찰 기록과 입장 기록이 지워져요. 수업 중 화면을 새로 고쳤다면 ‘이어하기’를 누르세요.</p>
   </div>
@@ -267,11 +309,11 @@ const COL = 'sentence_auction';
 const COLORS = ['#E4572E','#2E86AB','#E39B1F','#5E8F2F','#8E5BA8','#1E9A8E','#D35D8A','#6B705C'];
 const BONUS = 50;
 const DEFAULT_TEXT = [
- 'O | 힘의 크기는 화살표의 길이로 나타낸다. | 화살표의 길이는 힘의 크기, 방향은 힘의 방향, 시작점은 힘의 작용점을 나타낸다.',
+ 'X | 크기가 같은 두 힘이 한 물체에 작용하면 물체는 반드시 힘의 평형 상태이다. | 두 힘이 평형을 이루려면 크기가 같고, 방향이 반대이며, 같은 직선 위에 있어야 한다. 같은 방향이면 합력은 두 힘을 더한 값이 된다.',
  'X | 힘의 단위는 kg이다. | 힘의 단위는 N(뉴턴)이다. kg은 질량의 단위이다.',
  'O | 같은 방향으로 3N, 5N의 힘이 작용하면 합력은 8N이다. | 같은 방향이면 두 힘을 더한다. 반대 방향이면 5N-3N=2N이 된다.',
  'X | 정지해 있는 물체에는 아무 힘도 작용하지 않는다. | 정지한 물체에도 중력 등 여러 힘이 작용한다. 힘들이 평형을 이루어 합력이 0일 뿐이다.',
- 'O | 중력의 방향은 지구 중심 방향이다. | 지구는 물체를 지구 중심 방향으로 당긴다.',
+ 'O | 우주 정거장 안에 떠 있는 우주인에게도 지구의 중력이 작용한다. | 우주인에게도 지구의 중력이 작용한다. 우주 정거장과 함께 지구 주위를 돌며 계속 떨어지고 있어서 떠 있는 것처럼 보일 뿐이다.',
  'X | 질량은 용수철저울로, 무게는 윗접시저울로 측정한다. | 반대이다. 무게는 용수철저울로, 질량은 윗접시저울(양팔저울)로 측정한다.',
  'O | 달에서는 몸무게가 줄어들지만 질량은 변하지 않는다. | 달의 중력은 지구의 약 1/6이라 무게는 줄지만, 질량은 장소가 바뀌어도 변하지 않는다.',
  'X | 탄성력은 탄성체를 변형시킨 힘과 같은 방향으로 작용한다. | 탄성력은 원래 모양으로 돌아가려는 힘이라 변형시킨 힘과 반대 방향으로 작용한다.',
@@ -377,13 +419,120 @@ function saveImage(id){
 /* ================= 교사 ================= */
 let role = null, tBan = 1, bids = {}, members = [];
 function fillSelect(el, from, to, sel, suffix){ el.innerHTML = ''; for(let i = from; i <= to; i++){ const o = document.createElement('option'); o.value = i; o.textContent = i + suffix; if(i === sel) o.selected = true; el.appendChild(o); } }
+/* ---------- 문제 세트 ---------- */
+const SETS = 'sentence_auction_sets';
+let sets = [], curSetId = null, editIdx = -1, formOX = true, setsChecked = false;
 function goTeacherSetup(){
+  if(!needDb()) return;
+  teardown(); role = null; room = null;
   fillSelect($('#t-ban'), 1, 5, load('auction_tban') || 1, '반');
   fillSelect($('#t-groups'), 2, 8, 6, '모둠');
-  $('#t-sent').value = load('auction_text') || DEFAULT_TEXT;
-  show('scr-tsetup');
+  setOX(true); cancelEdit();
+  setsChecked = false;
+  unsubs.push(db.collection(SETS).onSnapshot(snap => {
+    sets = []; snap.forEach(d => sets.push({ id:d.id, ...d.data() }));
+    sets.sort((a, b) => (a.order || 0) - (b.order || 0));
+    if(!sets.length && !setsChecked && !snap.metadata.fromCache){
+      setsChecked = true;
+      db.collection(SETS).add({ name:'힘', sentences:parseSentences(DEFAULT_TEXT), order:Date.now() });
+      return;
+    }
+    if(!snap.metadata.fromCache) setsChecked = true;
+    if(!sets.find(x => x.id === curSetId)) curSetId = (sets.find(x => x.id === load('auction_set')) || sets[0] || {}).id || null;
+    renderSets();
+  }, err => alert('문제 세트를 불러오지 못했어요: ' + err.message)));
+  show('scr-tsetup'); renderSets();
 }
-function resetSentences(){ if(confirm('기본 문장 12개로 되돌릴까요?')){ $('#t-sent').value = DEFAULT_TEXT; store('auction_text', DEFAULT_TEXT); } }
+function curSet(){ return sets.find(x => x.id === curSetId) || null; }
+function renderSets(){
+  const sel = $('#t-set'); sel.innerHTML = '';
+  sets.forEach(x => { const o = document.createElement('option'); o.value = x.id; o.textContent = `${x.name} (${(x.sentences || []).length}문장)`; if(x.id === curSetId) o.selected = true; sel.appendChild(o); });
+  const set = curSet(), list = $('#t-slist');
+  $('#t-form').style.display = set ? '' : 'none';
+  if(!set && !setsChecked){ list.innerHTML = `<div class="empty">문제 세트를 불러오는 중이에요.</div>`; return; }
+  if(!set){ list.innerHTML = `<div class="empty">문제 세트가 없어요. ‘새 세트 추가’를 눌러 단원 이름으로 세트를 만들어 주세요.</div>`; return; }
+  const ss = set.sentences || [];
+  if(!ss.length){ list.innerHTML = `<div class="empty">아직 문장이 없어요. 위에서 정답을 고르고 문장을 적은 뒤 ‘문장 추가’를 눌러 주세요.</div>`; return; }
+  const t = ss.filter(x => x.a).length;
+  list.innerHTML = `<div class="muted" style="font-size:.92rem">문장 ${ss.length}개 (참 ${t}개, 거짓 ${ss.length - t}개) · 위에서부터 차례로 경매에 나와요.</div>` + ss.map((x, i) => `
+    <div class="sitem ${editIdx === i ? 'editing' : ''}">
+      <span class="sno">${i+1}</span><span class="ox ${x.a ? 'o' : 'x'}">${x.a ? 'O' : 'X'}</span>
+      <div class="stx"><div>${esc(x.t)}</div>${x.e ? `<div class="se">${esc(x.e)}</div>` : ''}</div>
+      <div class="sbtns">
+        <button class="btn-ghost" onclick="moveSentence(${i},-1)" ${i === 0 ? 'disabled' : ''} aria-label="위로">▲</button>
+        <button class="btn-ghost" onclick="moveSentence(${i},1)" ${i === ss.length - 1 ? 'disabled' : ''} aria-label="아래로">▼</button>
+        <button class="btn-ghost" onclick="editSentence(${i})">수정</button>
+        <button class="btn-danger" onclick="delSentence(${i})">삭제</button>
+      </div>
+    </div>`).join('');
+}
+function pickSet(id){ curSetId = id; store('auction_set', id); cancelEdit(); renderSets(); }
+async function addSet(){
+  const name = prompt('새 세트 이름을 적어 주세요. (예: 기체의 성질)');
+  if(!name || !name.trim()) return;
+  try{
+    const r = await db.collection(SETS).add({ name:name.trim(), sentences:[], order:Date.now() });
+    pickSet(r.id);
+  }catch(e){ alert('세트를 만들지 못했어요: ' + e.message); }
+}
+function renameSet(){
+  const set = curSet(); if(!set) return;
+  const name = prompt('세트 이름', set.name);
+  if(!name || !name.trim()) return;
+  db.collection(SETS).doc(set.id).update({ name:name.trim() });
+}
+function deleteSet(){
+  const set = curSet(); if(!set) return;
+  if(!confirm(`‘${set.name}’ 세트와 문장 ${(set.sentences || []).length}개를 모두 지울까요?`)) return;
+  db.collection(SETS).doc(set.id).delete(); curSetId = null; cancelEdit();
+}
+function saveList(arr){ const set = curSet(); if(!set) return; return db.collection(SETS).doc(set.id).update({ sentences:arr }).catch(e => alert('저장하지 못했어요: ' + e.message)); }
+function setOX(v){ formOX = v; $('#f-o').className = v ? 'on-o' : ''; $('#f-x').className = v ? '' : 'on-x'; }
+function saveSentence(){
+  const set = curSet(); if(!set) return;
+  const t = $('#f-text').value.trim(), e = $('#f-exp').value.trim();
+  if(!t){ alert('문장을 적어 주세요.'); $('#f-text').focus(); return; }
+  const arr = [...(set.sentences || [])], item = { a:formOX, t, e };
+  if(editIdx >= 0 && editIdx < arr.length) arr[editIdx] = item; else arr.push(item);
+  saveList(arr); cancelEdit(); $('#f-text').focus();
+}
+function editSentence(i){
+  const x = (curSet().sentences || [])[i]; if(!x) return;
+  editIdx = i; setOX(x.a); $('#f-text').value = x.t; $('#f-exp').value = x.e || '';
+  $('#f-title').textContent = `${i+1}번 문장 수정`; $('#f-add').textContent = '수정 저장'; $('#f-cancel').hidden = false;
+  $('#t-form').classList.add('editing'); renderSets();
+  $('#t-form').scrollIntoView({ behavior:'smooth', block:'center' }); $('#f-text').focus();
+}
+function cancelEdit(){
+  editIdx = -1; $('#f-text').value = ''; $('#f-exp').value = '';
+  $('#f-title').textContent = '문장 추가'; $('#f-add').textContent = '문장 추가'; $('#f-cancel').hidden = true;
+  $('#t-form').classList.remove('editing');
+  if(document.getElementById('t-slist').children.length) renderSets();
+}
+function delSentence(i){
+  const arr = [...(curSet().sentences || [])];
+  if(!confirm(`${i+1}번 문장을 지울까요?\n${arr[i].t}`)) return;
+  arr.splice(i, 1); if(editIdx === i) cancelEdit(); else if(editIdx > i) editIdx--;
+  saveList(arr);
+}
+function moveSentence(i, d){
+  const arr = [...(curSet().sentences || [])], j = i + d;
+  if(j < 0 || j >= arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  if(editIdx === i) editIdx = j; else if(editIdx === j) editIdx = i;
+  saveList(arr);
+}
+function bulkAdd(){
+  const set = curSet(); if(!set) return;
+  const text = $('#t-bulk').value, lines = text.split('\n').filter(l => l.trim()).length;
+  const add = parseSentences(text);
+  if(!add.length){ alert('추가할 문장을 찾지 못했어요. ‘O | 문장 | 해설’ 형식인지 확인해 주세요.'); return; }
+  saveList([...(set.sentences || []), ...add]);
+  $('#t-bulk').value = '';
+  alert(`문장 ${add.length}개를 추가했어요.` + (lines > add.length ? `\n형식이 맞지 않는 ${lines - add.length}줄은 빠졌어요.` : ''));
+}
+$('#f-exp').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) saveSentence(); });
+$('#f-text').addEventListener('keydown', e => { if(e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) $('#f-exp').focus(); });
 async function clearRoom(ref){
   for(const sub of ['bids','members']){
     const snap = await ref.collection(sub).get();
@@ -395,25 +544,25 @@ async function clearRoom(ref){
 async function createGame(){
   if(!needDb()) return;
   const ban = +$('#t-ban').value;
-  const sentences = parseSentences($('#t-sent').value);
-  if(!sentences.length){ alert('문장을 하나 이상 ‘O | 문장 | 해설’ 형식으로 적어 주세요.'); return; }
-  const bad = $('#t-sent').value.split('\n').filter(l => l.trim()).length - sentences.length;
-  if(bad > 0 && !confirm(`형식이 맞지 않는 줄 ${bad}개는 빠져요. 계속할까요?`)) return;
-  if(!confirm(`${ban}반의 이전 기록을 지우고 새 게임을 만들까요?`)) return;
-  store('auction_tban', ban); store('auction_text', $('#t-sent').value);
+  const set = curSet();
+  if(!set){ alert('문제 세트를 먼저 골라 주세요.'); return; }
+  const sentences = (set.sentences || []).map(x => ({ a:!!x.a, t:x.t, e:x.e || '' }));
+  if(!sentences.length){ alert(`‘${set.name}’ 세트에 문장이 없어요. 문장을 먼저 추가해 주세요.`); return; }
+  if(!confirm(`‘${set.name}’ 세트(${sentences.length}문장)로 ${ban}반 게임을 만들까요?\n${ban}반의 이전 기록은 지워져요.`)) return;
+  store('auction_tban', ban);
   const ref = db.collection(COL).doc('c' + ban);
   try{
     await clearRoom(ref);
     await ref.set({
       status:'lobby', cur:0, groups:+$('#t-groups').value,
       budget:Math.max(50, +$('#t-budget').value || 1000), maxBid:Math.max(50, +$('#t-max').value || 300),
-      timeLimit:+$('#t-time').value, endsAt:null, sentences,
+      timeLimit:+$('#t-time').value, endsAt:null, sentences, title:set.name,
       owner:{}, price:{}, revealed:{}, bonus:{}, lastBids:{}, tie:false, focus:null, createdAt:TS()
     });
     enterTeacher(ban);
   }catch(e){ alert('게임을 만들지 못했어요: ' + e.message); }
 }
-function resumeGame(){ if(!needDb()) return; const ban = +$('#t-ban').value; store('auction_tban', ban); enterTeacher(ban); }
+function resumeGame(){ if(!needDb()) return; cancelEdit(); const ban = +$('#t-ban').value; store('auction_tban', ban); enterTeacher(ban); }
 function backToSetup(){ teardown(); room = null; goTeacherSetup(); }
 function enterTeacher(ban){
   teardown(); role = 'teacher'; tBan = ban; room = null; bids = {}; members = [];
@@ -499,7 +648,7 @@ function rankHTML(r){
 
 function renderTeacher(){
   const stage = $('#t-stage'), gl = $('#t-groups-list'), ctl = $('#t-controls');
-  $('#t-title').textContent = `${tBan}반 문장 경매`;
+  $('#t-title').textContent = `${tBan}반 ${room && room.title ? room.title + ' ' : ''}문장 경매`;
   if(!room){
     $('#t-phase').textContent = '게임 없음';
     setHTML(stage, `<div class="wait">이 반에는 진행 중인 게임이 없어요.<br><span style="font-size:1.1rem" class="muted">설정에서 ‘새 게임 만들기’를 눌러 주세요.</span></div>`);
@@ -533,7 +682,7 @@ function renderTeacher(){
     st = `<div class="lot">카드를 눌러 정답을 공개하세요 <span class="muted" style="font-family:var(--bd);font-size:.95rem">(남은 문장 ${left}개)</span></div>${focusHTML(r)}<div class="tiles" style="margin-top:8px">${tiles}</div>`;
     cb = `<button class="btn-gold main-btn" onclick="goEnd()">최종 순위 보기</button>`;
   } else if(r.status === 'end'){
-    st = `<div id="t-result"><div class="lot">최종 결과</div><div class="sentence" style="margin-bottom:6px">${tBan}반 문장 경매 순위</div>${rankHTML(r)}</div>`;
+    st = `<div id="t-result"><div class="lot">최종 결과</div><div class="sentence" style="margin-bottom:6px">${tBan}반 ${esc(r.title || '')} 문장 경매 순위</div>${rankHTML(r)}</div>`;
     cb = `<button class="btn-ghost" onclick="backAnswers()">정답 공개 화면으로</button><button class="btn-gold main-btn" onclick="saveImage('t-result')">이미지 저장하기</button>`;
   }
   setHTML(stage, st);
@@ -620,8 +769,8 @@ async function submitBid(){
 }
 function renderPad(){
   const pad = document.getElementById('s-pad'); if(!pad || !room) return;
-  const lim = myLimit(), step = 50;
-  const chips = []; for(let v = 0; v <= room.maxBid; v += step) chips.push(v);
+  const lim = myLimit(), step = 50, chipStep = room.maxBid > 500 ? 100 : 50;
+  const chips = []; for(let v = 0; v <= room.maxBid; v += chipStep) chips.push(v);
   const mine = myBids[room.cur];
   pad.innerHTML = `
     <div class="pad-top">
@@ -653,7 +802,7 @@ function renderStudent(){
   $('#s-money').textContent = won(moneyOf(myG));
   let st = '';
   if(r.status === 'lobby'){
-    st = `<div class="lot">게임 규칙</div><div class="sentence">곧 경매가 시작돼요!</div>${rulesHTML(r)}`;
+    st = `<div class="lot">게임 규칙</div><div class="sentence">${r.title ? esc(r.title) + ' ' : ''}문장 경매가 곧 시작돼요!</div>${rulesHTML(r)}`;
     setHTML(stage, st);
   } else if(r.status === 'bidding'){
     if(draftFor !== r.cur){ draftFor = r.cur; draft = 0; }
