@@ -91,6 +91,13 @@ header.bar .btn-ghost{color:#fff;border-color:rgba(255,255,255,.6)}
 .sub-count{font-size:1.2rem;margin-top:auto}
 .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:18px}
 .rule{background:var(--paper);border-radius:12px;padding:14px 16px}
+.lobby{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:start}
+.qrbox{background:#fff;border:3px solid var(--felt);border-radius:16px;padding:14px;text-align:center;width:250px}
+.qrbox .qt{font-family:var(--hd);font-size:1.25rem;color:var(--felt);margin-bottom:8px}
+#t-qr{display:flex;justify-content:center}
+#t-qr img,#t-qr canvas{width:210px;height:210px}
+.qrbox .ql{font-size:.72rem;color:var(--muted);word-break:break-all;margin-top:8px}
+@media (max-width:860px){.lobby{grid-template-columns:1fr}.qrbox{margin:0 auto}}
 .rule b{font-family:var(--hd);font-weight:400;font-size:1.3rem;display:block;color:var(--felt)}
 
 aside.groups{display:flex;flex-direction:column;gap:10px}
@@ -294,6 +301,7 @@ aside.groups{display:flex;flex-direction:column;gap:10px}
 </section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <!-- game 폴더의 firebase-config.js를 그대로 사용해요 -->
@@ -659,7 +667,9 @@ function renderTeacher(){
   $('#t-phase').textContent = PHASE[r.status] || '';
   let st = '', cb = '';
   if(r.status === 'lobby'){
-    st = `<div class="lot">게임 규칙</div><div class="sentence">모둠별로 태블릿에서 입장해 주세요.</div>${rulesHTML(r)}<p class="sub-count muted">경매 문장 ${N}개</p>`;
+    st = `<div class="lobby"><div><div class="lot">게임 규칙</div><div class="sentence">모둠별로 태블릿에서 입장해 주세요.</div>${rulesHTML(r)}<p class="sub-count muted">경매 문장 ${N}개</p></div>
+      <div class="qrbox"><div class="qt">학생 입장 QR</div><div id="t-qr"></div><div class="ql">${esc(studentURL())}</div>
+      <button class="btn-ghost btn-small" style="margin-top:10px" onclick="saveQR()">QR 이미지 저장</button></div></div>`;
     cb = `<button class="btn-gold main-btn" onclick="startBidding(0)">첫 문장 경매 시작</button>`;
   } else if(r.status === 'bidding'){
     const subs = new Set(curBids().map(b => b.g)).size;
@@ -686,6 +696,7 @@ function renderTeacher(){
     cb = `<button class="btn-ghost" onclick="backAnswers()">정답 공개 화면으로</button><button class="btn-gold main-btn" onclick="saveImage('t-result')">이미지 저장하기</button>`;
   }
   setHTML(stage, st);
+  drawQR();
   setHTML(ctl, cb + `<span class="spacer"></span><button class="btn-danger btn-small" onclick="wipeRoom()">기록 지우기</button>`);
 
   // 모둠 목록
@@ -838,6 +849,31 @@ function renderStudent(){
     ${bonus ? `<div class="muted">이유 설명 보너스 ${bonus > 0 ? '+' : ''}${won(bonus)}</div>` : ''}
     ${list}`);
 }
+
+/* ---------- 학생 입장 주소와 QR ---------- */
+function studentURL(){ return location.origin + location.pathname + '?s'; }
+function drawQR(){
+  const box = document.getElementById('t-qr');
+  if(!box || box.childElementCount) return;
+  if(!window.QRCode){ box.innerHTML = '<span class="muted" style="font-size:.9rem">QR을 불러오지 못했어요. 아래 주소를 알려 주세요.</span>'; return; }
+  new QRCode(box, { text:studentURL(), width:420, height:420, correctLevel:QRCode.CorrectLevel.M });
+}
+function saveQR(){
+  const c = document.querySelector('#t-qr canvas');
+  if(!c){ alert('QR이 아직 만들어지지 않았어요.'); return; }
+  const out = document.createElement('canvas'), pad = 30;
+  out.width = c.width + pad * 2; out.height = c.height + pad * 2 + 50;
+  const g = out.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, out.width, out.height);
+  g.drawImage(c, pad, pad);
+  g.fillStyle = '#1F4D3A'; g.font = 'bold 28px "Noto Sans KR", sans-serif'; g.textAlign = 'center';
+  g.fillText('문장 경매 학생 입장', out.width / 2, out.height - 26);
+  const a = document.createElement('a'); a.href = out.toDataURL('image/png'); a.download = '문장경매_학생QR.png';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* 주소 끝에 ?s가 있으면 바로 학생 입장 화면으로 */
+if(/[?&]s(=|&|$)/.test(location.search)) goStudentJoin();
 </script>
 </body>
 </html>
