@@ -1216,8 +1216,9 @@ function summaryInfo(qz, qs) {
   return { title: qz.title, unit: qz.unit || '', ban, bun, first: first.s, final, n, wrong, at: g[g.length - 1].at };
 }
 function scoreSummaryText(qz, qs) {
-  const x = summaryInfo(qz, qs); if (!x) return '';
-  return `${x.title} / ${x.ban || '?'}반 ${x.bun || '?'}번 / 처음 ${x.first}/${x.n} → 최종 ${x.final}/${x.n} / 틀린 문제: ${x.wrong.length ? x.wrong.join(', ') + '번' : '없음'}`;
+  const x = logInfo(qz, qs); if (!x) return '';
+  const rows = x.rows.map(r => `${r.name} ${r.score}${r.fixed && r.fixed !== '새로 맞힌 문제 없음' ? ` (다시 풀어 맞힘 ${r.fixed})` : ''}`).join(' → ');
+  return `[학습 기록] ${x.title} / ${x.ban || '?'}반 ${x.bun || '?'}번 / ${rows} / 최종 ${x.final}/${x.n} / ${x.left.length ? `아직 틀린 문제: ${x.left.join(', ')}번` : '모두 맞힘'} / ${x.view}`;
 }
 let sumImg = null, sumKey = '';
 async function drawSummary(x) {
@@ -1251,6 +1252,97 @@ async function drawSummary(x) {
   g.fillStyle = '#6B7688'; g.font = `18px ${F}`; g.fillText("'틀린 문제'는 처음 채점에서 틀린 문제예요. 최종 점수는 정답을 본 뒤 맞힌 문제를 뺀 점수예요.", L, top + rowH * rows + 40);
   return c.toDataURL('image/png');
 }
+function logInfo(qz, qs) {
+  const base = summaryInfo(qz, qs); if (!base) return null;
+  const log = sess.log || [], g = log.filter(x => x.t === 'g'), v = log.find(x => x.t === 'v');
+  const byRound = {}, aftRound = {};
+  qs.forEach(q => { const ar = sess.afterReveal && sess.afterReveal[q.id]; if (ar) (aftRound[ar] = aftRound[ar] || []).push(q.no);
+    const r = sess.solvedAt && sess.solvedAt[q.id]; if (r && r > 1) (byRound[r] = byRound[r] || []).push(q.no); });
+  const rows = g.map(x => ({ name: x.r === 1 ? '처음 채점' : `다시 풀기 ${x.r - 1}회`, score: `${x.s} / ${x.n}`,
+    fixed: byRound[x.r] ? `${byRound[x.r].join(', ')}번` : (x.r === 1 ? '' : '새로 맞힌 문제 없음'),
+    aft: aftRound[x.r] ? `정답 확인 후 맞힘: ${aftRound[x.r].join(', ')}번 (점수 제외)` : '', at: x.at }));
+  const left = qs.filter(q => !isRight(q, sess.ans[q.id])).map(q => q.no);
+  const aftAll = qs.filter(q => isRight(q, sess.ans[q.id]) && afterRev(q)).map(q => q.no);
+  const view = v ? `정답 보기 사용함 (${v.r ? `다시 풀기 ${Math.max(0, v.r - 1)}회 뒤` : '채점 전'}, ${fmtWhen(v.at)})` : '정답 보기 사용 안 함';
+  return { ...base, rows, left, aftAll, view, viewUsed: !!v };
+}
+async function drawLog(x) {
+  try { await Promise.all([document.fonts.load('700 30px "Gowun Dodum"'), document.fonts.load('60px "Nanum Pen Script"')]); } catch (e) {}
+  const S = 2, W = 1000, L = 36, R = W - 36;
+  const F = '"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif', P = '"Nanum Pen Script","Gowun Dodum",cursive';
+  const m = document.createElement('canvas').getContext('2d');
+  const wrap = (t, font, maxW) => { if (!t) return []; m.font = font; const out = []; let line = '';
+    for (const w of String(t).split(/(\s+)/)) {
+      if (m.measureText(line + w).width <= maxW || !line.trim()) line += w; else { out.push(line.trim()); line = w.trimStart(); }
+      while (m.measureText(line).width > maxW) { let k = line.length; while (k > 1 && m.measureText(line.slice(0, k)).width > maxW) k--; out.push(line.slice(0, k)); line = line.slice(k); }
+    }
+    if (line.trim()) out.push(line.trim()); return out; };
+  // 열 위치: 회차 | 점수 | 다시 풀어 맞힌 문제 | 채점 시각
+  const c1 = L + 180, c2 = c1 + 150, c3 = R - 190, lh = 30;
+  const fBody = `22px ${F}`, fSmall = `19px ${F}`;
+  const rowsL = x.rows.map(r => {
+    const a = wrap(r.fixed, fBody, c3 - c2 - 32), b = wrap(r.aft, fSmall, c3 - c2 - 32);
+    return { ...r, a, b, h: Math.max(84, (a.length + b.length) * lh + 28) };
+  });
+  const sumLines = [];
+  const leftTxt = x.left.length ? `아직 틀린 문제: ${x.left.join(', ')}번` : x.aftAll.length ? '스스로 맞히지 못한 문제는 정답을 보고 다시 풀었어요.' : '모든 문제를 스스로 맞혔어요.';
+  wrap(leftTxt, `700 24px ${F}`, R - L - 48).forEach(t => sumLines.push([t, `700 24px ${F}`, x.left.length ? '#D62839' : '#24834F']));
+  if (x.aftAll.length) wrap(`정답 확인 후 맞힌 문제: ${x.aftAll.join(', ')}번 (점수에 넣지 않음)`, `21px ${F}`, R - L - 48).forEach(t => sumLines.push([t, `21px ${F}`, '#8a8a8a']));
+  wrap(x.view, `21px ${F}`, R - L - 48).forEach(t => sumLines.push([t, `21px ${F}`, x.viewUsed ? '#D62839' : '#6B7688']));
+  const top = 136, infoH = 84, thH = 50, tableTop = top + infoH + 24;
+  const tableH = thH + rowsL.reduce((s, r) => s + r.h, 0);
+  const boxTop = tableTop + tableH + 20, boxH = sumLines.length * 36 + 28;
+  const H = boxTop + boxH + 64;
+  const c = document.createElement('canvas'); c.width = W * S; c.height = H * S; const g = c.getContext('2d'); g.scale(S, S);
+  g.textBaseline = 'middle';
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+  // 머리
+  g.fillStyle = '#1F3A5F'; g.fillRect(0, 0, W, 112);
+  g.fillStyle = '#fff'; let tf = 36; g.font = `700 ${tf}px ${F}`;
+  while (g.measureText(x.title).width > W - 80 && tf > 22) { tf -= 2; g.font = `700 ${tf}px ${F}`; }
+  g.fillText(x.title, 36, 52);
+  g.font = `20px ${F}`; g.fillStyle = '#C9D6E8'; g.fillText(`${x.unit ? x.unit + '  ·  ' : ''}학습 기록`, 38, 90);
+  const d = new Date(x.at); g.textAlign = 'right'; g.fillText(`${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`, W - 36, 90); g.textAlign = 'left';
+  // 반·번호 / 점수
+  const mid = (L + R) / 2, lab = 150;
+  [[L, '반 · 번호'], [mid, '점수']].forEach(([x0, k]) => {
+    g.fillStyle = '#F4F7FB'; g.fillRect(x0, top, mid - L, infoH); g.fillStyle = '#E8EEF6'; g.fillRect(x0, top, lab, infoH);
+    g.strokeStyle = '#C5D0DE'; g.lineWidth = 1.5; g.strokeRect(x0, top, mid - L, infoH); g.beginPath(); g.moveTo(x0 + lab, top); g.lineTo(x0 + lab, top + infoH); g.stroke();
+    g.fillStyle = '#1F3A5F'; g.font = `700 24px ${F}`; g.fillText(k, x0 + 20, top + infoH / 2);
+  });
+  g.fillStyle = '#1C2B2A'; g.font = `700 32px ${F}`; g.fillText(`${x.ban || '?'}반 ${x.bun || '?'}번`, L + lab + 22, top + infoH / 2);
+  g.font = `56px ${P}`; g.fillStyle = '#D62839'; const fin = `${x.final} / ${x.n}`; g.fillText(fin, mid + lab + 22, top + infoH / 2 + 4);
+  if (x.rows.length > 1) { const fw = g.measureText(fin).width; g.font = `20px ${F}`; g.fillStyle = x.final > x.first ? '#24834F' : '#6B7688';
+    g.fillText(`처음 ${x.first}/${x.n}`, mid + lab + 40 + fw, top + infoH / 2); }
+  // 표 머리
+  g.fillStyle = '#1F3A5F'; g.fillRect(L, tableTop, R - L, thH);
+  g.fillStyle = '#fff'; g.font = `700 21px ${F}`;
+  [[L, '회차'], [c1, '점수'], [c2, '다시 풀어 맞힌 문제'], [c3, '채점 시각']].forEach(([x0, t]) => g.fillText(t, x0 + 18, tableTop + thH / 2));
+  // 표 줄
+  let y = tableTop + thH;
+  rowsL.forEach((r, i) => {
+    g.fillStyle = i % 2 ? '#FFFFFF' : '#F7F9FC'; g.fillRect(L, y, R - L, r.h);
+    g.strokeStyle = '#C5D0DE'; g.lineWidth = 1.2; g.strokeRect(L, y, R - L, r.h);
+    [c1, c2, c3].forEach(cx => { g.beginPath(); g.moveTo(cx, y); g.lineTo(cx, y + r.h); g.stroke(); });
+    const cy = y + r.h / 2;
+    g.fillStyle = '#1C2B2A'; g.font = `700 22px ${F}`; g.fillText(r.name, L + 18, cy);
+    g.fillStyle = '#D62839'; g.font = `46px ${P}`; g.fillText(r.score, c1 + 18, cy + 3);
+    const n = r.a.length + r.b.length; let ty = cy - (n - 1) * lh / 2;
+    g.fillStyle = '#1C2B2A'; g.font = fBody; r.a.forEach(t => { g.fillText(t, c2 + 16, ty); ty += lh; });
+    g.fillStyle = '#8a8a8a'; g.font = fSmall; r.b.forEach(t => { g.fillText(t, c2 + 16, ty); ty += lh; });
+    const dt = new Date(r.at), pp = k => String(k).padStart(2, '0');
+    g.fillStyle = '#6B7688'; g.font = `19px ${F}`;
+    g.fillText(`${dt.getFullYear()}. ${dt.getMonth() + 1}. ${dt.getDate()}.`, c3 + 18, cy - 13);
+    g.fillText(`${pp(dt.getHours())}:${pp(dt.getMinutes())}`, c3 + 18, cy + 15);
+    y += r.h;
+  });
+  // 정리 칸
+  g.fillStyle = '#FFFBEA'; g.fillRect(L, boxTop, R - L, boxH); g.strokeStyle = '#E0B800'; g.lineWidth = 1.5; g.strokeRect(L, boxTop, R - L, boxH);
+  sumLines.forEach(([t, f, col], i) => { g.font = f; g.fillStyle = col; g.fillText(t, L + 24, boxTop + 14 + 18 + i * 36); });
+  g.fillStyle = '#6B7688'; g.font = `17px ${F}`;
+  g.fillText('점수는 정답을 본 뒤 맞힌 문제를 뺀 점수예요.', L, boxTop + boxH + 34);
+  return c.toDataURL('image/png');
+}
 function scoreSummaryCard(qz, qs) {
   const x = summaryInfo(qz, qs); if (!x) return '';
   const missing = !x.ban || !x.bun;
@@ -1258,22 +1350,22 @@ function scoreSummaryCard(qz, qs) {
   return `<div class="card" id="sumCard" style="max-width:900px;margin:0 auto 16px;border:2px solid var(--pick)">
     <div style="display:flex;gap:12px;align-items:center;background:#FFF1A8;color:#1C2B2A;border:2px solid #E0B800;border-radius:14px;padding:10px 14px;margin:0 0 12px">
       <span style="font-size:30px;line-height:1" aria-hidden="true">👆</span>
-      <div><div style="font-size:20px;font-weight:700">점수 요약표를 <u>길게 눌러</u> '이미지 저장'을 고르세요</div>
+      <div><div style="font-size:20px;font-weight:700">학습 기록을 <u>길게 눌러</u> '이미지 저장'을 고르세요</div>
       <div style="font-size:15px">갤러리에 저장한 뒤 '패들렛에 올리기'를 눌러 자기 번호 칸에 올려요.</div></div></div>
     <p id="sumWarn" class="err" style="margin:0 0 8px;font-size:16px;font-weight:700;${missing ? '' : 'display:none'}">시험지 맨 위에 반과 번호를 먼저 써 주세요.</p>
-    <img id="sumImg" alt="점수 요약표" style="display:block;width:100%;border-radius:10px;border:1px solid var(--line);background:#fff;min-height:120px" ${sumImg ? `src="${sumImg}"` : ''}>
+    <img id="sumImg" alt="학습 기록" style="display:block;width:100%;border-radius:10px;border:1px solid var(--line);background:#fff;min-height:120px" ${sumImg ? `src="${sumImg}"` : ''}>
     <div class="row" style="margin-top:10px;justify-content:flex-end">
-      ${dl ? '<button class="btn blue" data-act="sumSave">이미지 저장하기</button>' : !window.claude ? '<a class="btn blue" id="sumDl" download="점수요약.png" href="#">이미지 저장하기</a>' : canShareImg() ? '<button class="btn blue" data-act="sumShare">사진으로 보내기</button>' : ''}
+      ${dl ? '<button class="btn blue" data-act="sumSave">이미지 저장하기</button>' : !window.claude ? '<a class="btn blue" id="sumDl" download="학습기록.png" href="#">이미지 저장하기</a>' : canShareImg() ? '<button class="btn blue" data-act="sumShare">사진으로 보내기</button>' : ''}
       <button class="btn" data-act="sumCopy">글로 복사하기</button>${padLinks(false)}</div>
     <textarea id="sumText" readonly rows="1" style="position:absolute;left:-9999px;top:0">${esc(scoreSummaryText(qz, qs))}</textarea>
   </div>`;
 }
 async function updateSummaryImage() {
-  if (!sess) return; const qz = curQuiz(), qs = curQs(); const x = summaryInfo(qz, qs); if (!x) return;
+  if (!sess) return; const qz = curQuiz(), qs = curQs(); const x = logInfo(qz, qs); if (!x) return;
   const key = JSON.stringify(x); const el = document.getElementById('sumImg');
-  if (key !== sumKey) { sumKey = key; sumImg = await drawSummary(x); }
+  if (key !== sumKey) { sumKey = key; sumImg = await drawLog(x); }
   const el2 = document.getElementById('sumImg'); if (el2 && el2.getAttribute('src') !== sumImg) el2.src = sumImg;
-  const a = document.getElementById('sumDl'); if (a) { a.href = sumImg; a.download = imgName().replace(/\.png$/, '_점수요약.png'); }
+  const a = document.getElementById('sumDl'); if (a) { a.href = sumImg; a.download = imgName().replace(/\.png$/, '_학습기록.png'); }
 }
 function refreshSummary() {
   const box = document.getElementById('sumText'); if (!box || !sess) return;
@@ -1459,8 +1551,8 @@ document.addEventListener('click', e => {
     case 'pdl': downloadImage(); break;
     case 'pshare': shareImage(); break;
     case 'sumCopy': copySummary(); break;
-    case 'sumSave': if (dl && sumImg) dl.save({ filename: imgName().replace(/\.png$/, '_점수요약.png'), data: uriToBlob(sumImg) }).then(() => toast('점수 요약표를 저장했어요.')).catch(() => {}); break;
-    case 'sumShare': if (sumImg) navigator.share({ files: [new File([uriToBlob(sumImg)], imgName().replace(/\.png$/, '_점수요약.png'), { type: 'image/png' })] }).catch(e => { if (!e || e.name !== 'AbortError') toast("점수 요약표를 길게 눌러 '이미지 저장'을 골라 주세요."); }); break;
+    case 'sumSave': if (dl && sumImg) dl.save({ filename: imgName().replace(/\.png$/, '_학습기록.png'), data: uriToBlob(sumImg) }).then(() => toast('학습 기록을 저장했어요.')).catch(() => {}); break;
+    case 'sumShare': if (sumImg) navigator.share({ files: [new File([uriToBlob(sumImg)], imgName().replace(/\.png$/, '_학습기록.png'), { type: 'image/png' })] }).catch(e => { if (!e || e.name !== 'AbortError') toast("학습 기록을 길게 눌러 '이미지 저장'을 골라 주세요."); }); break;
     case 'ppdf': savePdf(); break;
     case 'padAdd': padDraft = (padDraft || (DATA.padlets || []).map(x => ({ ...x }))); padDraft.push({ ban: '', url: '' }); render(); break;
     case 'padDel': padDraft = (padDraft || (DATA.padlets || []).map(x => ({ ...x }))); padDraft.splice(+t.dataset.i, 1); render(); break;
