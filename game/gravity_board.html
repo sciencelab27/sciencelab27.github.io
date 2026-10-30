@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>중력 배틀 실시간 순위판</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+:root{--ink:#0d0b1e;--panel:#1d1850;--line:#3a3480;--cream:#f4e9c8;--gold:#ffd23f;--red:#ff4f6d;--cyan:#3ec5ff;--green:#6ee06a;--sub:#a9adcf}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(circle at 50% 0,#2a2370,#0d0b1e 70%) fixed;color:var(--cream);font-family:'Galmuri11','Malgun Gothic','Apple SD Gothic Neo',sans-serif;min-height:100vh;padding:24px 32px 40px}
+header{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:40px;color:var(--gold);text-shadow:4px 4px 0 #000;letter-spacing:1px}
+h1 small{display:block;font-size:18px;color:var(--sub);text-shadow:none;margin-top:4px}
+.conn{margin-left:auto;font-size:16px;padding:8px 14px;border-radius:8px;background:#000a}
+.conn.ok{color:var(--green)}.conn.no{color:#ff9b9b}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.bar button{font:inherit;font-size:20px;background:var(--panel);color:var(--cream);border:3px solid var(--line);border-radius:10px;padding:8px 18px;cursor:pointer}
+.bar button.on{background:var(--gold);color:#1a1440;border-color:var(--gold)}
+.stats{margin-left:auto;display:flex;gap:18px;font-size:20px;color:var(--sub)}
+.stats b{color:var(--cream);font-size:26px}
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:16px;align-items:end;margin:6px 0 20px}
+.pd{background:var(--panel);border:4px solid var(--line);border-radius:14px;text-align:center;padding:16px 10px}
+.pd .md{font-size:44px}.pd .nm{font-size:30px;margin:6px 0}.pd .sc{font-size:26px;color:var(--gold)}.pd .st{font-size:16px;color:var(--sub);margin-top:4px}
+.pd.p1{border-color:var(--gold);padding:26px 10px;box-shadow:0 0 30px #ffd23f55}.pd.p2{border-color:#cfd6e6}.pd.p3{border-color:#d28a4a}
+.pd.empty{opacity:.35}
+table{width:100%;border-collapse:separate;border-spacing:0 8px;font-size:22px}
+th{color:var(--sub);font-weight:normal;font-size:17px;text-align:left;padding:0 12px}
+td{background:#1d1850d9;padding:12px;vertical-align:middle}
+td:first-child{border-radius:10px 0 0 10px;text-align:center;width:70px;color:var(--gold);font-size:26px}
+td:last-child{border-radius:0 10px 10px 0}
+tr.flash td{animation:fl 1.2s}
+@keyframes fl{0%{background:#ffd23f66}100%{background:#1d1850d9}}
+.prog{display:flex;gap:6px;align-items:center}
+.prog i{width:26px;height:14px;border-radius:3px;background:#2f2a66}
+.prog i.d{background:var(--green)}.prog i.c{background:var(--cyan);animation:bl 1s infinite}
+.prog i.boss.c{background:var(--red)}
+@keyframes bl{50%{opacity:.4}}
+.prog span{font-size:16px;color:var(--sub);margin-left:8px}
+.score{color:var(--gold);font-size:26px;text-align:right}
+.tag{display:inline-block;font-size:16px;padding:4px 10px;border-radius:6px;background:#000a}
+.tag.play{color:var(--cyan)}.tag.idle{color:#888}.tag.done{color:#1a1440;background:var(--gold)}
+.empty-msg{text-align:center;color:var(--sub);font-size:22px;padding:60px 0}
+.tools{margin-top:26px;display:flex;gap:10px;justify-content:flex-end}
+.tools button{font:inherit;font-size:15px;background:transparent;color:#ff9b9b;border:2px solid #ff9b9b66;border-radius:8px;padding:6px 14px;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌍 중력 배틀 실시간 순위판<small>그래비톤을 막아라 · 오늘 플레이한 기록만 보여요</small></h1>
+  <div class="conn" id="conn">연결 중...</div>
+</header>
+<div class="bar" id="classBar"></div>
+<div class="podium" id="podium"></div>
+<table><thead><tr><th>순위</th><th>학생</th><th>진행</th><th>정답률</th><th>물리친 몬스터</th><th style="text-align:right">점수</th><th>상태</th></tr></thead><tbody id="list"></tbody></table>
+<div class="tools"><button id="clearBtn">이 반 오늘 기록 지우기</button></div>
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const COL='gravity_battle';
+let db=null,docs={},cur='all',prevScore={};
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function todayStart(){const d=new Date();d.setHours(0,0,0,0);return d.getTime();}
+try{let app=firebase.apps.length?firebase.app():null;const cfg=(typeof firebaseConfig!=='undefined')?firebaseConfig:window.firebaseConfig;
+ if(!app&&cfg)app=firebase.initializeApp(cfg);if(app)db=firebase.firestore();}catch(e){console.warn(e);}
+if(!db){$('#conn').className='conn no';$('#conn').textContent='연결 안 됨 · firebase-config.js 확인';}
+else{
+ db.collection(COL).onSnapshot(q=>{docs={};q.forEach(d=>docs[d.id]=d.data());$('#conn').className='conn ok';$('#conn').textContent='● 실시간 연결됨';render();},
+  e=>{$('#conn').className='conn no';$('#conn').textContent='읽기 실패 · 보안 규칙 확인';console.warn(e);});
+}
+setInterval(render,5000);
+function rows(){const t=todayStart();return Object.entries(docs).map(([id,v])=>({id,...v})).filter(v=>v.clientAt>=t&&(cur==='all'||String(v.cls)===cur))
+ .sort((a,b)=>(b.best||0)-(a.best||0)||(a.clientAt-b.clientAt));}
+function classes(){const t=todayStart();return [...new Set(Object.values(docs).filter(v=>v.clientAt>=t).map(v=>String(v.cls)))].sort((a,b)=>a-b);}
+function status(v){if(v.done)return `<span class="tag done">완료 ${esc(v.grade)}등급</span>`;
+ if(Date.now()-(v.clientAt||0)>40000)return '<span class="tag idle">잠시 멈춤</span>';return '<span class="tag play">플레이 중</span>';}
+function prog(v){let h='';for(let i=1;i<=4;i++){const c=v.done||i<v.stage?'d':(i===v.stage?'c':'');h+=`<i class="${c}${i===4?' boss':''}"></i>`;}
+ const lab=v.done?'임무 완료':(v.stage===4?`보스 체력 ${v.boss??100}%`:esc(v.stageTitle||''));return `<div class="prog">${h}<span>${lab}</span></div>`;}
+function who(v){return `${cur==='all'?esc(v.cls)+'반 ':''}${esc(v.num)}. ${esc(v.name)}`;}
+function render(){
+ const cl=classes();$('#classBar').innerHTML=[['all','전체'],...cl.map(c=>[c,c+'반'])].map(([k,l])=>`<button data-c="${k}" class="${k===cur?'on':''}">${l}</button>`).join('')
+  +`<div class="stats"><span>참여 <b>${rows().length}</b>명</span><span>완료 <b>${rows().filter(v=>v.done).length}</b>명</span></div>`;
+ $('#classBar').querySelectorAll('button').forEach(b=>b.onclick=()=>{cur=b.dataset.c;render();});
+ const R=rows();const md=['🥇','🥈','🥉'];const order=[1,0,2];
+ $('#podium').innerHTML=order.map(i=>{const v=R[i];if(!v)return `<div class="pd empty p${i+1}"><div class="md">${md[i]}</div><div class="nm">-</div></div>`;
+  return `<div class="pd p${i+1}"><div class="md">${md[i]}</div><div class="nm">${who(v)}</div><div class="sc">${(v.best||0).toLocaleString()}점</div><div class="st">${v.done?'임무 완료':esc(v.stageTitle||'')}</div></div>`;}).join('');
+ if(!R.length){$('#list').innerHTML=`<tr><td colspan="7" class="empty-msg" style="border-radius:10px">아직 플레이한 학생이 없어요. 학생들이 '출격하기'를 누르면 여기에 나타나요.</td></tr>`;return;}
+ $('#list').innerHTML=R.map((v,i)=>{const fl=prevScore[v.id]!==undefined&&prevScore[v.id]!==v.best;prevScore[v.id]=v.best;
+  return `<tr class="${fl?'flash':''}"><td>${i+1}</td><td>${who(v)}</td><td>${prog(v)}</td><td>${v.qTotal?v.acc+'%':'-'}</td><td>${v.kills||0}마리</td><td class="score">${(v.best||0).toLocaleString()}</td><td>${status(v)}</td></tr>`;}).join('');
+}
+$('#clearBtn').onclick=async()=>{if(!db)return;const R=rows();if(!R.length)return alert('지울 기록이 없어요.');
+ const label=cur==='all'?'전체 반':cur+'반';if(!confirm(`${label} 오늘 기록 ${R.length}개를 모두 지울까요? 되돌릴 수 없어요.`))return;
+ try{const b=db.batch();R.forEach(v=>b.delete(db.collection(COL).doc(v.id)));await b.commit();}catch(e){alert('지우기 실패: '+e.message);}};
+})();
+</script>
+</body>
+</html>
