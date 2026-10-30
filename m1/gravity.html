@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>지구가 당기는 힘 확인 활동</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gothic+A1:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="../game/firebase-config.js"></script>
+<style>
+:root{
+  --paper:#FBFCFE; --grid:#E3EAF5; --ink:#1E2A44; --soft:#5B6782;
+  --red:#E5383B; --blue:#2563C9; --mint:#1BA97A; --yellow:#FFC93C; --line:#C9D3E3;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0; color:var(--ink); font-family:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  background-color:#EEF2F8;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px; line-height:1.6;
+}
+#sheet{max-width:1040px; margin:0 auto; padding:28px 22px 40px; background:var(--paper);}
+h1,h2{font-family:"Do Hyeon","Gothic A1",sans-serif; font-weight:400; margin:0}
+.hero{position:relative; padding:8px 0 22px; border-bottom:3px solid var(--ink); margin-bottom:24px}
+.hero .page{font-size:14px; color:var(--soft)}
+.hero h1{font-size:44px; line-height:1.15; margin-top:4px}
+.hero .intro{margin:8px 170px 0 0; font-size:15px; color:var(--soft)}
+@media (max-width:560px){ .hero .intro{margin-right:0} }
+.hero svg{position:absolute; right:0; top:10px; width:150px; height:70px}
+.who{display:flex; gap:10px; flex-wrap:wrap; margin-top:16px}
+.who label{display:flex; align-items:center; gap:6px; font-weight:600; font-size:15px}
+.who input{width:90px}
+.who input.num{width:76px; font:inherit; font-size:15px; font-weight:700; color:var(--ink); border:1.5px solid var(--line); border-radius:6px; padding:6px 8px; background:#fff}
+.who select{font:inherit; font-size:15px; font-weight:700; color:var(--ink); border:1.5px solid var(--line); border-radius:6px; padding:6px 8px; background:#fff}
+.who .whotxt{display:inline-block; min-width:44px; border:1.5px solid var(--line); border-radius:6px; padding:6px 10px; background:#fff; font-weight:700}
+.gsort .item p{min-height:2.9em}
+.rule{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; font-weight:600; font-size:15.5px; line-height:2.1}
+.rule input{width:64px; text-align:center; font-weight:800}
+.oxlist{display:grid; gap:6px; margin:6px 0 4px}
+.oxrow{display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; border:1.5px solid var(--line); border-radius:8px; padding:6px 10px; background:#fff}
+.oxrow span{font-weight:600; font-size:14.5px}
+.oxrow .chips{display:flex; gap:5px; margin:0}
+.oxrow .chip{min-width:44px; text-align:center; font-weight:800}
+.oxrow.ok{border-color:var(--mint); background:#EAF8F2}
+.dir .row .btn.dshare{background:var(--mint); color:#fff; border:none}
+.gcard{font:inherit; color:var(--ink); text-align:left; display:flex; flex-direction:column; gap:6px; cursor:pointer; border:2px solid var(--line); border-radius:10px; padding:10px; background:#fff}
+.gcard .gtop{display:flex; gap:8px; align-items:flex-start; font-weight:600; font-size:14.5px; line-height:1.45}
+.gcard .box{flex:none; width:22px; height:22px; border:2px solid var(--ink); border-radius:5px; display:inline-flex; align-items:center; justify-content:center; font-size:15px; margin-top:1px}
+.gcard[aria-pressed="true"]{border-color:var(--ink); background:#FFF6D9}
+.gcard[aria-pressed="true"] .box{background:var(--ink); color:#fff}
+.gcard[aria-pressed="true"] .box::after{content:"✓"}
+.gcard:disabled{cursor:default; opacity:1}
+.gcard.right{border-color:var(--mint); background:#EAF8F2}
+.gcard.wrong{border-color:var(--red); background:#FDEDED}
+.gcard .fb{font-size:12.5px; line-height:1.45; margin:0; min-height:0}
+.btn.gsend{background:var(--mint); color:#fff}
+.tbars{display:grid; gap:8px; max-width:1100px}
+.tbarrow{display:grid; grid-template-columns:minmax(260px,1.2fr) 2fr 70px; gap:12px; align-items:center; font:inherit; text-align:left; color:var(--ink); background:#fff; border:2px solid var(--line); border-radius:10px; padding:10px 12px; cursor:pointer}
+.tbarrow b{font-size:17px}
+.tbarrow .trk{height:26px; background:#EEF2F8; border-radius:6px; overflow:hidden}
+.tbarrow .fill{height:100%; background:var(--blue); border-radius:6px; transition:width .3s}
+.tbarrow .cnt{font-weight:800; font-size:20px; text-align:right}
+.tbarrow.isans{border-color:var(--mint); background:#EAF8F2}
+.tbarrow.isans .fill{background:var(--mint)}
+.tnames{grid-column:1/-1; font-weight:700; font-size:16px; color:var(--soft); padding-top:4px}
+.tmodes{display:flex; gap:8px; margin-top:10px}
+.dir .smsg{font-size:12.5px; font-weight:700; margin-top:4px; min-height:1.2em}
+section > .save{margin-top:22px; padding-top:16px; border-top:2px dashed var(--line)}
+/* ---- 교사 화면 ---- */
+#teacher{max-width:1400px; margin:0 auto; padding:18px 22px 40px}
+#teacher h1{font-size:34px}
+.tbar{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin:12px 0}
+.tbar select{font:inherit; font-size:16px; font-weight:700; border:1.5px solid var(--line); border-radius:6px; padding:7px 9px; background:#fff}
+.ttabs{display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 14px}
+.ttab{font:inherit; font-weight:800; font-size:16px; border:2px solid var(--ink); background:#fff; color:var(--ink); border-radius:10px; padding:9px 14px; cursor:pointer}
+.ttab.on{background:var(--ink); color:#fff}
+.ttab small{font-weight:600; opacity:.75; margin-left:4px}
+.tbtn{font:inherit; font-weight:800; font-size:15px; border:2px solid var(--ink); background:#fff; color:var(--ink); border-radius:8px; padding:8px 14px; cursor:pointer}
+.tbtn.hot{background:var(--red); border-color:var(--red); color:#fff}
+.tbtn:disabled{opacity:.4; cursor:default}
+.tinfo{font-weight:700; color:var(--soft)}
+.tgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px}
+.tcard{position:relative; border:2px solid var(--line); border-radius:12px; background:#fff; padding:8px; cursor:pointer; text-align:left; font:inherit; color:var(--ink)}
+.tcard img{display:block; width:100%; height:auto; border-radius:8px; background:#F1F5FB}
+.tcard .tn{font-weight:800; font-size:16px; margin:6px 2px 0}
+.tcard.sel{border-color:var(--blue); box-shadow:0 0 0 3px var(--blue)}
+.tcard .selno{position:absolute; top:12px; left:12px; width:30px; height:30px; border-radius:50%; background:var(--blue); color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center}
+.tcard .badge{position:absolute; top:12px; right:12px; font-weight:800; font-size:14px; padding:3px 9px; border-radius:20px; color:#fff}
+.tempty{padding:40px; text-align:center; color:var(--soft); font-weight:700; border:2px dashed var(--line); border-radius:12px}
+#tcmp{position:fixed; inset:0; background:#fff; z-index:50; display:none; flex-direction:column; padding:16px 20px}
+#tcmp .tcmpgrid{flex:1; display:grid; gap:16px; align-items:center; min-height:0}
+#tcmp figure{margin:0; text-align:center; min-height:0}
+#tcmp img{width:100%; height:auto; max-height:74vh; object-fit:contain; border:2px solid var(--line); border-radius:12px}
+#tcmp figcaption{font-weight:800; font-size:22px; margin-top:6px}
+.oxrow.no{border-color:var(--red); background:#FDEDED}
+input[type=text],textarea{
+  font:inherit; font-size:15px; color:var(--ink); border:1.5px solid var(--line); border-radius:6px;
+  padding:6px 9px; background:#fff;
+}
+textarea{width:100%; resize:vertical; min-height:64px}
+input:focus,textarea:focus,button:focus-visible{outline:3px solid var(--yellow); outline-offset:1px}
+section{margin:34px 0}
+.sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:10px}
+.num{font-family:"Do Hyeon",sans-serif; font-size:38px; line-height:1; color:var(--yellow); -webkit-text-stroke:1.5px var(--ink)}
+h2{font-size:27px}
+.guide{color:var(--soft); font-size:15px; margin:0 0 14px}
+.card{border:1.5px solid var(--line); border-radius:10px; padding:14px; background:#fff; margin-bottom:12px}
+.card .tag{font-weight:800; font-size:14px; color:var(--mint)}
+.frame{display:grid; grid-template-columns:auto 1fr; gap:8px 10px; align-items:center; margin:8px 0 10px}
+.frame span{font-size:14px; font-weight:600; color:var(--soft); white-space:nowrap}
+.frame input{width:100%}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip{font:inherit; font-size:14px; border:1.5px solid var(--line); background:#fff; color:var(--ink);
+  border-radius:999px; padding:5px 12px; cursor:pointer}
+.chip.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+.scenes{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px}
+@media (min-width:880px){ .scenes{grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px} }
+.item .chips{display:grid; grid-template-columns:1fr 1fr; gap:5px}
+.item .chip{text-align:center; padding:6px 4px}
+.item{border:1.5px solid var(--line); border-radius:10px; padding:10px; background:#fff}
+.item svg,.item img{display:block; aspect-ratio:200/140; object-fit:cover; width:100%; height:auto; border-radius:6px; background:#F1F5FB}
+.item .chip{font-size:13.5px}
+@media (max-width:560px){ .scenes{grid-template-columns:1fr} }
+.item p{margin:8px 0 8px; font-weight:600; font-size:13.5px; line-height:1.45; min-height:4.35em}
+.item .fb{font-size:12.5px; line-height:1.45; margin-top:6px; min-height:0}
+.ok{color:var(--mint)} .no{color:var(--red)}
+.btn{font:inherit; font-weight:800; font-size:15px; border:none; border-radius:8px; padding:9px 16px; cursor:pointer;
+  background:var(--ink); color:#fff}
+.btn.light{background:#fff; color:var(--ink); border:1.5px solid var(--ink)}
+.btn:disabled{opacity:.45; cursor:default}
+.btn.on{background:var(--red); color:#fff; border-color:var(--red)}
+.row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:10px 0}
+.blank-text{font-size:16px; line-height:2.4}
+.blank-text input{width:110px; text-align:center; font-weight:800}
+.drawgrid{display:grid; grid-template-columns:minmax(0,600px) minmax(0,1fr); gap:18px; align-items:start}
+.drawgrid .frame.side,.check-side{margin-top:56px}
+.frame.two{grid-template-columns:auto 1fr auto 1fr}
+@media (max-width:880px){ .frame.two{grid-template-columns:auto 1fr} .drawgrid .frame.side,.check-side{margin-top:0} }
+.drawgrid .row{margin-top:0}
+.frame.side{grid-template-columns:1fr; gap:4px 0; margin:0}
+.frame.side input{margin-bottom:8px}
+@media (max-width:880px){ .drawgrid{grid-template-columns:1fr} }
+.boardwrap{border:2px solid var(--ink); border-radius:8px; overflow:hidden; background:#fff}
+canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crosshair}
+.legend{font-size:13.5px; color:var(--soft)}
+.result{font-weight:800; margin-top:8px; min-height:1.4em}
+.final{border-top:3px solid var(--ink); padding-top:22px}
+.save{display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:16px}
+.btn.pad{background:var(--mint); color:#fff; text-decoration:none; display:inline-flex; align-items:center}
+.save .btn.pad{background:var(--mint)}
+.ov-btns{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+.ov-btns .btn{font-size:17px; padding:12px 22px}
+#galleryBtn{background:var(--red)}
+.save .btn{font-size:18px; padding:14px 28px; background:var(--red)}
+.savepick{margin:30px auto 0; max-width:640px; border:2px dashed var(--line); border-radius:12px; padding:12px 14px; text-align:center}
+.savepick p{margin:0 0 10px; font-weight:700; color:var(--soft)}
+.savepick-btns{display:flex; flex-direction:column; gap:8px}
+.pickbtn{font:inherit; font-weight:700; font-size:16px; display:flex; align-items:center; gap:10px; text-align:left;
+  border:2px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); padding:11px 14px; cursor:pointer}
+.pickbtn .box{flex:none; width:22px; height:22px; border:2px solid var(--ink); border-radius:5px; display:inline-flex; align-items:center; justify-content:center; font-size:15px; line-height:1}
+.pickbtn[aria-pressed="true"]{border-color:var(--ink); background:#F1F5FB}
+.pickbtn[aria-pressed="true"] .box{background:var(--ink); color:#fff}
+.pickbtn[aria-pressed="true"] .box::after{content:"✓"}
+.savebox{margin-top:32px; padding-top:20px; border-top:2px dashed var(--line)}
+.save-title{font-family:"Do Hyeon","Gothic A1",sans-serif; font-weight:400; font-size:24px; margin:0 0 6px}
+.savebox .guide{margin:0 0 14px}
+.savebox-btns{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px}
+.savebox .pickbtn{font-size:17px; font-weight:800; padding:11px 16px}
+#saveBtn{font-size:17px; padding:13px 22px; background:var(--red); color:#fff}
+#saveBtn:disabled{background:#9AA0AA; cursor:default}
+#pickSave{margin-top:12px; font-size:17px; padding:12px 22px; background:var(--red)}
+#pickSave:disabled{opacity:.45; cursor:default}
+.ver{text-align:center; font-size:12px; color:var(--soft); margin-top:14px}
+#overlay{position:fixed; inset:0; background:rgba(20,28,45,.85); display:none; flex-direction:column; align-items:center;
+  justify-content:center; padding:20px; z-index:10; gap:12px; color:#fff; text-align:center}
+#overlay img{max-width:100%; max-height:75vh; background:#fff; border-radius:6px}
+@media (max-width:560px){ .hero h1{font-size:34px} .hero svg{display:none} .frame{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+input[type=number]{font:inherit; font-size:15px; color:var(--ink); border:1.5px solid var(--line); border-radius:6px; padding:6px 9px; background:#fff; width:80px; text-align:center; font-weight:800}
+.pgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px}
+@media (max-width:880px){ .pgrid{grid-template-columns:1fr} }
+.prob{border:1.5px solid var(--line); border-radius:10px; padding:12px; background:#fff}
+.prob h3{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:21px; margin:0 0 4px}
+.prob .given{font-size:14px; font-weight:600; color:var(--soft); margin:0 0 8px}
+.prob .boardwrap{border-width:1.5px}
+.ans{display:grid; grid-template-columns:auto 1fr; gap:6px 10px; align-items:center; margin-top:10px}
+.ans > span{font-size:14px; font-weight:600; color:var(--soft); white-space:nowrap}
+.ans input{width:80px; text-align:center; font-weight:800}
+.fb{font-size:13.5px; line-height:1.5; margin-top:6px; min-height:1.4em}
+.sub{font-family:"Do Hyeon",sans-serif; font-size:22px; margin:18px 0 8px}
+.cases{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px}
+@media (max-width:760px){ .cases{grid-template-columns:1fr} }
+.cases .item p{min-height:0}
+.cases .item .chips{grid-template-columns:1fr 1fr}
+.claim{font-size:16px; line-height:2.3}
+.claim .chips{display:inline-flex; vertical-align:middle; margin:0 4px}
+.selfrow{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px dashed var(--line); font-size:15px}
+.penguin{display:grid; grid-template-columns:200px 1fr; gap:16px; align-items:center}
+@media (max-width:560px){ .penguin{grid-template-columns:1fr} }
+.penguin svg{width:100%; height:auto}
+.dir h3 .ang{font-family:"Gothic A1",sans-serif; font-size:13px; color:var(--soft); font-weight:600; margin-left:6px}
+.dir .clue{width:100%; margin-top:8px}
+.labwrap{display:grid; grid-template-columns:minmax(0,330px) minmax(0,1fr); gap:18px; align-items:start; margin-bottom:12px}
+.labside{min-width:0}
+.ctlrow{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px}
+.ctlname{font-family:"Do Hyeon",sans-serif; font-size:20px; min-width:84px}
+.lableft .readout{margin-top:10px; padding:8px 12px; line-height:1.7; font-size:15px}
+.lableft .readout b{font-size:19px}
+.rec-card{margin:6px 0 0}
+.rec-card table.rec{min-width:440px; font-size:14.5px}
+.rec-card table.rec input{width:68px; padding:5px 4px}
+@media (max-width:760px){ .labwrap{grid-template-columns:1fr} }
+.labview{border:2px solid var(--ink); border-radius:8px; overflow:hidden}
+.labview svg{display:block; width:100%; height:auto}
+.readout{margin-top:18px; border:1.5px dashed var(--line); border-radius:10px; padding:12px 14px; font-size:16px; line-height:1.9; background:#fff}
+.readout b{font-size:22px; font-family:"Do Hyeon",sans-serif; font-weight:400}
+.tblwrap{overflow-x:auto}
+table.rec{border-collapse:collapse; width:100%; min-width:480px; font-size:15px}
+table.rec th,table.rec td{border:1.5px solid var(--line); padding:6px; text-align:center}
+table.rec th{background:#F1F5FB; font-weight:800}
+#rec td:nth-child(3),#rec thead tr:first-child th:nth-child(2),#rec thead tr:last-child th:nth-child(2){border-right:3px solid var(--ink)}
+table.rec input{width:80px}
+#dirGrid{grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px}
+@media (max-width:760px){ #dirGrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.dir{padding:10px}
+.dir h3{word-break:keep-all; font-size:17px; line-height:1.3; min-height:2.6em}
+.dir .clue{font-size:13.5px; padding:5px 7px}
+.dir .row{gap:5px; margin:8px 0 4px}
+.dir .row .btn{font-size:13px; padding:6px 9px}
+.dir .fb{font-size:12.5px}
+.sort .item p{font-size:14.5px; min-height:2.9em}
+
+.qcard{border:1.5px solid var(--line); border-radius:12px; background:#fff; padding:12px 14px; margin:10px 0}
+.qcard .qp{font-weight:700; margin:2px 0 8px; line-height:1.6}
+.qcard .qn{display:inline-block; font-family:"Do Hyeon",sans-serif; font-weight:400; color:#fff; background:var(--ink); border-radius:6px; padding:0 8px; margin-right:6px}
+.qcard.done{border-color:var(--mint); background:#F3FBF7}
+.qcard .hintbox{font-size:14px; color:#7A5A00; background:#FFF6D6; border-radius:8px; padding:6px 10px; margin-top:6px}
+.qcard .model{font-size:14px; color:#1E5F46; background:#EAF8F2; border-radius:8px; padding:8px 10px; margin-top:6px}
+.qcard input[type=number]{width:90px}
+.lvbox{border:2px dashed var(--line); border-radius:14px; padding:14px; margin-top:14px}
+.lvbox.locked .lvpick{opacity:.35; pointer-events:none}
+.lvbox:not(.locked) .lvlock{display:none}
+.lvlock{font-weight:700; color:var(--soft); margin-bottom:10px}
+.lvpick{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.lvbtn{border:2px solid var(--ink); border-radius:12px; background:#fff; padding:10px 6px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; font-family:inherit; color:var(--ink)}
+.lvbtn b{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:22px}
+.lvbtn span{font-weight:800; font-size:15px}
+.lvbtn small{color:var(--soft); font-size:12.5px}
+.lvbtn.on{background:var(--ink); color:#fff}
+.lvbtn.on small{color:#C9D3E3}
+.lvbtn .star{color:#FFC93C}
+.lvq{margin-top:6px}
+.summary table.rec{min-width:0}
+table.rec td small{color:var(--soft)}
+</style>
+</head>
+<body>
+<div id="sheet">
+
+  <header class="hero">
+    <div class="page">비상교육 과학 1 · 164~165쪽 · 교과서 수업 뒤 확인 활동</div>
+    <h1>지구가 당기는 힘 확인하기</h1>
+    <p class="intro">교과서로 함께 공부한 내용을 <b>처음 보는 상황</b>에 써 보는 시간이에요. 교과서에서 찾은 기준을 떠올리며 풀어 보세요. 1번 그림은 <b>선생님께 제출</b>을 눌러 보내요. 다 풀면 맨 아래 <b>이미지로 저장하기</b>로 저장해 패들렛에 올리고, 마무리 정리는 교과서에 직접 해요.</p>
+    <svg viewBox="0 0 150 70" aria-hidden="true">
+      <circle cx="105" cy="35" r="26" fill="#2563C9" stroke="#1E2A44" stroke-width="2"/>
+      <path d="M92 22 q8 -6 14 2 q-2 8 -10 6 z M110 40 q10 -4 12 6 q-6 8 -14 2 z" fill="#1BA97A"/>
+      <circle cx="105" cy="35" r="3" fill="#FFC93C" stroke="#1E2A44"/>
+      <line x1="20" y1="35" x2="58" y2="35" stroke="#E5383B" stroke-width="6" stroke-linecap="round"/><polygon points="74,35 56,26 56,44" fill="#E5383B"/>
+      <circle cx="16" cy="35" r="9" fill="#FFC93C" stroke="#1E2A44" stroke-width="2"/>
+    </svg>
+    <div class="who">
+      <label><span class="whotxt">1</span> 학년<input type="hidden" id="sgrade" value="1"></label>
+      <label><select id="sclass" aria-label="반"><option value="">선택</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select> 반</label>
+      <label><input type="number" id="snum" class="num" inputmode="numeric" min="1" max="40" placeholder="번호" aria-label="번호"> 번</label>
+    </div>
+  </header>
+
+  <!-- 1 -->
+  <section data-part="1">
+    <div class="sec-head"><span class="num">1</span><h2>처음 보는 그림에서 중력의 방향 찾기</h2></div>
+    <p class="guide">교과서에서는 그림이 바로 서 있었지만, 이번엔 이리저리 돌아가 있어요. 화면의 '아래'는 믿지 마세요! 교과서에서 찾은 기준대로 그림 속 <b>단서</b>를 찾아, 노란 점(•)에서 끌어 <b>중력의 방향</b>을 빨간 화살표로 그려 보세요. 그린 뒤 <b>선생님께 제출</b>을 먼저 누르면 선생님 화면에 내 그림이 보여요. <b>정답 확인</b>은 제출한 뒤에 열려요. 정답을 확인하면 그 그림은 더 이상 다시 제출할 수 없으니, 제출하기 전에 잘 생각해 보세요. 확인한 뒤에는 <b>새 각도</b>로 연습해 볼 수 있어요.</p>
+    <div class="pgrid" id="dirGrid"></div>
+    <div class="row"><span id="dirScore" class="result"></span></div>
+    <div class="card">
+      <div class="tag">도전! 올라가는 공</div>
+      <div class="penguin">
+        <svg viewBox="0 0 200 150" role="img" aria-label="공을 위로 던졌고 공이 위로 올라가는 중인 그림">
+          <rect x="0" y="130" width="200" height="20" fill="#E3EAF5"/>
+          <g stroke="#1E2A44" stroke-width="2">
+            <circle cx="60" cy="72" r="11" fill="#F4C9A0"/>
+            <path d="M60 83 v28" stroke-width="9" stroke="#1BA97A"/>
+            <path d="M64 88 l14 -18" stroke-width="5" stroke-linecap="round"/>
+            <path d="M57 111 l-8 18 M63 111 l8 18" stroke-width="5" stroke-linecap="round"/>
+          </g>
+          <path d="M82 66 Q110 20 130 40" stroke="#9AA6BC" stroke-width="2" stroke-dasharray="5 4" fill="none"/>
+          <circle cx="122" cy="32" r="10" fill="#FFC93C" stroke="#1E2A44" stroke-width="2"/>
+          <text x="150" y="28" font-size="12" fill="#5B6782" font-weight="700">올라가는 중</text>
+        </svg>
+        <div>
+          <p style="font-weight:600;margin:0 0 8px">위로 던진 공이 아직 <b>올라가고 있는 순간</b>, 공에 작용하는 중력의 방향은?</p>
+          <div class="chips" id="ball"><button class="chip" data-k="up">위쪽</button><button class="chip" data-k="down">아래쪽</button><button class="chip" data-k="none">작용하지 않는다</button></div>
+          <div class="row"><button class="btn light" id="ballC">확인</button><span id="ballR" class="result"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">중력 때문일까?</div>
+    <p class="guide">중력에 의한 현상이나 중력을 이용하는 예가 <b>아닌 것</b>을 모두 골라 <b>선생님께 제출</b>해요. 정답은 제출한 뒤에 확인할 수 있어요.</p>
+    <div class="cases gsort" id="gsort"></div>
+    <div class="row"><button class="btn gsend" id="gsortS">선생님께 제출</button><button class="btn light" id="gsortC" disabled>정답 확인</button><span id="gsortR" class="result"></span></div>
+  </section>
+
+
+  <!-- 2 -->
+  <section data-part="2">
+    <div class="sec-head"><span class="num">2</span><h2>지구와 달에서 재 보기</h2></div>
+    <p class="guide">물체에 작용하는 <b>중력의 크기</b>를 <b>무게</b>라고 해요. 용수철저울에 물건을 매달고 지구와 달에서 재 보세요. <b>설탕</b>은 눈금을 직접 읽어 기록하고, <b>수박과 추</b>는 눈금이 가려져 있으니 설탕의 결과를 이용해 무게를 <b>예상</b>해서 표에 써요.</p>
+    <div class="labwrap">
+      <div class="lableft" data-html2canvas-ignore="true">
+        <div class="labview"><svg id="lab" viewBox="0 0 320 330" role="img" aria-label="용수철저울 가상 실험"></svg></div>
+        <div class="readout" id="readout"></div>
+      </div>
+      <div class="labside">
+        <div class="labctl" data-html2canvas-ignore="true">
+          <div class="ctlrow"><span class="ctlname">장소</span><div class="chips" id="place"><button class="chip on" data-k="earth">지구</button><button class="chip" data-k="moon">달</button></div></div>
+          <div class="ctlrow"><span class="ctlname">매달 물건</span><div class="chips" id="obj"><button class="chip on" data-k="0">설탕 1 kg</button><button class="chip" data-k="1">수박 3 kg</button><button class="chip" data-k="2">추 6 kg</button></div></div>
+        </div>
+        <div class="card rec-card">
+          <div class="tag">실험 기록</div>
+          <div class="tblwrap">
+          <table class="rec" id="rec">
+            <thead><tr><th rowspan="2">물건</th><th colspan="2">지구에서</th><th colspan="2">달에서</th></tr>
+            <tr><th>질량 (kg)</th><th>무게 (N)</th><th>질량 (kg)</th><th>무게 (N)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          </div>
+          <div class="row"><button class="btn light" id="recC">기록 확인</button><span id="recR" class="result"></span></div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="card" id="ruleCard" style="margin-top:14px">
+      <div class="tag">실험에서 찾은 규칙</div>
+      <p class="guide" style="margin:2px 0 6px">실험 기록표의 <b>지구에서</b> 칸을 보고 빈칸을 채워 보세요.</p>
+      <div class="rule">설탕(1 kg)보다 질량이 3배인 수박은 무게도 <input type="number" inputmode="decimal" step="any" data-r="3"> 배,
+        질량이 6배인 추는 무게도 <input type="number" inputmode="decimal" step="any" data-r="6"> 배예요.</div>
+      <div class="rule">→ 같은 장소에서 물체의 무게는 질량에 <input type="text" data-r="비례" style="width:80px"> 한다.</div>
+      <div class="row"><button class="btn light" id="ruleC">확인</button><span id="ruleR" class="result"></span></div>
+    </div>
+
+    <div class="sub">무게일까, 질량일까?</div>
+    <p class="guide">각 설명이 무게에 대한 것인지 질량에 대한 것인지 골라 보세요.</p>
+    <div class="cases sort" id="sort"></div>
+    <div class="row"><button class="btn" id="sortC">확인하기</button><span id="sortR" class="result"></span></div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="tag">도전! 달에 간 우주인</div>
+      <p style="font-weight:600;margin:4px 0 6px">지구에서 질량이 60 kg인 우주인이 달에 갔어요. (지구에서 질량 1 kg인 물체의 무게는 약 9.8 N)</p>
+      <div class="ans">
+        <span>지구에서 무게</span><div><input type="number" id="a1" inputmode="decimal" step="any"> N</div>
+        <span>달에서 질량</span><div><input type="number" id="a2" inputmode="decimal" step="any"> kg</div>
+        <span>달에서 무게</span><div><input type="number" id="a3" inputmode="decimal" step="any"> N</div>
+      </div>
+      <div class="row"><button class="btn light" id="astC">확인</button></div>
+      <div id="astR" class="fb"></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section data-part="3">
+    <div class="sec-head"><span class="num">3</span><h2>스스로 확인하기</h2></div>
+    <p class="guide"><b>모두 함께</b> 문제를 먼저 풀어요. 다 맞히면 레벨을 고를 수 있어요. 레벨은 문제 종류가 달라요. 지금 내게 맞는 레벨을 골라 보고, 다 맞히면 다음 레벨에도 도전해 보세요!</p>
+    <div class="sub">모두 함께</div>
+    <div id="qCommon"></div>
+    <div id="lvBox" class="lvbox locked">
+      <div class="lvlock" id="lvLock">🔒 '모두 함께' 문제를 다 맞히면 레벨을 고를 수 있어요.</div>
+      <div class="lvpick" id="lvPick">
+        <button class="lvbtn" data-l="1"><b>레벨 1</b><span>개념 다지기</span><small>골라서 답하기</small></button>
+        <button class="lvbtn" data-l="2"><b>레벨 2</b><span>계산해 보기</span><small>무게 구하기</small></button>
+        <button class="lvbtn" data-l="3"><b>레벨 3</b><span>생각 넓히기</span><small>까닭 설명하기</small></button>
+      </div>
+      <div id="q1" class="lvq" hidden></div>
+      <div id="q2" class="lvq" hidden></div>
+      <div id="q3" class="lvq" hidden></div>
+      <div id="lvUp" class="fb ok"></div>
+    </div>
+    <div class="card summary">
+      <div class="tag">나의 정리 기록</div>
+      <table class="rec"><thead><tr><th>모두 함께</th><th>레벨 1</th><th>레벨 2</th><th>레벨 3</th></tr></thead>
+      <tbody><tr id="sumRow"><td>-</td><td>-</td><td>-</td><td>-</td></tr></tbody></table>
+    </div>
+  </section>
+
+  <div class="savebox" id="savePick" data-html2canvas-ignore="true">
+    <h3 class="save-title">활동지 이미지 만들기</h3>
+    <p class="guide">선생님이 말씀하신 활동을 모두 골라 주세요. 고른 활동만 한 장으로 만들어져요. 이미지를 저장해서 패들렛에 올려요. 고친 내용이 있으면 다시 만들면 돼요.</p>
+    <div class="savebox-btns">
+      <button class="pickbtn" data-part="1" aria-pressed="false"><span class="box"></span>1. 중력의 방향 찾기</button>
+      <button class="pickbtn" data-part="2" aria-pressed="false"><span class="box"></span>2. 지구와 달에서 재 보기</button>
+      <button class="pickbtn" data-part="3" aria-pressed="false"><span class="box"></span>3. 스스로 확인하기</button>
+    </div>
+    <button class="btn" id="saveBtn" disabled>저장할 활동을 골라 주세요</button>
+  </div>
+  <div class="ver" data-html2canvas-ignore="true">확인 활동판 · 활동별 저장 v14</div>
+</div>
+
+<div id="teacher" hidden></div>
+<div id="tcmp"></div>
+
+<div id="overlay">
+  <img id="shot" alt="저장된 활동지">
+  <div class="ov-btns">
+    <button class="btn" id="galleryBtn">갤러리에 저장</button>
+    <a class="btn pad" href="https://padlet.com/pad228_2/padlet-s024szwwdplfrq7ecdo5" target="_blank" rel="noopener">패들렛 바로가기</a>
+    <button class="btn light" id="closeShot">닫기</button>
+  </div>
+  <div id="ovMsg">저장 창이 뜨면 <b>'이미지 저장'</b>을 누르세요. 저장이 안 되면 그림을 길게 눌러 저장할 수 있어요.</div>
+</div>
+
+<script>
+
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.chips .chip');
+  if (!chip) return;
+  chip.parentElement.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', b === chip));
+});
+/* ---------- 빈칸 확인 ---------- */
+const norm = s => s.replace(/\s/g, '').toLowerCase();
+document.querySelectorAll('.blankCheck').forEach(btn => {
+  btn.onclick = () => {
+    const box = btn.closest('.card');
+    let ok = 0; const ins = box.querySelectorAll('input[data-ans]');
+    const pools = {};
+    ins.forEach(inp => { const g = inp.dataset.group; if (g) (pools[g] = pools[g] || []).push(inp.dataset.ans.split(',')); });
+    ins.forEach(inp => {
+      const hit = list => list.some(a => norm(a) === norm(inp.value));
+      let good;
+      const g = inp.dataset.group;
+      if (g) { const k = pools[g].findIndex(hit); good = k >= 0; if (good) pools[g].splice(k, 1); }
+      else good = hit(inp.dataset.ans.split(','));
+      inp.style.borderColor = good ? 'var(--mint)' : 'var(--red)';
+      inp.style.background = good ? '#EAF8F2' : '#FDEDED';
+      if (good) ok++;
+    });
+    const r = box.querySelector('.result');
+    r.className = 'result ' + (ok === ins.length ? 'ok' : 'no');
+    r.textContent = ok === ins.length ? '모두 맞았어요!' : `${ins.length}칸 중 ${ok}칸 맞음`;
+  };
+});
+
+/* ---------- 화살표 보드 ---------- */
+function drawArrow(ctx, x1, y1, x2, y2, color, label) {
+  const ang = Math.atan2(y2 - y1, x2 - x1), len = Math.hypot(x2 - x1, y2 - y1);
+  if (len < 2) return;
+  const head = Math.min(18, len * 0.45);
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  ctx.lineTo(x2 - Math.cos(ang) * head * 0.8, y2 - Math.sin(ang) * head * 0.8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - head * Math.cos(ang - 0.45), y2 - head * Math.sin(ang - 0.45));
+  ctx.lineTo(x2 - head * Math.cos(ang + 0.45), y2 - head * Math.sin(ang + 0.45));
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.arc(x1, y1, 5, 0, Math.PI * 2); ctx.fillStyle = '#FFC93C'; ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = '#1E2A44'; ctx.stroke();
+  if (label) {
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    const ox = Math.sin(ang) * 16, oy = -Math.cos(ang) * 16;
+    ctx.font = 'bold 17px "Gothic A1", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff'; const w = ctx.measureText(label).width + 8;
+    ctx.fillRect(mx + ox - w / 2, my + oy - 11, w, 22);
+    ctx.fillStyle = color; ctx.fillText(label, mx + ox, my + oy);
+  }
+  ctx.restore();
+}
+function drawGrid(ctx, W, H, cell) {
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+  for (let x = 0; x <= W; x += cell) {
+    ctx.strokeStyle = (x / cell) % 5 === 0 ? '#C9D3E3' : '#E8EDF5'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, H); ctx.stroke();
+  }
+  for (let y = 0; y <= H; y += cell) {
+    ctx.strokeStyle = (y / cell) % 5 === 0 ? '#C9D3E3' : '#E8EDF5';
+    ctx.beginPath(); ctx.moveTo(0, y + .5); ctx.lineTo(W, y + .5); ctx.stroke();
+  }
+}
+function fmtN(v) { return (Math.round(v * 10) / 10) + ' N'; }
+
+const GREEN = '#1BA97A', BLUE = '#2563C9', RED = '#E5383B', INK = '#1E2A44';
+
+/* ---------- 원점 고정 화살표 보드 (점 여러 개 가능) ---------- */
+function originBoard(canvas, opt) {
+  const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
+  let items = {}, cur = null;
+  const pt = e => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    opt.background(ctx);
+    const all = Object.entries(items); if (cur) all.push([cur.i, cur]);
+    all.forEach(([i, a]) => drawArrow(ctx, a.x1, a.y1, a.x2, a.y2, RED, ''));
+    opt.origins().forEach(o => {
+      ctx.beginPath(); ctx.arc(o[0], o[1], 7, 0, Math.PI * 2); ctx.fillStyle = '#FFC93C'; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = INK; ctx.stroke();
+    });
+  }
+  canvas.addEventListener('pointerdown', e => {
+    const [x, y] = pt(e); const os = opt.origins();
+    let best = -1, bd = 1e9;
+    os.forEach((o, i) => { const d = Math.hypot(o[0] - x, o[1] - y); if (d < bd) { bd = d; best = i; } });
+    if (best < 0 || bd > (opt.reach || 60)) return;
+    canvas.setPointerCapture(e.pointerId);
+    const o = os[best]; cur = { i: best, x1: o[0], y1: o[1], x2: x, y2: y }; render();
+  });
+  canvas.addEventListener('pointermove', e => { if (!cur) return; const [x, y] = pt(e); cur.x2 = x; cur.y2 = y; render(); });
+  const end = () => {
+    if (!cur) return;
+    if (Math.hypot(cur.x2 - cur.x1, cur.y2 - cur.y1) > 18) items[cur.i] = cur;
+    cur = null; render(); opt.onChange && opt.onChange(items);
+  };
+  canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end);
+  render();
+  return { get items() { return items; }, clear() { items = {}; render(); opt.onChange && opt.onChange(items); }, render };
+}
+const angDiff = (a, b) => { let d = Math.abs(a - b) % (2 * Math.PI); return d > Math.PI ? 2 * Math.PI - d : d; };
+const DEG = Math.PI / 180;
+
+/* ---------- 학생 정보 ---------- */
+function getWho() {
+  const g = '1', c = document.getElementById('sclass').value;
+  const raw = document.getElementById('snum').value.trim(), n = String(parseInt(raw, 10));
+  const badNum = !/^\d{1,2}$/.test(raw) || +n < 1 || +n > 40;
+  const miss = !c ? 'sclass' : badNum ? 'snum' : '';
+  if (miss) { alert(miss === 'sclass' ? '맨 위에서 반을 골라 주세요.' : '맨 위에 내 번호를 숫자로 적어 주세요. (1~40)'); const f = document.getElementById(miss); f.scrollIntoView({ block: 'center' }); f.focus(); return null; }
+  document.getElementById('snum').value = n;
+  return { g, c, n, sid: `${g}-${c}-${n.padStart(2, '0')}` };
+}
+/* ---------- 파이어베이스 (게임용 프로젝트 sciencelab27-game) ----------
+   ../game/firebase-config.js 가 있으면 그 설정을 쓰고,
+   없으면 아래 FB_PASTE 칸에 파이어베이스 콘솔의 설정값을 붙여 넣으세요. */
+const FB_PASTE = {
+  apiKey: "",
+  authDomain: "sciencelab27-game.firebaseapp.com",
+  projectId: "sciencelab27-game",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+const FB_COL = 'gravity_dir', FB_COL_SORT = 'gravity_sort';
+let fdbCache = null;
+function getDB() {
+  if (fdbCache) return fdbCache;
+  if (!window.firebase || !firebase.firestore) return null;
+  try {
+    if (!firebase.apps.length) {
+      let cfg = window.firebaseConfig;
+      try { if (!cfg && typeof firebaseConfig !== 'undefined') cfg = firebaseConfig; } catch (e) {}
+      cfg = cfg || FB_PASTE;
+      if (!cfg.apiKey) return null;
+      firebase.initializeApp(cfg);
+    }
+    fdbCache = firebase.firestore();
+  } catch (e) { return null; }
+  return fdbCache;
+}
+
+/* ---------- 2. 돌아간 그림 속 중력 ---------- */
+function stroke(ctx, w, c) { ctx.lineWidth = w; ctx.strokeStyle = c; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); }
+const SCENES = [
+  { name: '철봉에 거꾸로 매달린 사람', ang: 200, sc: 1.05, clue: '머리카락과 팔이 늘어진 방향',
+    draw(c) {
+      c.beginPath(); c.moveTo(-120, -100); c.lineTo(120, -100); stroke(c, 9, '#8892A6');
+      c.beginPath(); c.moveTo(-6, -60); c.lineTo(-8, -100); c.lineTo(18, -122); stroke(c, 9, '#2B3A5C');
+      c.beginPath(); c.moveTo(6, -60); c.lineTo(8, -100); c.lineTo(32, -116); stroke(c, 9, '#2B3A5C');
+      c.beginPath(); c.moveTo(0, -60); c.lineTo(0, 8); stroke(c, 18, BLUE);
+      c.beginPath(); c.moveTo(-6, 4); c.lineTo(-26, 62); stroke(c, 7, '#F4C9A0');
+      c.beginPath(); c.moveTo(6, 4); c.lineTo(26, 62); stroke(c, 7, '#F4C9A0');
+      c.beginPath(); c.arc(0, 30, 17, 0, Math.PI * 2); c.fillStyle = '#F4C9A0'; c.fill(); stroke(c, 2, INK);
+      [-12, -5, 2, 9, 14].forEach((x, i) => { c.beginPath(); c.moveTo(x, 38); c.quadraticCurveTo(x + (i % 2 ? 4 : -4), 62, x + (i % 2 ? -2 : 2), 86); stroke(c, 3.5, '#3A2A1E'); });
+    } },
+  { name: '빨랫줄에 널린 빨래', ang: 100, clue: '빨랫줄이 처진 방향, 빨래가 늘어진 방향',
+    draw(c) {
+      c.fillStyle = '#9ED7B5'; c.fillRect(-170, 120, 340, 26);
+      [-140, 140].forEach(x => { c.beginPath(); c.moveTo(x, 120); c.lineTo(x, -82); stroke(c, 8, '#8A5A32'); });
+      c.beginPath(); c.moveTo(-140, -78); c.quadraticCurveTo(0, -2, 140, -78); stroke(c, 2.5, INK);
+      c.beginPath(); c.moveTo(-34, -46); c.lineTo(34, -46); c.lineTo(48, -20); c.lineTo(30, -12); c.lineTo(28, 40); c.lineTo(-28, 40); c.lineTo(-30, -12); c.lineTo(-48, -20); c.closePath();
+      c.fillStyle = '#FFC93C'; c.fill(); stroke(c, 2, INK);
+      c.beginPath(); c.moveTo(80, -58); c.lineTo(80, -18); c.lineTo(98, -10); stroke(c, 11, RED);
+    } },
+  { name: '처마 끝의 고드름', ang: 315, clue: '고드름이 자란 방향, 물방울이 떨어지는 방향',
+    draw(c) {
+      c.beginPath(); c.moveTo(-170, -140); c.lineTo(170, -140); c.lineTo(170, -95); c.lineTo(-170, -95); c.closePath();
+      c.fillStyle = '#8A5A32'; c.fill(); stroke(c, 2, INK);
+      [[-120, 45], [-62, 80], [0, 125], [58, 70], [115, 40]].forEach(([x, l]) => {
+        c.beginPath(); c.moveTo(x - 13, -95); c.lineTo(x + 13, -95); c.lineTo(x, -95 + l); c.closePath();
+        c.fillStyle = '#CDEBFA'; c.fill(); stroke(c, 2, '#4A90C2');
+      });
+      [[0, 62], [58, 18]].forEach(([x, y]) => {
+        c.beginPath(); c.moveTo(x, y - 12); c.quadraticCurveTo(x + 9, y + 2, x, y + 6); c.quadraticCurveTo(x - 9, y + 2, x, y - 12);
+        c.fillStyle = '#4A90C2'; c.fill();
+      });
+    } },
+  { name: '나무에서 떨어지는 사과', ang: 40, clue: '나무가 서 있는 땅, 사과가 떨어지는 방향',
+    draw(c) {
+      c.fillStyle = '#9ED7B5'; c.fillRect(-170, 115, 340, 28);
+      c.fillStyle = '#8A5A32'; c.fillRect(-107, -30, 24, 145);
+      [[-95, -78, 52], [-135, -42, 32], [-58, -42, 30]].forEach(([x, y, r]) => { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fillStyle = '#1BA97A'; c.fill(); });
+      [[-115, -70], [-75, -92], [-130, -35]].forEach(([x, y]) => { c.beginPath(); c.arc(x, y, 7, 0, Math.PI * 2); c.fillStyle = RED; c.fill(); });
+      [-7, 7].forEach(x => { c.beginPath(); c.moveTo(x, -26); c.lineTo(x, -52); stroke(c, 2.5, '#9AA6BC'); });
+      c.beginPath(); c.arc(0, 0, 14, 0, Math.PI * 2); c.fillStyle = RED; c.fill(); stroke(c, 2, INK);
+      c.beginPath(); c.moveTo(0, -14); c.lineTo(3, -22); stroke(c, 3, '#5A3A1E');
+    } },
+];
+const DW = 380, DH = 330, DCX = DW / 2, DCY = DH / 2;
+const dirGrid = document.getElementById('dirGrid'), dirState = [];
+SCENES.forEach((sc, i) => {
+  const d = document.createElement('div'); d.className = 'prob dir';
+  d.innerHTML = `<h3>${'가나다라'[i]}. ${sc.name}</h3>
+    <div class="boardwrap"><canvas width="${DW}" height="${DH}"></canvas></div>
+    <div class="row"><button class="btn dshare">선생님께 제출</button><button class="btn light dc" disabled>정답 확인</button><button class="btn light dr">다시 그리기</button><button class="btn light drot" disabled>새 각도</button></div>
+    <div class="fb"></div><div class="smsg"></div>`;
+  dirGrid.appendChild(d);
+  const st = { ang: sc.ang, tries: 0, sent: false, checked: false }; dirState[i] = false;
+  const board = originBoard(d.querySelector('canvas'), {
+    origins: () => [[DCX, DCY]], reach: 80,
+    background(ctx) {
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, DW, DH);
+      ctx.save(); ctx.translate(DCX, DCY); ctx.rotate(st.ang * DEG); ctx.scale(sc.sc || 0.8, sc.sc || 0.8); sc.draw(ctx); ctx.restore();
+    }
+  });
+  const fb = d.querySelector('.fb');
+  d.querySelector('.dr').onclick = () => { board.clear(); fb.textContent = ''; };
+  d.querySelector('.drot').onclick = () => {
+    let a; do { a = Math.round(Math.random() * 23) * 15; } while (Math.abs(a - st.ang) < 40 || a < 30 || a > 330);
+    st.ang = a; board.clear(); fb.textContent = '';
+  };
+  const isRight = a => angDiff(Math.atan2(Math.cos(st.ang * DEG), -Math.sin(st.ang * DEG)), Math.atan2(a.y2 - a.y1, a.x2 - a.x1)) <= 22 * DEG;
+  const smsg = d.querySelector('.smsg'), sbtn = d.querySelector('.dshare');
+  sbtn.onclick = async () => {
+    const a = board.items[0];
+    if (!a) { smsg.className = 'smsg no'; smsg.textContent = '먼저 노란 점에서 끌어 화살표를 그려 주세요.'; return; }
+    const who = getWho(); if (!who) return;
+    const fdb = getDB();
+    if (!fdb) { smsg.className = 'smsg no'; smsg.textContent = '선생님 화면과 연결하지 못했어요. 선생님께 말씀드려 주세요.'; return; }
+    sbtn.disabled = true; sbtn.textContent = '보내는 중…';
+    try {
+      await fdb.collection(FB_COL).doc(`${who.g}-${who.c}-${who.n}_${i}`).set({
+        g: who.g, c: who.c, n: +who.n, scene: i, ang: st.ang,
+        ok: isRight(a), img: d.querySelector('canvas').toDataURL('image/jpeg', 0.8), ts: Date.now()
+      });
+      st.sent = true; d.querySelector('.dc').disabled = false;
+      smsg.className = 'smsg ok'; smsg.textContent = '✔ 선생님께 제출했어요. 정답을 확인하기 전까지는 고쳐서 다시 낼 수 있어요.';
+      sbtn.textContent = '다시 제출';
+    } catch (e) { smsg.className = 'smsg no'; smsg.textContent = '제출하지 못했어요. 잠시 뒤 다시 눌러 주세요.'; sbtn.textContent = '선생님께 제출'; }
+    sbtn.disabled = st.checked;
+  };
+  d.querySelector('.dc').onclick = () => {
+    if (!st.sent) return;
+    const a = board.items[0];
+    if (!a) { fb.className = 'fb no'; fb.textContent = '✘ 노란 점에서 끌어 화살표를 그려 보세요.'; return; }
+    if (!st.checked) {
+      if (!confirm('정답을 확인하면 이 그림은 더 이상 다시 제출할 수 없어요. 확인할까요?')) return;
+      st.checked = true; sbtn.disabled = true; sbtn.textContent = '제출 완료';
+      d.querySelector('.drot').disabled = false;
+      smsg.className = 'smsg ok'; smsg.textContent = '✔ 제출을 마쳤어요. 이제부터는 연습이라 선생님께 보내지지 않아요.';
+    }
+    const target = Math.atan2(Math.cos(st.ang * DEG), -Math.sin(st.ang * DEG));
+    const mine = Math.atan2(a.y2 - a.y1, a.x2 - a.x1), diff = angDiff(target, mine);
+    st.tries++;
+    if (diff <= 22 * DEG) {
+      dirState[i] = true; fb.className = 'fb ok';
+      fb.textContent = `✔ 정답! 단서: ${sc.clue}. '새 각도'로 한 번 더 해 볼까요?`;
+    } else {
+      fb.className = 'fb no';
+      fb.textContent = diff > 150 * DEG ? '✘ 거의 반대 방향이에요. 그림 속 물체가 늘어지거나 떨어지는 쪽을 보세요.' :
+        st.tries >= 2 ? `✘ 아직 아니에요. 힌트: ${sc.clue}을/를 살펴보세요.` : '✘ 방향을 다시 보세요. 화면의 아래쪽이 아니라 그림 속 단서를 찾아요.';
+    }
+    document.getElementById('dirScore').textContent = `4개 중 ${dirState.filter(Boolean).length}개 해결`;
+  };
+});
+
+document.getElementById('ballC').onclick = () => {
+  const on = document.querySelector('#ball .chip.on'), r = document.getElementById('ballR');
+  if (!on) { r.className = 'result no'; r.textContent = '하나를 골라 보세요.'; return; }
+  const ok = on.dataset.k === 'down'; r.className = 'result ' + (ok ? 'ok' : 'no');
+  r.textContent = ok ? '정답! 공이 올라가는 동안에도 중력은 항상 아래로 작용해요. 그래서 점점 느려지다가 다시 떨어져요.' :
+    on.dataset.k === 'up' ? '공이 움직이는 방향과 중력의 방향은 달라요. 공이 점점 느려지는 까닭을 생각해 보세요.' :
+    '중력은 공이 날아가는 동안에도 계속 작용해요. 그렇지 않다면 공은 어떻게 될까요?';
+};
+
+/* ---------- 4. 용수철저울 가상 실험 ---------- */
+const OBJS = [{ n: '설탕', j: '을', m: 1 }, { n: '수박', j: '을', m: 3 }, { n: '추', j: '를', m: 6 }];
+const G = { earth: 9.8, moon: 9.8 / 6 };
+const w1 = v => (Math.round(v * 10) / 10).toFixed(1);
+let place = 'earth', obj = 0;
+function drawLab() {
+  const hid = obj !== 0, W = G[place] * OBJS[obj].m, str = 34 + W / 58.8 * 120, moon = place === 'moon';
+  const ty = 128 + str;
+  let objSvg = '';
+  if (obj === 0) objSvg = `<rect x="138" y="${ty}" width="44" height="54" rx="6" fill="#fff" stroke="${INK}" stroke-width="2"/><text x="160" y="${ty + 33}" font-size="12" text-anchor="middle" font-weight="800" fill="${INK}">설탕</text>`;
+  if (obj === 1) objSvg = `<ellipse cx="160" cy="${ty + 30}" rx="34" ry="30" fill="#1BA97A" stroke="${INK}" stroke-width="2"/><path d="M140 ${ty + 8} q-8 22 0 44 M160 ${ty} v60 M180 ${ty + 8} q8 22 0 44" stroke="#0E6B4C" stroke-width="4" fill="none"/>`;
+  if (obj === 2) objSvg = `<rect x="140" y="${ty}" width="40" height="46" rx="4" fill="#B0B8C6" stroke="${INK}" stroke-width="2"/><rect x="150" y="${ty - 8}" width="20" height="10" fill="#B0B8C6" stroke="${INK}" stroke-width="2"/>`;
+  let coil = `M160 112 `; const n = 12;
+  for (let k = 1; k <= n; k++) coil += `L${k % 2 ? 172 : 148} ${112 + str * k / (n + 1)} `;
+  coil += `L160 ${112 + str}`;
+  document.getElementById('lab').innerHTML = `
+    <rect width="320" height="330" fill="${moon ? '#141C2E' : '#DCEEFF'}"/>
+    ${moon ? '<circle cx="270" cy="40" r="18" fill="#2563C9"/><circle cx="264" cy="35" r="5" fill="#1BA97A"/>' : '<circle cx="275" cy="40" r="20" fill="#FFC93C"/>'}
+    <rect y="296" width="320" height="34" fill="${moon ? '#9AA0AA' : '#9ED7B5'}"/>
+    ${moon ? '<ellipse cx="60" cy="310" rx="22" ry="6" fill="#7E848E"/><ellipse cx="250" cy="316" rx="16" ry="5" fill="#7E848E"/>' : ''}
+    <rect x="40" y="10" width="10" height="290" fill="#8A5A32"/><rect x="40" y="10" width="140" height="10" fill="#8A5A32"/>
+    <line x1="160" y1="20" x2="160" y2="34" stroke="${INK}" stroke-width="3"/>
+    <rect x="128" y="34" width="64" height="72" rx="8" fill="#FF9F43" stroke="${INK}" stroke-width="2"/>
+    <rect x="136" y="44" width="48" height="26" rx="3" fill="#E8F6EC" stroke="${INK}" stroke-width="1.5"/>
+    <text x="160" y="62" font-size="14" text-anchor="middle" font-weight="800" fill="${INK}">${hid ? '? ? ?' : w1(W) + ' N'}</text>
+    ${hid ? '<text x="160" y="94" font-size="11" text-anchor="middle" font-weight="800" fill="#fff">눈금 가림</text>' : ''}
+    <line x1="160" y1="106" x2="160" y2="112" stroke="${INK}" stroke-width="3"/>
+    <path d="${coil}" stroke="#5B6782" stroke-width="2.5" fill="none"/>
+    <line x1="160" y1="${112 + str}" x2="160" y2="${ty}" stroke="${INK}" stroke-width="2.5"/>
+    ${objSvg}
+    <text x="20" y="320" font-size="14" font-weight="800" fill="${moon ? '#fff' : INK}">${moon ? '달' : '지구'}</text>`;
+  document.getElementById('readout').innerHTML =
+    `${moon ? '달' : '지구'}에서 <b>${OBJS[obj].n}</b>${OBJS[obj].j} 매달았어요.<br>질량: <b>${OBJS[obj].m} kg</b><br>용수철저울 눈금(무게): ${hid ? '<b>?</b> N<br><span style="color:var(--red);font-weight:700">눈금이 가려졌어요! 설탕(1 kg)의 결과로 예상해 보세요.</span>' : `<b>${w1(W)} N</b>`}`;
+}
+document.getElementById('place').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) { place = c.dataset.k; drawLab(); } });
+document.getElementById('obj').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) { obj = +c.dataset.k; drawLab(); } });
+drawLab();
+const recBody = document.querySelector('#rec tbody');
+OBJS.forEach(o => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><b>${o.n}</b></td>` + [o.m, 9.8 * o.m, o.m, 9.8 / 6 * o.m].map(v => `<td><input type="number" step="any" inputmode="decimal" data-v="${v}"></td>`).join('');
+  recBody.appendChild(tr);
+});
+document.getElementById('recC').onclick = () => {
+  let ok = 0; const ins = recBody.querySelectorAll('input');
+  ins.forEach(inp => {
+    const good = inp.value !== '' && Math.abs(+inp.value - +inp.dataset.v) <= (+inp.dataset.v < 15 && inp.dataset.v % 1 ? 0.25 : 0.11);
+    inp.style.borderColor = good ? 'var(--mint)' : 'var(--red)'; inp.style.background = good ? '#EAF8F2' : '#FDEDED';
+    if (good) ok++;
+  });
+  const r = document.getElementById('recR'); r.className = 'result ' + (ok === ins.length ? 'ok' : 'no');
+  r.textContent = ok === ins.length ? '모두 맞았어요! 질량 칸과 무게 칸을 비교해 보세요. 무엇이 변하고 무엇이 그대로인가요?' : `${ins.length}칸 중 ${ok}칸 맞음 — 설탕은 다시 재 보고, 수박과 추는 질량이 설탕의 몇 배인지 생각해 보세요.`;
+};
+
+const SORT = [
+  ['물체에 작용하는 중력의 크기', 'w'], ['물질의 고유한 양', 'm'],
+  ['단위로 N(뉴턴)을 쓴다', 'w'], ['단위로 kg(킬로그램)을 쓴다', 'm'],
+  ['달에 가면 지구에서의 약 1/6이 된다', 'w'], ['지구에서 재도, 달에서 재도 같다', 'm'],
+];
+const sortEl = document.getElementById('sort');
+SORT.forEach((s, i) => {
+  const d = document.createElement('div'); d.className = 'item';
+  d.innerHTML = `<p>${'①②③④⑤⑥'[i]} ${s[0]}</p><div class="chips"><button class="chip" data-k="w">무게</button><button class="chip" data-k="m">질량</button></div><div class="fb"></div>`;
+  sortEl.appendChild(d);
+});
+document.getElementById('sortC').onclick = () => {
+  let right = 0;
+  [...sortEl.children].forEach((d, i) => {
+    const on = d.querySelector('.chip.on'), fb = d.querySelector('.fb');
+    if (!on) { fb.className = 'fb no'; fb.textContent = '아직 고르지 않았어요.'; return; }
+    if (on.dataset.k === SORT[i][1]) { right++; fb.className = 'fb ok'; fb.textContent = '✔ 맞아요!'; }
+    else { fb.className = 'fb no'; fb.textContent = '✘ 장소에 따라 변하는 것은 어느 쪽일까요?'; }
+  });
+  document.getElementById('sortR').textContent = `6개 중 ${right}개 맞음`;
+};
+document.getElementById('astC').onclick = () => {
+  const v = id => document.getElementById(id).value, msgs = [];
+  if (v('a1') === '' || Math.abs(+v('a1') - 588) > 0.5) msgs.push('✘ 지구에서 무게: 질량 1 kg의 무게가 약 9.8 N이면 60 kg은?');
+  if (v('a2') === '' || +v('a2') !== 60) msgs.push('✘ 달에서 질량: 질량은 장소가 바뀌면 변할까요?');
+  if (v('a3') === '' || Math.abs(+v('a3') - 98) > 1) msgs.push('✘ 달에서 무게: 지구에서 잰 무게의 약 1/6이에요.');
+  const r = document.getElementById('astR'); r.className = 'fb ' + (msgs.length ? 'no' : 'ok');
+  r.innerHTML = msgs.length ? msgs.join('<br>') : '✔ 정답! 지구에서 588 N, 달에서도 질량은 60 kg 그대로, 무게는 약 98 N이에요.';
+};
+
+/* ---------- 1-2. 중력 때문일까 (아닌 것 골라 제출) ---------- */
+const GSORT = [
+  ['폭포의 물이 아래로 떨어진다', 'g', '지구가 물을 지구 중심 쪽으로 당겨요.'],
+  ['운동장에서 굴러가던 공이 점점 느려지다 멈춘다', 'x', '공이 멈추는 건 바닥이 공의 움직임을 방해하기 때문이에요. 이 힘은 곧 배워요!'],
+  ['겨울철 처마 끝의 고드름이 아래로 자란다', 'g', '녹은 물이 중력 때문에 아래로 흘러내리며 얼어요.'],
+  ['수력 발전소에서 높은 곳의 물을 떨어뜨려 전기를 만든다', 'g', '중력 때문에 떨어지는 물의 힘을 이용해요.'],
+  ['당겼던 용수철을 놓으면 원래 길이로 돌아간다', 'x', '늘어난 용수철이 원래 모양으로 돌아가려는 힘이에요. 이 힘도 곧 배워요!'],
+  ['스카이다이버가 비행기에서 뛰어내려 땅으로 내려온다', 'g', '중력을 이용하는 운동이에요.'],
+  ['자석이 철로 된 클립을 끌어당긴다', 'x', '자석이 철을 당기는 힘이에요. 지구가 당기는 힘이 아니에요.'],
+  ['지구를 둘러싼 공기가 우주로 날아가지 않고 지구에 머물러 있다', 'g', '지구가 중력으로 공기를 끌어당겨 붙잡아 두기 때문이에요. 달은 중력이 약해서 공기가 거의 없어요.'],
+  ['실에 추를 매단 수직추로 벽이 똑바로 섰는지 확인한다', 'g', '추가 늘어진 방향이 중력의 방향(지구 중심 방향)이에요.'],
+];
+const gsortEl = document.getElementById('gsort');
+let gsortSent = false, gsortChecked = false;
+GSORT.forEach((s, i) => {
+  const b = document.createElement('button'); b.className = 'gcard'; b.setAttribute('aria-pressed', 'false');
+  b.innerHTML = `<span class="gtop"><span class="box"></span><span>${'①②③④⑤⑥⑦⑧⑨'[i]} ${s[0]}</span></span><span class="fb"></span>`;
+  b.onclick = () => { if (gsortChecked) return; b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); };
+  gsortEl.appendChild(b);
+});
+const gPicks = () => [...gsortEl.children].map((b, i) => b.getAttribute('aria-pressed') === 'true' ? i : -1).filter(i => i >= 0);
+const gAns = GSORT.map((s, i) => s[1] === 'x' ? i : -1).filter(i => i >= 0);
+document.getElementById('gsortS').onclick = async () => {
+  const r = document.getElementById('gsortR'), btn = document.getElementById('gsortS');
+  const picks = gPicks();
+  if (!picks.length) { r.className = 'result no'; r.textContent = '아닌 것을 하나 이상 골라 주세요.'; return; }
+  const who = getWho(); if (!who) return;
+  const fdb = getDB();
+  if (!fdb) { r.className = 'result no'; r.textContent = '선생님 화면과 연결하지 못했어요. 선생님께 말씀드려 주세요.'; return; }
+  btn.disabled = true; btn.textContent = '보내는 중…';
+  try {
+    await fdb.collection(FB_COL_SORT).doc(`${who.g}-${who.c}-${who.n}`).set({
+      g: who.g, c: who.c, n: +who.n, picks,
+      ok: picks.length === gAns.length && gAns.every(a => picks.includes(a)), ts: Date.now()
+    });
+    gsortSent = true; document.getElementById('gsortC').disabled = false;
+    r.className = 'result ok'; r.textContent = '✔ 제출했어요! 정답을 확인하기 전까지는 고쳐서 다시 낼 수 있어요.';
+    btn.textContent = '다시 제출'; btn.disabled = false;
+  } catch (e) { r.className = 'result no'; r.textContent = '제출하지 못했어요. 잠시 뒤 다시 눌러 주세요.'; btn.textContent = '선생님께 제출'; btn.disabled = false; }
+};
+document.getElementById('gsortC').onclick = () => {
+  if (!gsortSent) return;
+  if (!gsortChecked && !confirm('정답을 확인하면 더 이상 고쳐서 제출할 수 없어요. 확인할까요?')) return;
+  gsortChecked = true;
+  document.getElementById('gsortS').disabled = true; document.getElementById('gsortS').textContent = '제출 완료';
+  let right = 0;
+  [...gsortEl.children].forEach((b, i) => {
+    const picked = b.getAttribute('aria-pressed') === 'true', isNot = GSORT[i][1] === 'x', good = picked === isNot;
+    if (good) right++;
+    b.classList.toggle('right', good && isNot); b.classList.toggle('wrong', !good); b.disabled = true;
+    const fb = b.querySelector('.fb');
+    fb.className = 'fb ' + (good ? 'ok' : 'no');
+    fb.textContent = good ? (isNot ? '✔ 중력이 아니에요. ' + GSORT[i][2] : '') : (isNot ? '✘ 놓쳤어요. ' + GSORT[i][2] : '✘ 중력 때문이에요. ' + GSORT[i][2]);
+  });
+  const r = document.getElementById('gsortR');
+  r.className = 'result ' + (right === GSORT.length ? 'ok' : 'no');
+  r.textContent = right === GSORT.length ? '모두 맞았어요! 아닌 것은 ②, ⑤, ⑦이에요.' : `9개 중 ${right}개를 바르게 판단했어요. 아닌 것은 ②, ⑤, ⑦이에요. 빨간 칸을 읽어 보세요.`;
+};
+/* ---------- 2. 실험에서 찾은 규칙 ---------- */
+document.getElementById('ruleC').onclick = () => {
+  const ins = document.querySelectorAll('#ruleCard input'); let ok = 0;
+  ins.forEach(inp => {
+    const a = inp.dataset.r, good = inp.type === 'number' ? (inp.value !== '' && +inp.value === +a) : inp.value.replace(/\s/g, '') === a;
+    mark(inp, good); if (good) ok++;
+  });
+  const r = document.getElementById('ruleR'); r.className = 'result ' + (ok === ins.length ? 'ok' : 'no');
+  r.textContent = ok === ins.length ? '정답! 질량이 2배, 3배가 되면 무게도 2배, 3배가 돼요.' : `${ins.length}칸 중 ${ok}칸 맞음 — 표에서 수박의 무게가 설탕의 몇 배인지 나눠 보세요.`;
+};
+
+/* ---------- 5. 수준별 정리 ---------- */
+const QS = {
+  c: [
+    { t: 'blank', q: '물체에 작용하는 중력의 크기를 {무게} (이)라 하고, 측정하는 장소가 달라져도 변하지 않는 물질의 고유한 양을 {질량} (이)라고 한다.', hint: '무게의 단위는 N, 질량의 단위는 kg이에요.', ansText: '무게, 질량' },
+    { t: 'chip', q: '지구 반대편(남극)에 서 있는 사람에게 작용하는 중력의 방향은?', o: ['하늘 쪽', '지구 중심 쪽', '중력이 작용하지 않는다'], a: 1, hint: '교과서 수업에서 다섯 사람의 화살표를 길게 늘였을 때 어디에서 만났는지 떠올려 보세요.', ansText: '지구 중심 쪽 — 지구 어디에 있든 중력은 지구 중심 방향으로 작용해요.' },
+  ],
+  1: [
+    { t: 'ox', q: '지구에서 달로 갔을 때 나타나는 일이면 O, 아니면 X를 골라 보자.', s: [
+      ['지구에서보다 몸무게가 작아진다.', 'o'],
+      ['들고 있는 가방이 더 무겁게 느껴진다.', 'x'],
+      ['같은 힘으로 지구에서보다 더 높이 뛰어오를 수 있다.', 'o'],
+      ['들고 있는 가방의 질량이 작아진다.', 'x'],
+      ['위로 던져 올린 공이 지구에서보다 느리게 떨어진다.', 'o'],
+    ], hint: '달에서는 물체를 당기는 중력이 지구의 약 1/6이에요. 장소가 바뀌어도 변하지 않는 것은 무엇이었나요?' },
+    { t: 'chip', q: '우주인이 지구에서 달로 갔을 때 변하는 것은?', o: ['무게', '질량', '무게와 질량 모두', '둘 다 변하지 않는다'], a: 0, hint: '장소에 따라 달라지는 것은 중력의 크기예요. 중력의 크기를 무엇이라고 했나요?' },
+    { t: 'chip', q: '무게를 나타낼 때 쓰는 단위는?', o: ['kg (킬로그램)', 'N (뉴턴)', 'm (미터)'], a: 1, hint: '용수철저울 눈금에 적힌 단위를 떠올려 보세요.' },
+    { t: 'chip', q: '같은 사과를 지구와 달에서 쟀더니 무게가 달랐다. 그 까닭은?', o: ['달에서 사과의 질량이 줄어서', '천체마다 물체를 당기는 중력의 크기가 달라서', '달에는 공기가 없어서'], a: 1, hint: '사과 자체는 그대로예요. 사과를 당기는 쪽이 달라졌어요.' },
+  ],
+  2: [
+    { t: 'num', q: '질량이 6 kg인 물체가 있다. (지구에서 질량 1 kg인 물체의 무게는 약 9.8 N)', f: [['지구에서 무게', 58.8, 'N'], ['달에서 질량', 6, 'kg'], ['달에서 무게', 9.8, 'N']], hint: '달에서 잰 무게는 지구에서 잰 무게의 약 1/6이에요. 질량은?' },
+    { t: 'num', q: '지구에서 질량이 500 g인 물체의 무게는 약 몇 N일까? (단위에 주의!)', f: [['지구에서 무게', 4.9, 'N']], hint: '먼저 500 g을 kg으로 바꿔요. 1 kg = 1000 g이에요.' },
+    { t: 'num', q: '질량이 30 kg인 친구가 달에 갔다. 달에서 이 친구의 무게는 약 몇 N일까?', f: [['달에서 무게', 49, 'N']], tol: 0.6, hint: '먼저 지구에서의 무게(30 × 9.8)를 구한 뒤 6으로 나눠 보세요.' },
+    { t: 'num', q: '달에서 무게가 4.9 N인 물체를 지구로 가져왔다.', f: [['지구에서 무게', 29.4, 'N'], ['이 물체의 질량', 3, 'kg']], hint: '지구에서의 무게는 달에서의 약 6배예요. 지구에서 1 kg의 무게는 약 9.8 N이죠.' },
+  ],
+  3: [
+    { t: 'chip', q: '지구에서 무게가 1 N인 물체 ㉠과 달에서 무게가 1 N인 물체 ㉡의 질량을 비교하면?', o: ['㉠이 더 크다', '㉡이 더 크다', '같다'], a: 1, hint: '㉡을 지구로 가져오면 무게가 몇 N이 될까요?' },
+    { t: 'num', q: '어떤 행성 X에서는 물체에 작용하는 중력이 지구의 2배이다. 지구에서 질량이 6 kg인 물체를 행성 X로 가져가면?', f: [['행성 X에서 질량', 6, 'kg'], ['행성 X에서 무게', 117.6, 'N']], tol: 0.2, hint: '질량은 어디서나 같아요. 무게는 지구 무게(58.8 N)의 몇 배일까요?' },
+    { t: 'text', q: '달에 간 우주인은 지구에서보다 무거운 장비를 메고도 깡충깡충 뛰어다닐 수 있다. 그 까닭을 무게와 질량이라는 말을 넣어 설명해 보자.', model: '달의 중력은 지구의 약 1/6이라서, 장비와 우주인의 질량은 그대로이지만 무게는 지구에서의 약 1/6로 작아진다. 그래서 같은 장비도 훨씬 가볍게 느껴진다.' },
+  ],
+};
+const res = { c: [], 1: [], 2: [], 3: [] }, tries = { c: [], 1: [], 2: [], 3: [] };
+const nrm = x => String(x).replace(/\s/g, '').toLowerCase();
+function mark(inp, ok) { inp.style.borderColor = ok ? 'var(--mint)' : 'var(--red)'; inp.style.background = ok ? '#EAF8F2' : '#FDEDED'; }
+function buildQ(key, box) {
+  QS[key].forEach((q, i) => {
+    const d = document.createElement('div'); d.className = 'qcard';
+    let ui = '';
+    if (q.t === 'blank') ui = `<div class="blank-text">${q.q.replace(/\{([^}]+)\}/g, (_, a) => `<input type="text" data-a="${a}">`)}</div>`;
+    else ui = `<div class="qp"><span class="qn">${key === 'c' ? '공통' : key}-${i + 1}</span>${q.q}</div>`;
+    if (q.t === 'blank') ui = `<div class="qp" style="margin-bottom:0"><span class="qn">공통-${i + 1}</span></div>` + ui;
+    if (q.t === 'chip') ui += `<div class="chips">${q.o.map((o, k) => `<button class="chip" data-k="${k}">${o}</button>`).join('')}</div>`;
+    if (q.t === 'num') ui += `<div class="ans">${q.f.map(f => `<span>${f[0]}</span><div><input type="number" step="any" inputmode="decimal"> ${f[2]}</div>`).join('')}</div>`;
+    if (q.t === 'text') ui += `<textarea placeholder="내 생각을 써 보세요."></textarea>`;
+    if (q.t === 'ox') ui += `<div class="oxlist">${q.s.map((s, k) => `<div class="oxrow"><span>${'①②③④⑤⑥'[k]} ${s[0]}</span><div class="chips"><button class="chip" data-k="o">O</button><button class="chip" data-k="x">X</button></div></div>`).join('')}</div>`;
+    const btns = q.t === 'text' ? '<button class="btn light qk">다 썼어요 · 예시 답안 보기</button>'
+      : `<button class="btn light qk">확인</button>${q.hint ? '<button class="btn light qh">힌트</button>' : ''}`;
+    d.innerHTML = ui + `<div class="row">${btns}<span class="result"></span></div><div class="qx"></div>`;
+    box.appendChild(d);
+    const r = d.querySelector('.result'), x = d.querySelector('.qx');
+    const hb = d.querySelector('.qh');
+    if (hb) hb.onclick = () => { x.innerHTML = `<div class="hintbox">💡 ${q.hint}</div>`; };
+    d.querySelector('.qk').onclick = () => {
+      let ok;
+      if (q.t === 'blank') { ok = true; d.querySelectorAll('input').forEach(inp => { const g = inp.dataset.a.split('|').some(a => nrm(a) === nrm(inp.value)); mark(inp, g); ok = ok && g; }); }
+      if (q.t === 'ox') {
+        const rows = [...d.querySelectorAll('.oxrow')];
+        if (rows.some(rw => !rw.querySelector('.chip.on'))) { r.className = 'result no'; r.textContent = '모든 문장에 O나 X를 골라 보세요.'; return; }
+        ok = true; rows.forEach((rw, k) => { const g = rw.querySelector('.chip.on').dataset.k === q.s[k][1]; rw.classList.toggle('ok', g); rw.classList.toggle('no', !g); ok = ok && g; });
+      }
+      if (q.t === 'chip') { const on = d.querySelector('.chip.on'); if (!on) { r.className = 'result no'; r.textContent = '하나를 골라 보세요.'; return; } ok = +on.dataset.k === q.a; }
+      if (q.t === 'num') { ok = true; d.querySelectorAll('input').forEach((inp, k) => { const g = inp.value !== '' && Math.abs(+inp.value - q.f[k][1]) <= (q.tol || 0.11); mark(inp, g); ok = ok && g; }); }
+      if (q.t === 'text') {
+        const ta = d.querySelector('textarea');
+        if (ta.value.trim().length < 15) { r.className = 'result no'; r.textContent = '조금 더 자세히 써 보세요.'; return; }
+        x.innerHTML = `<div class="model">📘 예시 답안: ${q.model}<br>내 답과 비교해 보고, 빠진 내용이 있으면 고쳐 써 보세요.</div>`; ok = true;
+      }
+      tries[key][i] = (tries[key][i] || 0) + 1;
+      if (res[key][i] !== true) res[key][i] = ok;
+      if (!ok && key === 'c' && tries[key][i] >= 2 && q.ansText) x.innerHTML = `<div class="model">📘 정답: ${q.ansText}<br>정답을 확인했으니 레벨을 고를 수 있어요. 레벨 문제에서 다시 도전해 봐요!</div>`;
+      d.classList.toggle('done', res[key][i] === true);
+      r.className = 'result ' + (ok ? 'ok' : 'no');
+      r.textContent = ok ? (q.t === 'text' ? '작성 완료!' : '정답!') : '다시 생각해 보세요.' + (q.hint ? ' 힌트를 눌러 봐도 좋아요.' : '');
+      update(key);
+    };
+  });
+}
+buildQ('c', document.getElementById('qCommon'));
+[1, 2, 3].forEach(k => buildQ(k, document.getElementById('q' + k)));
+function cnt(k) { return res[k].filter(v => v === true).length; }
+function update(key) {
+  const row = document.getElementById('sumRow').children;
+  ['c', 1, 2, 3].forEach((k, i) => {
+    const tried = res[k].some(v => v !== undefined);
+    row[i].innerHTML = tried ? `${cnt(k)} / ${QS[k].length}${cnt(k) === QS[k].length ? ' ✔' : ''}` : '-';
+  });
+  if (key === 'c') {
+    const pass = QS.c.map((q, i) => res.c[i] === true || (tries.c[i] || 0) >= 2);
+    const lock = document.getElementById('lvLock');
+    if (pass.every(Boolean)) document.getElementById('lvBox').classList.remove('locked');
+    else lock.innerHTML = '🔒 레벨을 열려면 ' + QS.c.map((q, i) => `공통-${i + 1} ${pass[i] ? '✔' : '<b style="color:var(--red)">아직</b>'}`).join(' · ') + ' — 답을 쓰거나 고른 뒤 <b>확인</b>을 눌러요.';
+  }
+  if (key !== 'c') {
+    const done = cnt(key) === QS[key].length, up = document.getElementById('lvUp');
+    document.querySelector(`.lvbtn[data-l="${key}"] b`).innerHTML = `레벨 ${key}${done ? ' <span class="star">★</span>' : ''}`;
+    up.innerHTML = done ? (key < 3 ? `🎉 레벨 ${key} 완료! <button class="btn light" id="goUp">레벨 ${key + 1}에도 도전하기</button>` : '🎉 레벨 3까지 완료! 정말 멋져요.') : '';
+    const g = document.getElementById('goUp'); if (g) g.onclick = () => pickLv(key + 1);
+  }
+}
+function pickLv(l) {
+  document.querySelectorAll('.lvbtn').forEach(b => b.classList.toggle('on', +b.dataset.l === l));
+  [1, 2, 3].forEach(k => document.getElementById('q' + k).hidden = !(k === l || res[k].some(v => v !== undefined)));
+  document.getElementById('q' + l).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('lvUp').innerHTML = '';
+  if (res[l].length) update(l);
+}
+document.querySelectorAll('.lvbtn').forEach(b => b.onclick = () => pickLv(+b.dataset.l));
+
+const overlay = document.getElementById('overlay');
+document.getElementById('closeShot').onclick = () => overlay.style.display = 'none';
+// 저장 방식: 샤를 법칙 활동지와 동일
+let shotBlob = null, shotName = 'report.png', downloadsNS = null;
+if (window.claude && typeof window.claude.use === 'function') {
+  window.claude.use('downloads').then(ns => { downloadsNS = ns; }).catch(() => {});
+}
+const ovMsg = document.getElementById('ovMsg');
+async function makeShot(btn, parts) {
+  const who = getWho(); if (!who) return;
+  const gr = who.g, cl = who.c, nu = who.n, sid = who.sid;
+  const others = [...document.querySelectorAll('#sheet section[data-part]')].filter(sec => !parts.includes(+sec.dataset.part));
+  if (typeof html2canvas !== 'function') { alert('이미지 도구를 불러오지 못했어요. 페이지를 새로 고친 뒤 다시 눌러 주세요.'); return; }
+  const label = btn.textContent; btn.textContent = '이미지 만드는 중…'; btn.disabled = true;
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    others.forEach(sec => sec.setAttribute('data-html2canvas-ignore', 'true'));
+    const canvas = await html2canvas(document.getElementById('sheet'), {
+      scale: 2, backgroundColor: '#FBFCFE', useCORS: true,
+      onclone: doc => {
+        doc.querySelectorAll('.labwrap').forEach(w => { w.style.display = 'block'; });
+        [['sclass', cl], ['snum', nu]].forEach(([id, v]) => { const el = doc.getElementById(id); if (el) { const sp = doc.createElement('span'); sp.className = 'whotxt'; sp.textContent = v; el.replaceWith(sp); } });
+      }
+    });
+    others.forEach(sec => sec.removeAttribute('data-html2canvas-ignore'));
+    const url = canvas.toDataURL('image/png');
+    shotBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    shotName = `gravity_${sid}_part${parts.join('')}_${Date.now().toString().slice(-6)}.png`;
+    document.getElementById('shot').src = url;
+    document.getElementById('galleryBtn').textContent = '갤러리에 저장';
+    ovMsg.innerHTML = `${parts.join(', ')}번 활동 미리 보기예요. <b>갤러리에 저장</b>을 누른 뒤 <b>패들렛 바로가기</b>로 올려 주세요.<br>저장이 안 되면 그림을 길게 눌러 이미지 저장(사진에 추가)을 고르거나 화면을 캡처하세요.`;
+    overlay.style.display = 'flex';
+  } catch (err) { others.forEach(sec => sec.removeAttribute('data-html2canvas-ignore')); alert('이미지를 만들지 못했어요. 잠시 뒤 다시 눌러 주세요.'); }
+  btn.textContent = label; btn.disabled = false;
+  syncPick();
+}
+const pickBox = document.getElementById('savePick'), pickBtns = [...pickBox.querySelectorAll('.pickbtn')], pickSave = document.getElementById('saveBtn');
+const picked = () => pickBtns.filter(b => b.getAttribute('aria-pressed') === 'true').map(b => +b.dataset.part);
+function syncPick() { const p = picked(); pickSave.disabled = !p.length; pickSave.textContent = p.length ? `선택한 활동(${p.join(', ')}번) 이미지로 저장하기` : '저장할 활동을 골라 주세요'; }
+pickBtns.forEach(b => b.onclick = () => { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); syncPick(); });
+pickSave.onclick = () => { const p = picked(); if (p.length) makeShot(pickSave, p); };
+function anchorDownload() {
+  const u = URL.createObjectURL(shotBlob);
+  const a = document.createElement('a'); a.href = u; a.download = shotName; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 60000);
+}
+document.getElementById('galleryBtn').onclick = async () => {
+  if (!shotBlob) return;
+  // 1) Claude 안에서 열었을 때
+  if (downloadsNS) {
+    try { await downloadsNS.save({ filename: shotName, data: shotBlob }); ovMsg.textContent = '저장했어요. 패들렛 바로가기를 눌러 올려 주세요.'; return; }
+    catch (e) {
+      if (e && e.code === 'declined') { ovMsg.textContent = '저장을 취소했어요. 다시 누르면 저장할 수 있어요.'; return; }
+      if (e && e.code === 'rate_limited') { ovMsg.textContent = '저장 창이 이미 열려 있어요. 잠시 뒤 다시 눌러 주세요.'; return; }
+    }
+  }
+  // 2) 아이패드·아이폰만 공유 창 사용 (안드로이드는 바로 내려받으면 갤러리에 자동 저장)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS) {
+    try {
+      const file = new File([shotBlob], shotName, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: '지구가 당기는 힘 활동지' });
+        ovMsg.textContent = "공유 창에서 '이미지 저장'을 골랐다면 사진에 저장됐어요. 패들렛 바로가기로 올려 주세요.";
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') { ovMsg.textContent = '저장을 취소했어요. 다시 누르면 저장할 수 있어요.'; return; }
+    }
+  }
+  // 3) 그 밖의 기기: 파일로 내려받기
+  try { anchorDownload(); ovMsg.textContent = '저장했어요! 갤러리에서 확인한 뒤 패들렛 바로가기로 올려 주세요.'; }
+  catch (e) { ovMsg.textContent = '바로 저장할 수 없어요. 위 그림을 길게 눌러 이미지 저장을 고르거나 화면을 캡처하세요.'; }
+};
+/* ---------- 교사 화면 (주소 끝에 ?teacher) ---------- */
+if (new URLSearchParams(location.search).has('teacher')) (function () {
+  document.getElementById('sheet').style.display = 'none';
+  const T = document.getElementById('teacher'); T.hidden = false;
+  document.title = '지구가 당기는 힘 · 선생님 화면';
+  const opt = (n, from, sel) => Array.from({ length: n }, (_, k) => `<option value="${k + from}"${k + from === sel ? ' selected' : ''}>${k + from}</option>`).join('');
+  T.innerHTML = `<h1>지구가 당기는 힘 · 학생 답 모아 보기</h1>
+    <div class="tmodes"><button class="ttab on" data-m="dir">중력 방향 찾기</button><button class="ttab" data-m="sort">중력 때문일까? (아닌 것)</button></div>
+    <div class="tbar">
+      <label><b>1</b> 학년<input type="hidden" id="tg" value="1"></label>
+      <label><select id="tc">${opt(5, 1, 1)}</select> 반</label>
+      <button class="tbtn" id="tnew" disabled>새 답안 없음</button>
+      <span class="tinfo" id="tinfo">연결하는 중…</span>
+    </div>
+    <div id="tdirTop">
+      <div class="ttabs" id="ttabs"></div>
+      <div class="tbar"><button class="tbtn" id="tcmpBtn" disabled>골라서 크게 비교</button><button class="tbtn" id="tclear">고른 것 해제</button></div>
+    </div>
+    <div class="tbar">
+      <button class="tbtn" id="tok">정답 표시 켜기</button>
+      <button class="tbtn" id="tdel" style="margin-left:auto">이 반 답안 모두 지우기</button>
+    </div>
+    <div id="tbody"></div>`;
+  const $ = id => document.getElementById(id);
+  const DATA = { dir: { col: FB_COL, live: new Map(), shown: new Map(), first: true }, sort: { col: FB_COL_SORT, live: new Map(), shown: new Map(), first: true } };
+  let mode = 'dir', scene = 0, sel = [], showOk = false, unsubs = [], openRow = -1;
+  const nm = v => `${v.n}번`;
+  function pending(m) { let k = 0; DATA[m].live.forEach((v, id) => { const o = DATA[m].shown.get(id); if (!o || o.ts !== v.ts) k++; }); return k; }
+  function renderDir() {
+    const D = DATA.dir;
+    $('ttabs').innerHTML = SCENES.map((sc, i) => {
+      let k = 0; D.shown.forEach(v => { if (v.scene === i) k++; });
+      return `<button class="ttab${i === scene ? ' on' : ''}" data-i="${i}">${'가나다라'[i]}. ${sc.name}<small>${k}명</small></button>`;
+    }).join('');
+    $('ttabs').querySelectorAll('.ttab').forEach(b => b.onclick = () => { scene = +b.dataset.i; sel = []; render(); });
+    const list = [...D.shown.entries()].filter(([, v]) => v.scene === scene).sort((a, b) => a[1].n - b[1].n);
+    sel = sel.filter(id => list.some(([i]) => i === id));
+    $('tbody').innerHTML = '<div class="tgrid">' + (list.length ? list.map(([id, v]) => {
+      const si = sel.indexOf(id);
+      return `<button class="tcard${si >= 0 ? ' sel' : ''}" data-id="${id}"><img src="${v.img}" alt="">
+        ${si >= 0 ? `<span class="selno">${si + 1}</span>` : ''}
+        ${showOk ? `<span class="badge" style="background:${v.ok ? 'var(--mint)' : 'var(--red)'}">${v.ok ? '정답' : '다시'}</span>` : ''}
+        <div class="tn">${nm(v)}</div></button>`;
+    }).join('') : '<div class="tempty">아직 이 그림을 제출한 학생이 없어요.</div>') + '</div>';
+    $('tbody').querySelectorAll('.tcard').forEach(c => c.onclick = () => {
+      const id = c.dataset.id, k = sel.indexOf(id);
+      if (k >= 0) sel.splice(k, 1); else { if (sel.length >= 3) sel.shift(); sel.push(id); }
+      render();
+    });
+    $('tcmpBtn').disabled = !sel.length;
+    $('tcmpBtn').textContent = sel.length ? `고른 ${sel.length}개 크게 비교` : '골라서 크게 비교 (최대 3개)';
+  }
+  function renderSort() {
+    const list = [...DATA.sort.shown.values()].sort((a, b) => a.n - b.n), total = list.length;
+    if (!total) { $('tbody').innerHTML = '<div class="tempty">아직 제출한 학생이 없어요.</div>'; return; }
+    const allOk = list.filter(v => v.ok).length;
+    $('tbody').innerHTML = `<p class="tinfo" style="margin:4px 0 10px">제출 ${total}명 · 각 보기를 '중력이 아니다'라고 고른 학생 수예요. 줄을 누르면 누가 골랐는지 보여요.${showOk ? ` · <b style="color:var(--mint)">모두 맞힌 학생 ${allOk}명</b>` : ''}</p>
+      <div class="tbars">${GSORT.map((g, i) => {
+        const who = list.filter(v => (v.picks || []).includes(i)), k = who.length;
+        return `<button class="tbarrow${showOk && g[1] === 'x' ? ' isans' : ''}" data-i="${i}"><b>${'①②③④⑤⑥⑦⑧⑨'[i]} ${g[0]}</b>
+          <div class="trk"><div class="fill" style="width:${total ? k / total * 100 : 0}%"></div></div><span class="cnt">${k}명</span>
+          ${openRow === i ? `<div class="tnames">${k ? who.map(nm).join(', ') : '고른 학생이 없어요.'}</div>` : ''}</button>`;
+      }).join('')}</div>`;
+    $('tbody').querySelectorAll('.tbarrow').forEach(b => b.onclick = () => { const i = +b.dataset.i; openRow = openRow === i ? -1 : i; render(); });
+  }
+  function render() {
+    $('tdirTop').style.display = mode === 'dir' ? '' : 'none';
+    mode === 'dir' ? renderDir() : renderSort();
+    const p = pending(mode);
+    $('tnew').disabled = !p; $('tnew').classList.toggle('hot', !!p);
+    $('tnew').textContent = p ? `새 답안 ${p}개 불러오기` : '새 답안 없음';
+    $('tinfo').textContent = `화면에 ${DATA[mode].shown.size}개 · 받은 답 ${DATA[mode].live.size}개`;
+  }
+  function listen() {
+    unsubs.forEach(u => u()); unsubs = []; sel = []; openRow = -1;
+    Object.values(DATA).forEach(D => { D.live = new Map(); D.shown = new Map(); D.first = true; });
+    const fdb = getDB();
+    if (!fdb) { render(); $('tinfo').textContent = '⚠ 파이어베이스에 연결하지 못했어요. 설정(FB_PASTE 또는 ../game/firebase-config.js)을 확인해 주세요.'; return; }
+    const g = $('tg').value, c = $('tc').value;
+    Object.values(DATA).forEach(D => {
+      unsubs.push(fdb.collection(D.col).where('c', '==', c).onSnapshot(snap => {
+        D.live = new Map(); snap.forEach(doc => { const v = doc.data(); if (v.g === g) D.live.set(doc.id, v); });
+        if (D.first) { D.shown = new Map(D.live); D.first = false; }
+        render();
+      }, err => { $('tinfo').textContent = '⚠ 답을 불러오지 못했어요: ' + (err.code || err.message); }));
+    });
+  }
+  T.querySelectorAll('.tmodes .ttab').forEach(b => b.onclick = () => {
+    mode = b.dataset.m; T.querySelectorAll('.tmodes .ttab').forEach(x => x.classList.toggle('on', x === b)); render();
+  });
+  $('tg').onchange = listen; $('tc').onchange = listen;
+  $('tnew').onclick = () => { DATA[mode].shown = new Map(DATA[mode].live); render(); };
+  $('tclear').onclick = () => { sel = []; render(); };
+  const syncOk = () => { $('tok').textContent = showOk ? '정답 표시 끄기' : '정답 표시 켜기'; };
+  $('tok').onclick = () => { showOk = !showOk; syncOk(); render(); };
+  $('tcmpBtn').onclick = () => {
+    const C = $('tcmp'), D = DATA.dir;
+    C.innerHTML = `<div class="tbar"><b style="font-size:20px">${'가나다라'[scene]}. ${SCENES[scene].name}</b>
+      <button class="tbtn" id="tokc" style="margin-left:auto">${showOk ? '정답 표시 끄기' : '정답 표시 켜기'}</button><button class="tbtn hot" id="tcx">닫기</button></div>
+      <div class="tcmpgrid" style="grid-template-columns:repeat(${sel.length},minmax(0,1fr))">${sel.map(id => { const v = D.shown.get(id);
+        return `<figure><img src="${v.img}" alt=""><figcaption>${nm(v)}${showOk ? ` <span style="color:${v.ok ? 'var(--mint)' : 'var(--red)'}">${v.ok ? '정답' : '다시'}</span>` : ''}</figcaption></figure>`; }).join('')}</div>`;
+    C.style.display = 'flex';
+    $('tcx').onclick = () => { C.style.display = 'none'; };
+    $('tokc').onclick = () => { showOk = !showOk; syncOk(); render(); $('tcmpBtn').onclick(); };
+  };
+  $('tdel').onclick = async () => {
+    const g = $('tg').value, c = $('tc').value, fdb = getDB();
+    const all = Object.values(DATA).flatMap(D => [...D.live.keys()].map(id => [D.col, id]));
+    if (!fdb || !all.length) { alert('지울 답안이 없어요.'); return; }
+    if (!confirm(`${g}학년 ${c}반 답안 ${all.length}개(방향 찾기·중력 때문일까 모두)를 지울까요? 되돌릴 수 없어요.`)) return;
+    for (let k = 0; k < all.length; k += 400) { const b = fdb.batch(); all.slice(k, k + 400).forEach(([col, id]) => b.delete(fdb.collection(col).doc(id))); await b.commit(); }
+    Object.values(DATA).forEach(D => { D.shown = new Map(); }); render();
+  };
+  listen();
+})();
+</script>
+</body>
+</html>
