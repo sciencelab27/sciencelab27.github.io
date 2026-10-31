@@ -264,7 +264,6 @@ body[data-screen="board"] #btnReveal{display:block}
 <!-- 학생 태블릿 연결용 (인터넷이 없으면 자동으로 건너뛰고 직접 입력만 사용) -->
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script defer src="../firebase-config.js"></script>
 </head>
 <body data-screen="intro">
 
@@ -349,7 +348,6 @@ body[data-screen="board"] #btnReveal{display:block}
       <div class="row" id="tgBtns">
         <button class="mb" data-t="1">1 N</button>
         <button class="mb" data-t="2">🔥 도전! 2 N</button>
-        <button class="mb" data-t="3">🔥 도전! 3 N</button>
       </div>
       <div class="row">목표 중력 <input id="customT" inputmode="decimal" placeholder="예: 1.5"> N <button class="mb" id="applyT">적용</button></div>
       <p class="hint">목표마다 결과가 따로 저장됩니다. 1 N으로 돌아오면 이전 결과가 그대로 있어요.</p>
@@ -389,19 +387,14 @@ body[data-screen="board"] #btnReveal{display:block}
 </div>
 
 <script>
-/* =========================================================
-   파이어베이스 설정
-   - 깃허브 m1 폴더에 올리면 저장소 맨 위의 firebase-config.js를 자동으로 사용합니다.
-   - 자동으로 안 되면 아래 칸에 firebase-config.js 안의 값을 붙여 넣으세요.
-     (학생용 find_1N_student.html에도 똑같이 넣어야 합니다.)
-   ========================================================= */
+/* ===== 공유 연결 (파이어베이스 sciencelab27-game, force_balance.html과 같은 설정) ===== */
 const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyBrkYQ8duqpqpbyULoOCOZzgowFCsntbYQ",
+  authDomain: "sciencelab27-game.firebaseapp.com",
+  projectId: "sciencelab27-game",
+  storageBucket: "sciencelab27-game.firebasestorage.app",
+  messagingSenderId: "565966955391",
+  appId: "1:565966955391:web:ee7b1b6ba16428fe2fb04a"
 };
 const COL = 'find1n';        // 학생 결과
 const CTRL = 'find1n_ctrl';  // 목표 N·진행 단계 (학생 화면이 따라감)
@@ -607,9 +600,7 @@ function connect(){
   try{
     if(typeof firebase !== 'undefined'){
       if(!firebase.apps.length){
-        const cfg = (typeof firebaseConfig !== 'undefined' && firebaseConfig && firebaseConfig.projectId) ? firebaseConfig
-                  : (FIREBASE_CONFIG.projectId ? FIREBASE_CONFIG : null);
-        if(cfg) firebase.initializeApp(cfg);
+        firebase.initializeApp(FIREBASE_CONFIG);
       }
       if(firebase.apps.length) db = firebase.firestore();
     }
@@ -777,7 +768,6 @@ function renderReveal(){
       <div class="actions">
         <button class="btn-ghost" id="rvBack">이전</button>
         <button class="btn-fire" data-t="2">🔥 도전! 2 N을 찾아라</button>
-        <button class="btn-fire" data-t="3">🔥 도전! 3 N을 찾아라</button>
         <button class="btn-main" data-go="closing">수업 마무리</button>
       </div>`;
     $('#rvBack').onclick = () => revealStep(1);
