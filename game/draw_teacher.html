@@ -85,6 +85,7 @@ const MANUAL_CONFIG = null;
 (function(){
 "use strict";
 const STATE_DOC = "drawBooth/state", ENTRIES = "drawBooth_entries";
+const SCORE_URL = "https://claude.ai/artifact/CJkHdSy4YKuGHexfqyTS5B";
 const WORDS = {
   "동물": ["고양이","강아지","기린","펭귄","코끼리","문어","거북이","토끼","다람쥐","판다","고슴도치","악어","부엉이","해파리","돼지","돌고래","공룡","나비","달팽이","물고기"],
   "음식": ["떡볶이","김밥","피자","라면","수박","아이스크림","햄버거","붕어빵","딸기","초밥","바나나","계란프라이","핫도그","도넛","케이크","사과","치킨","샌드위치","포도","당근"],
@@ -150,6 +151,7 @@ function renderSide(){
     <div class="seg">${[[true,"부스 태블릿"],[false,"각자 태블릿"]].map(([v,t])=>`<button data-shared="${v}" aria-pressed="${C.shared===v}">${t}</button>`).join("")}</div>
     <div class="status qrbox"><b>학생 참가 QR · ${C.shared ? "부스 태블릿용" : "각자 태블릿용"}</b><div class="qr" id="qr" title="누르면 크게 보여요"></div><small>QR을 누르면 TV에 크게 보여요</small></div>
     <div class="stack">
+      <a class="btn small ghost" href="${SCORE_URL}" target="ai-score" rel="noopener" style="text-decoration:none">AI 채점실 열기</a>
       <button class="btn small ghost" id="wipe" ${drawing?"disabled":""}>모두 지우고 1판부터 다시</button>
     </div>
     <div id="msg"></div>`;
@@ -227,8 +229,9 @@ function renderMain(){
       : (S.round ? `<div class="empty">학생이 그림을 보내면 여기에 하나씩 붙어요.</div>` : "")}
     ${S.status === "closed" && entries.length ? `
       <div class="after">
-        <button class="btn" id="zip">AI 채점용으로 내려받기 (${entries.length}장)</button>
-        <p>내려받은 파일을 claude.ai의 AI 채점실에 끌어다 놓으세요.</p>
+        <button class="btn" id="zip">① AI 채점용으로 내려받기 (${entries.length}장)</button>
+        <a class="btn" href="${SCORE_URL}" target="ai-score" rel="noopener" style="background:#fff;box-shadow:0 4px 0 #C9CFE6;text-decoration:none">② AI 채점실 열기</a>
+        <p>내려받은 파일을 AI 채점실에 끌어다 놓으세요.</p>
       </div>` : ""}`;
   const z = document.getElementById("zip"); if (z) z.onclick = downloadZip;
   runClock();
