@@ -417,6 +417,19 @@ table.mini td.onB{background:#E8F0FB; color:#1F55B0}
 #asToast{position:fixed; left:50%; top:16px; transform:translate(-50%,-140%); z-index:70; background:var(--ink); color:#fff; padding:12px 20px; border-radius:12px; font-weight:700; font-size:17px; box-shadow:0 6px 18px rgba(0,0,0,.2); transition:transform .3s}
 #asToast.on{transform:translate(-50%,0)}
 .who-pick #wipeAns{min-height:52px; align-self:flex-end; font-size:16px; color:var(--warm); border-color:var(--line)}
+#qrBox{position:fixed; inset:0; z-index:58; background:#fff; display:flex; align-items:center; justify-content:center; padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(12px + env(safe-area-inset-bottom,0px))}
+#qrBox[hidden]{display:none}
+.qr-card{display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; max-height:100%}
+.qr-card h2{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:clamp(28px,4.4vw,52px); margin:0; color:var(--ink)}
+.qr-top{margin:0; color:var(--muted); font-size:18px}
+.qr-sub{margin:0; font-weight:800; font-size:clamp(18px,2.4vw,28px); color:var(--ok)}
+#qrCanvas{width:min(62vh,80vw); height:min(62vh,80vw); image-rendering:pixelated}
+.qr-url{margin:0; color:var(--muted); font-size:15px; word-break:break-all}
+.qr-sub2{margin:0 0 6px; font-size:17px; color:var(--ink)}
+td.wsel{text-align:left !important; padding:8px 10px}
+td.wsel select{font:inherit; font-size:18px; font-weight:700; min-height:46px; padding:6px 12px; border:2px solid var(--line); border-radius:10px; background:#fff; color:var(--ink)}
+td.wsel span{margin-left:10px; font-weight:700; color:var(--ok)}
+table.mini td small{font-size:12.5px; color:var(--muted); font-weight:700}
 </style>
 </head>
 <body>
@@ -431,7 +444,7 @@ table.mini td.onB{background:#E8F0FB; color:#1F55B0}
       <circle cx="94" cy="35" r="10" fill="#F4C9A0" stroke="#1E2A44" stroke-width="2"/>
       <line x1="140" y1="35" x2="118" y2="35" stroke="#2563C9" stroke-width="6" stroke-linecap="round"/><polygon points="108,35 122,26 122,44" fill="#2563C9"/>
     </svg>
-    <div class="tvbtns"><button type="button" class="tvbtn" id="tvOpen" hidden>공유화면 보기</button><button type="button" class="tvbtn alt" id="tLock" hidden title="교사 버튼 숨기기">🔒</button></div>
+    <div class="tvbtns"><button type="button" class="tvbtn alt" id="qrOpen" hidden>📱 학생 QR</button><button type="button" class="tvbtn" id="tvOpen" hidden>공유화면 보기</button><button type="button" class="tvbtn alt" id="tLock" hidden title="교사 버튼 숨기기">🔒</button></div>
     <div class="who" id="whoBox">
       <div class="who-pick">
         <select id="wGrade" hidden aria-hidden="true"><option value="1" selected>1</option></select>
@@ -521,9 +534,10 @@ table.mini td.onB{background:#E8F0FB; color:#1F55B0}
         <img class="devimg" id="devImg" src="" alt="용수철 실험 장치 (용수철 2개, 눈금 0~30 cm, 추)">
         <ol class="steps">
           <li>추를 걸기 전, 용수철 <b>아래 끝</b>이 가리키는 눈금(<b>처음 위치</b>)을 읽어 표의 ‘추 0개’ 칸에 적어요.</li>
-          <li>100 g 추를 <b>1개씩 더 걸면서</b> 용수철 아래 끝의 눈금을 읽어 적어요. 추가 흔들리지 않을 때, <b>눈높이를 눈금에 맞춰</b> 읽어요.</li>
+          <li>표의 <b>‘추 1개의 질량’</b>에서 그 용수철에 거는 추의 질량을 골라요(100 g ≈ 1 N, 50 g ≈ 0.5 N).</li>
+          <li>추를 <b>1개씩 더 걸면서</b> 용수철 아래 끝의 눈금을 읽어 적어요. 추가 흔들리지 않을 때, <b>눈높이를 눈금에 맞춰</b> 읽어요.</li>
           <li><b>늘어난 길이 = 그때 눈금 − 처음 눈금</b>을 계산해 적어요.</li>
-          <li>왼쪽 용수철은 <b>A</b>, 오른쪽 용수철은 <b>B</b>로 똑같이 해요. (B는 시간이 되면 해요.)</li>
+          <li>왼쪽 용수철은 <b>A</b>, 오른쪽 용수철은 <b>B</b>로 똑같이 해요. 두 용수철에 거는 추가 다르면 질량도 각각 골라요. (B는 시간이 되면 해요.)</li>
         </ol>
       </div>
       <p class="safety">⚠ 추를 떨어뜨리지 않게 한 손으로 받치며 걸고, 용수철을 너무 세게 잡아당기지 않아요.</p>
@@ -539,7 +553,7 @@ table.mini td.onB{background:#E8F0FB; color:#1F55B0}
 
     <details class="vlab" id="vlab">
       <summary>실험 기구가 없거나 결석했을 때 · 가상 실험 장치로 해 보기</summary>
-      <p class="guide">추 걸기 / 추 빼기 버튼으로 추를 매달고, 용수철 아래 끝(빨간 선)이 가리키는 눈금을 읽어 위 표에 적어요.</p>
+      <p class="guide">가상 실험의 추는 모두 <b>100 g</b>이에요(표에서 100 g을 골라요). 추 걸기 / 추 빼기 버튼으로 추를 매달고, 용수철 아래 끝(빨간 선)이 가리키는 눈금을 읽어 위 표에 적어요.</p>
       <div class="vwrap">
         <div class="labview"><svg id="lab" viewBox="0 0 640 540" role="img" aria-label="용수철 실험 장치 가상 실험"></svg></div>
         <div class="vctl">
@@ -563,7 +577,7 @@ table.mini td.onB{background:#E8F0FB; color:#1F55B0}
       <div class="boardwrap"><canvas id="graph" width="600" height="420" aria-label="늘어난 길이와 탄성력의 크기 그래프 그리기 칸"></canvas></div>
       <aside class="gdata" aria-label="내 측정값">
         <div class="gd-title">내 측정값 <small>위 실험 기록과 연결돼요</small></div>
-        <table class="mini" id="gData"><thead><tr><th>탄성력(N)</th><th>A 늘어난<br>길이(cm)</th><th>B 늘어난<br>길이(cm)</th></tr></thead><tbody></tbody></table>
+        <table class="mini" id="gData"><thead><tr><th>추</th><th>용수철 A<br>탄성력 · 늘어난 길이</th><th>용수철 B<br>탄성력 · 늘어난 길이</th></tr></thead><tbody></tbody></table>
         <div class="trend" id="gTrend"></div>
         <div class="scale" id="gScale"></div>
       </aside>
@@ -583,7 +597,8 @@ table.mini td.onB{background:#E8F0FB; color:#1F55B0}
 
     <div class="card">
       <div class="tag">정리해 볼까 · 두 용수철 비교</div>
-      <p style="font-weight:600;margin:4px 0 6px">같은 무게의 추를 매달았을 때 더 많이 늘어난 용수철은?</p>
+      <p class="guide" style="margin:2px 0 6px">두 용수철에 건 추의 무게가 다를 수 있어요. <b>추 개수</b>가 아니라 <b>같은 크기의 탄성력(N)</b>일 때를 비교해요. 그래프에서 같은 높이일 때를 보면 쉬워요.</p>
+      <p style="font-weight:600;margin:4px 0 6px">같은 크기의 힘(예: 1 N)을 받을 때 더 많이 늘어나는 용수철은?</p>
       <div class="chips" id="cmpMore"><button class="chip" data-k="A">용수철 A</button><button class="chip" data-k="B">용수철 B</button><button class="chip" data-k="S">거의 같다</button></div>
       <p style="font-weight:600;margin:12px 0 6px">그래프에서 더 가파르게 올라가는(기울기가 큰) 용수철은?</p>
       <div class="chips" id="cmpSteep"><button class="chip" data-k="A">용수철 A</button><button class="chip" data-k="B">용수철 B</button><button class="chip" data-k="S">거의 같다</button></div>
@@ -594,7 +609,7 @@ table.mini td.onB{background:#E8F0FB; color:#1F55B0}
 
     <div class="card">
       <div class="tag">정리해 볼까 · 예측</div>
-      <p style="font-weight:600;margin:4px 0 6px">용수철 A에 추를 <b>6개(약 6 N)</b> 매달면 몇 cm 늘어날까요? 그래프의 직선을 늘여서 예측해 보세요.</p>
+      <p style="font-weight:600;margin:4px 0 6px">용수철 A에 지금 쓰는 추를 <b>6개(약 <span id="predF">6</span> N)</b> 매달면 몇 cm 늘어날까요? 그래프의 직선을 늘여서 예측해 보세요.</p>
       <div class="claim"><input type="number" id="pred" inputmode="decimal" step="any"> cm</div>
       <div class="row"><button class="btn light" id="predC">확인</button><span id="predR" class="result"></span></div>
       <textarea id="predWhy" placeholder="그렇게 예측한 까닭 (힌트: 추 1개를 더 걸 때마다 대략 몇 cm씩 늘어났나요?)"></textarea>
@@ -1476,19 +1491,29 @@ document.getElementById('bothC').onclick = () => {
 };
 
 /* ---------- 3. 용수철의 탄성력 측정 (추 매달기 실험) ---------- */
-const FS = [0, 1, 2, 3, 4];          // 추의 개수 = 탄성력의 크기(N), 100 g 추 1개 ≈ 1 N
+const FS = [0, 1, 2, 3, 4];          // 추의 개수
+const MASSES = [10, 20, 25, 30, 50, 100, 200];   // 고를 수 있는 추 1개의 질량(g), 100 g ≈ 1 N
 const SER_COL = { A: RED, B: BLUE };
 const numv = id => { const el = document.getElementById(id); const v = el ? el.value.trim() : ''; return v === '' || isNaN(+v) ? null : +v; };
-function series(s) { return FS.slice(1).map(n => ({ F: n, x: numv('e' + s + n) })).filter(o => o.x !== null); }
+const W = s => { const el = document.getElementById('w' + s); const v = el ? +el.value : 100; return (v > 0 ? v : 100) / 100; };   // 추 1개의 무게(N)
+const Fof = (s, n) => Math.round(n * W(s) * 100) / 100;
+function series(s) { return FS.slice(1).map(n => ({ n, F: Fof(s, n), x: numv('e' + s + n) })).filter(o => o.x !== null); }
+function updateF(s) { FS.forEach(n => { const c = document.getElementById('f' + s + n); if (c) c.textContent = fmt2(Fof(s, n)); });
+  const t = document.getElementById('wn' + s); if (t) t.textContent = `→ 추 1개의 무게 ≈ ${fmt2(W(s))} N`; }
+const fmt2 = v => String(Math.round(v * 100) / 100);
 function buildRec(s) {
   document.getElementById('rec' + s).innerHTML =
     `<tr><th>용수철 ${s} · 추의 개수</th>${FS.map(n => `<td class="fix">${n}개</td>`).join('')}</tr>` +
-    `<tr><th>탄성력의 크기 (N) = 추의 무게</th>${FS.map(n => `<td class="fix">${n}</td>`).join('')}</tr>` +
+    `<tr><th>추 1개의 질량</th><td colspan="${FS.length}" class="wsel"><select id="w${s}" aria-label="용수철 ${s}에 거는 추 1개의 질량">${MASSES.map(m => `<option value="${m}"${m === 100 ? ' selected' : ''}>${m} g</option>`).join('')}</select> <span id="wn${s}"></span></td></tr>` +
+    `<tr><th>탄성력의 크기 (N) = 추의 무게</th>${FS.map(n => `<td class="fix" id="f${s}${n}">${n}</td>`).join('')}</tr>` +
     `<tr><th>용수철 아래 끝의 눈금 (cm)</th>${FS.map(n => `<td><input type="number" step="any" inputmode="decimal" id="r${s}${n}" aria-label="용수철 ${s} 추 ${n}개일 때 눈금"></td>`).join('')}</tr>` +
     `<tr><th>늘어난 길이 (cm)</th>${FS.map(n => n === 0 ? '<td class="fix">0</td>' : `<td><input type="number" step="any" inputmode="decimal" id="e${s}${n}" aria-label="용수철 ${s} 추 ${n}개일 때 늘어난 길이"></td>`).join('')}</tr>`;
 }
-buildRec('A'); buildRec('B');
-['recA', 'recB'].forEach(id => document.getElementById(id).addEventListener('input', e => { e.target.style.borderColor = ''; e.target.style.background = ''; drawGraph(); }));
+buildRec('A'); buildRec('B'); updateF('A'); updateF('B');
+['recA', 'recB'].forEach(id => ['input', 'change'].forEach(t => document.getElementById(id).addEventListener(t, e => {
+  if (e.target.tagName === 'SELECT') { updateF(id.slice(-1)); updatePredF(); } else { e.target.style.borderColor = ''; e.target.style.background = ''; }
+  drawGraph(); })));
+function updatePredF() { const el = document.getElementById('predF'); if (el) el.textContent = fmt2(6 * W('A')); }
 document.getElementById('recC').onclick = () => {
   const msgs = []; let okA = false, anyB = false;
   ['A', 'B'].forEach(s => {
@@ -1547,7 +1572,9 @@ drawLab();
 
 /* 그래프 — 가로축 눈금은 측정값에 맞춰 저절로 바뀌어요 */
 const gc = document.getElementById('graph'), g = gc.getContext('2d');
-const GW = 600, GH = 420, GL = 70, GB = 360, GT = 20, GR = 580, YMAX = 7;
+const GW = 600, GH = 420, GL = 70, GB = 360, GT = 20, GR = 580;
+let YMAX = 5;
+const NICEY = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30];
 const NICE = [5, 6, 8, 10, 12, 15, 20, 25, 30, 40];
 let XMAX = 10;
 const gx = v => GL + v / XMAX * (GR - GL), gy = v => GB - v / YMAX * (GB - GT);
@@ -1557,50 +1584,59 @@ function calcXMax() {
   pts.forEach(p => m = Math.max(m, p.x)); if (pDone && predV) m = Math.max(m, predV);
   m *= 1.12; return NICE.find(v => v >= m) || 40;
 }
+function calcYMax() {
+  let m = 0; ['A', 'B'].forEach(s => { if (series(s).length) m = Math.max(m, Fof(s, 4)); });
+  pts.forEach(p => m = Math.max(m, p.y)); if (pDone && predV) m = Math.max(m, 6 * W('A'));
+  if (!m) m = 4; m *= 1.12; return NICEY.find(v => v >= m) || 30;
+}
+const minorY = () => YMAX <= 2 ? 0.1 : YMAX <= 5 ? 0.25 : YMAX <= 10 ? 0.5 : 1;
+const majorY = () => YMAX <= 2 ? 0.5 : YMAX <= 10 ? 1 : 5;
+const tolY = () => Math.max(0.12, YMAX * 0.035);
 const minorX = () => XMAX <= 6 ? 0.2 : XMAX <= 15 ? 0.5 : 1;
 const majorX = () => XMAX <= 15 ? 1 : 5;
 const tolX = () => Math.max(XMAX * 0.025, 0.15);
 const fmt = v => String(Math.round(v * 10) / 10);
 function drawGraph() {
-  XMAX = calcXMax();
+  XMAX = calcXMax(); YMAX = calcYMax();
   g.fillStyle = '#fff'; g.fillRect(0, 0, GW, GH);
   const mi = minorX(), ma = majorX();
   for (let k = 0; k * mi <= XMAX + 1e-9; k++) { const x = k * mi, big = Math.abs(x / ma - Math.round(x / ma)) < 1e-6; g.strokeStyle = big ? '#C9D3E3' : '#EEF2F8'; g.lineWidth = 1; g.beginPath(); g.moveTo(Math.round(gx(x)) + .5, GT); g.lineTo(Math.round(gx(x)) + .5, GB); g.stroke(); }
-  for (let k = 0; k <= YMAX * 2; k++) { const v = k / 2; g.strokeStyle = k % 2 ? '#EEF2F8' : '#C9D3E3'; g.beginPath(); g.moveTo(GL, Math.round(gy(v)) + .5); g.lineTo(GR, Math.round(gy(v)) + .5); g.stroke(); }
+  const miy = minorY(), may = majorY();
+  for (let k = 0; k * miy <= YMAX + 1e-9; k++) { const v = k * miy, big = Math.abs(v / may - Math.round(v / may)) < 1e-6; g.strokeStyle = big ? '#C9D3E3' : '#EEF2F8'; g.beginPath(); g.moveTo(GL, Math.round(gy(v)) + .5); g.lineTo(GR, Math.round(gy(v)) + .5); g.stroke(); }
   g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(GL, GT); g.lineTo(GL, GB); g.lineTo(GR, GB); g.stroke();
   g.font = 'bold 14px "Gothic A1", sans-serif'; g.fillStyle = INK; g.textAlign = 'center'; g.textBaseline = 'top';
   for (let k = 0; k * ma <= XMAX + 1e-9; k++) g.fillText(fmt(k * ma), gx(k * ma), GB + 6);
   g.fillText('용수철이 늘어난 길이 (cm)', (GL + GR) / 2, GB + 30);
   g.textAlign = 'right'; g.textBaseline = 'middle';
-  for (let k = 0; k <= YMAX; k++) g.fillText(k, GL - 8, gy(k));
+  for (let k = 0; k * may <= YMAX + 1e-9; k++) g.fillText(fmt(k * may), GL - 8, gy(k * may));
   g.save(); g.translate(18, (GT + GB) / 2); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.fillText('탄성력의 크기 (N)', 0, 0); g.restore();
   g.save(); g.beginPath(); g.rect(GL, GT, GR - GL, GB - GT); g.clip();
   glines.forEach(l => { g.strokeStyle = '#7B3FE4'; g.lineWidth = 3.5; g.lineCap = 'round'; g.beginPath(); g.moveTo(gx(l[0]), gy(l[1])); g.lineTo(gx(l[2]), gy(l[3])); g.stroke(); });
   if (gdrag && gdrag.moved) { g.strokeStyle = 'rgba(123,63,228,.55)'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(gdrag.a[0], gdrag.a[1]); g.lineTo(gdrag.b[0], gdrag.b[1]); g.stroke(); }
   if (pDone && predV) {
     const a = series('A'), last = a.length ? a[a.length - 1] : { x: 0, F: 0 };
-    g.setLineDash([7, 6]); g.strokeStyle = RED; g.lineWidth = 2.5; g.beginPath(); g.moveTo(gx(last.x), gy(last.F)); g.lineTo(gx(predV), gy(6)); g.stroke(); g.setLineDash([]);
-    g.beginPath(); g.arc(gx(predV), gy(6), 7, 0, Math.PI * 2); g.fillStyle = '#fff'; g.fill(); g.lineWidth = 3; g.strokeStyle = RED; g.stroke();
+    g.setLineDash([7, 6]); g.strokeStyle = RED; g.lineWidth = 2.5; g.beginPath(); g.moveTo(gx(last.x), gy(last.F)); g.lineTo(gx(predV), gy(6 * W('A'))); g.stroke(); g.setLineDash([]);
+    g.beginPath(); g.arc(gx(predV), gy(6 * W('A')), 7, 0, Math.PI * 2); g.fillStyle = '#fff'; g.fill(); g.lineWidth = 3; g.strokeStyle = RED; g.stroke();
   }
   g.restore();
   pts.forEach(p => { g.beginPath(); g.arc(gx(p.x), gy(p.y), 7, 0, Math.PI * 2); g.fillStyle = SER_COL[p.s]; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); });
   if (ghover && !(gdrag && gdrag.moved)) {
     const hx = gx(ghover[0]), hy = gy(ghover[1]);
     g.setLineDash([3, 3]); g.strokeStyle = '#8A97A6'; g.lineWidth = 1; g.beginPath(); g.moveTo(GL, hy); g.lineTo(hx, hy); g.lineTo(hx, GB); g.stroke(); g.setLineDash([]);
-    const txt = `(${fmt(ghover[0])} cm, ${ghover[1]} N)`; g.font = 'bold 14px "Gothic A1", sans-serif'; const w = g.measureText(txt).width + 14;
+    const txt = `(${fmt(ghover[0])} cm, ${fmt2(ghover[1])} N)`; g.font = 'bold 14px "Gothic A1", sans-serif'; const w = g.measureText(txt).width + 14;
     const bx = Math.min(hx + 12, GR - w), by = Math.max(hy - 34, 2);
     g.fillStyle = 'rgba(30,42,68,.9)'; g.fillRect(bx, by, w, 24); g.fillStyle = '#fff'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(txt, bx + 7, by + 12);
   }
   const nA = pts.filter(p => p.s === 'A').length, nB = pts.length - nA;
   document.getElementById('gCount').textContent = `점 A ${nA}개 · B ${nB}개 · 선 ${glines.length}개`;
-  document.getElementById('gScale').textContent = `그래프 눈금: 가로 한 칸 ${mi} cm · 세로 한 칸 0.5 N (가로 눈금은 측정값에 맞춰 바뀌어요)`;
+  document.getElementById('gScale').textContent = `그래프 눈금: 가로 한 칸 ${mi} cm · 세로 한 칸 ${miy} N (눈금은 측정값에 맞춰 바뀌어요)`;
   renderGData();
 }
-const hasPt = (s, o) => pts.some(p => p.s === s && Math.abs(p.x - o.x) <= tolX() && Math.abs(p.y - o.F) <= 0.3);
+const hasPt = (s, o) => pts.some(p => p.s === s && Math.abs(p.x - o.x) <= tolX() && Math.abs(p.y - o.F) <= tolY());
 /* 그래프 옆 '내 측정값': 실험 기록 표와 연결 */
 function renderGData() {
-  const cell = (s, n) => { const x = numv('e' + s + n); if (x === null) return '<td class="e">-</td>'; const on = hasPt(s, { x, F: n }); return `<td class="v${on ? ' on' + s : ''}">${x}${on ? ' ✓' : ''}</td>`; };
-  document.querySelector('#gData tbody').innerHTML = FS.slice(1).map(n => `<tr><td class="k">${n}</td>${cell('A', n)}${cell('B', n)}</tr>`).join('');
+  const cell = (s, n) => { const x = numv('e' + s + n), F = Fof(s, n); if (x === null) return `<td class="e">${fmt2(F)} N<br>-</td>`; const on = hasPt(s, { x, F }); return `<td class="v${on ? ' on' + s : ''}"><small>${fmt2(F)} N</small><br>${x} cm${on ? ' ✓' : ''}</td>`; };
+  document.querySelector('#gData tbody').innerHTML = FS.slice(1).map(n => `<tr><td class="k">${n}개</td>${cell('A', n)}${cell('B', n)}</tr>`).join('');
   const tr = document.getElementById('gTrend'), a = series('A'), b = series('B');
   if (!a.length && !b.length) { tr.textContent = '위 실험 기록 표에 늘어난 길이를 적으면 여기에 보여요. ✓는 그래프에 점을 찍었다는 표시예요.'; return; }
   tr.innerHTML = `<b style="color:${RED}">●</b> 용수철 A 점, <b style="color:${BLUE}">●</b> 용수철 B 점은 위의 버튼으로 바꿔서 찍어요.`;
@@ -1611,12 +1647,14 @@ const gdata = P => [(P[0] - GL) / (GR - GL) * XMAX, (GB - P[1]) / (GB - GT) * YM
 function gval(P) {
   const [x, y] = gdata(P);
   const sx = XMAX <= 15 ? 0.1 : 0.5;
-  let v = [Math.max(0, Math.min(XMAX, Math.round(x / sx) * sx)), Math.max(0, Math.min(YMAX, Math.round(y * 2) / 2))];
+  const sy = minorY() / 2;
+  let v = [Math.max(0, Math.min(XMAX, Math.round(x / sx) * sx)), Math.max(0, Math.min(YMAX, Math.round(y / sy) * sy))];
+  v[1] = Math.round(v[1] * 100) / 100;
   v[0] = Math.round(v[0] * 10) / 10;
   return v;
 }
 function gmagnet(v) {   // 내 측정값 바로 근처를 누르면 그 값에 붙여 줘요
-  const d = series(gser).find(o => Math.abs(o.x - v[0]) <= tolX() * 1.6 && Math.abs(o.F - v[1]) <= 0.5);
+  const d = series(gser).find(o => Math.abs(o.x - v[0]) <= tolX() * 1.6 && Math.abs(o.F - v[1]) <= tolY() * 1.6);
   return d ? [d.x, d.F] : v;
 }
 const inBox = P => P[0] >= GL - 10 && P[0] <= GR + 10 && P[1] >= GT - 10 && P[1] <= GB + 10;
@@ -1664,41 +1702,41 @@ document.getElementById('gCheck').onclick = () => {
     const d = series(s), mine = pts.filter(p => p.s === s); need += d.length;
     if (!d.length) { if (mine.length) out.push(`용수철 ${s}는 기록이 없는데 점이 있어요.`); return; }
     const miss = d.filter(o => !hasPt(s, o));
-    const extra = mine.filter(p => !d.some(o => Math.abs(p.x - o.x) <= tolX() && Math.abs(p.y - o.F) <= 0.3));
-    if (miss.length) out.push(`용수철 ${s}: 탄성력 ${miss.map(o => o.F + ' N').join(', ')}의 점을 표와 비교해 보세요.`);
+    const extra = mine.filter(p => !d.some(o => Math.abs(p.x - o.x) <= tolX() && Math.abs(p.y - o.F) <= tolY()));
+    if (miss.length) out.push(`용수철 ${s}: 탄성력 ${miss.map(o => fmt2(o.F) + ' N').join(', ')}의 점을 표와 비교해 보세요.`);
     if (extra.length) out.push(`용수철 ${s}: 표에 없는 점이 ${extra.length}개 있어요.`);
   });
   if (!need) return check('gR', false, '', '먼저 실험 기록 표에 늘어난 길이를 적어요.');
   if (!out.length) return check('gR', true, glines.length ? '점이 모두 맞았어요! 그은 선이 점들의 경향을 잘 나타내는지 살펴보세요.' : '점이 모두 맞았어요! 이제 끌어서 점들의 경향을 나타내는 선을 그어 보세요. 원점에서 시작하면 좋아요.', '');
   check('gR', false, '', out.join(' '));
 };
-drawGraph();
+drawGraph(); updatePredF();
 document.getElementById('relC').onclick = () => {
   const a = document.querySelector('#shape .chip.on'), b = document.querySelector('#rel .chip.on');
   if (!a || !b) return check('relR', false, '', '두 질문에 모두 답해 보세요.');
   const g1 = a.dataset.k === 'line', g2 = b.dataset.k === 'p';
   check('relR', g1 && g2, '정답! 점들이 원점을 지나는 직선 근처에 놓이니, 늘어난 길이가 2배, 3배가 되면 탄성력도 2배, 3배가 돼요. 점이 조금 벗어난 것은 측정할 때 생긴 오차예요.',
-    !g1 ? '점들이 조금씩 흔들려 있어도 전체적으로 어떤 모양을 따라가는지 보세요.' : '추가 2개(2 N)일 때와 4개(4 N)일 때의 늘어난 길이를 비교해 보세요.');
+    !g1 ? '점들이 조금씩 흔들려 있어도 전체적으로 어떤 모양을 따라가는지 보세요.' : '탄성력이 2배가 될 때(예: 추 2개 → 4개) 늘어난 길이가 어떻게 되는지 비교해 보세요.');
 };
+const kOf = d => d.reduce((t, o) => t + o.x * o.F, 0) / d.reduce((t, o) => t + o.F * o.F, 0);   // 1 N당 늘어난 길이(cm)
 document.getElementById('cmpC').onclick = () => {
   const a = series('A'), b = series('B'), m = document.querySelector('#cmpMore .chip.on'), t = document.querySelector('#cmpSteep .chip.on');
   if (!b.length || !a.length) return check('cmpR', false, '', '용수철 A와 B를 모두 측정해야 비교할 수 있어요.');
   if (!m || !t) return check('cmpR', false, '', '두 질문에 모두 답해 보세요.');
-  const common = a.filter(o => b.some(q => q.F === o.F)); if (!common.length) return check('cmpR', false, '', '같은 추 개수의 기록이 있어야 비교할 수 있어요.');
-  const sa = common.reduce((t, o) => t + o.x, 0), sb = common.reduce((t, o) => t + b.find(q => q.F === o.F).x, 0);
-  const more = Math.abs(sa - sb) / Math.max(sa, sb, 0.01) < 0.08 ? 'S' : (sa > sb ? 'A' : 'B'), steep = more === 'S' ? 'S' : (more === 'A' ? 'B' : 'A');
+  const ka = kOf(a), kb = kOf(b);
+  const more = Math.abs(ka - kb) / Math.max(ka, kb, 0.001) < 0.08 ? 'S' : (ka > kb ? 'A' : 'B'), steep = more === 'S' ? 'S' : (more === 'A' ? 'B' : 'A');
   const ok1 = m.dataset.k === more, ok2 = t.dataset.k === steep;
-  check('cmpR', ok1 && ok2, more === 'S' ? '맞아요! 두 용수철이 거의 비슷하게 늘어났어요.' : `맞아요! 용수철 ${more}가 더 많이 늘어나고, 그래프는 용수철 ${steep}가 더 가파르게 올라가요. 같은 길이를 늘이는 데 더 큰 힘이 드는 ${steep}가 ‘잘 안 늘어나는’ 용수철이에요.`,
-    !ok1 ? '표에서 같은 추 개수일 때 두 용수철의 늘어난 길이를 비교해 보세요.' : '같은 길이만큼 늘어났을 때 탄성력이 더 큰 쪽이 더 가파른 그래프예요. 오른쪽으로 갈 때 더 빨리 올라가는 선을 찾아보세요.');
+  check('cmpR', ok1 && ok2, more === 'S' ? '맞아요! 같은 힘(1 N)을 줄 때 두 용수철이 거의 비슷하게 늘어나요.' : `맞아요! 같은 힘(1 N)일 때 용수철 A는 약 ${fmt(ka)} cm, B는 약 ${fmt(kb)} cm 늘어나요. 그래서 ${more}가 더 많이 늘어나고, 그래프는 ${steep}가 더 가파르게 올라가요. 같은 길이를 늘이는 데 더 큰 힘이 드는 ${steep}가 ‘잘 안 늘어나는’ 용수철이에요.`,
+    !ok1 ? (W('A') !== W('B') ? '두 용수철에 건 추의 무게가 달라요. 추 개수가 아니라 ' : '') + '같은 탄성력(N)일 때의 늘어난 길이를 비교해 보세요. 그래프에서 같은 높이(같은 N)일 때 어느 점이 더 오른쪽에 있나요?' : '같은 길이만큼 늘어났을 때 탄성력이 더 큰 쪽이 더 가파른 그래프예요. 오른쪽으로 갈 때 더 빨리 올라가는 선을 찾아보세요.');
 };
 document.getElementById('predC').onclick = () => {
   const v = numv('pred'), a = series('A');
   if (a.length < 2) return check('predR', false, '', '먼저 용수철 A의 실험 기록을 2칸 이상 적어요.');
   if (v === null) return check('predR', false, '', '몇 cm인지 적어 보세요.');
-  const k = a.reduce((t, o) => t + o.x * o.F, 0) / a.reduce((t, o) => t + o.F * o.F, 0), want = 6 * k, ok = Math.abs(v - want) <= Math.max(0.5, want * 0.12);
+  const k = kOf(a) * W('A'), want = 6 * k, ok = Math.abs(v - want) <= Math.max(0.5, want * 0.12);
   if (ok) { pDone = true; predV = v; drawGraph(); }
   check('predR', ok, `좋은 예측이에요! 우리 데이터로는 추 1개마다 약 ${fmt(k)} cm씩 늘어나니 약 ${fmt(want)} cm예요. 그래프에 점선으로 늘여 봤어요.`,
-    '추 1개(1 N)를 더 걸 때마다 대략 몇 cm씩 늘어났는지 표에서 찾고, 6개일 때를 계산해 보세요.');
+    '추 1개를 더 걸 때마다 대략 몇 cm씩 늘어났는지 표에서 찾고, 6개일 때를 계산해 보세요.');
 };
 document.getElementById('realC').onclick = () => {
   const p = numv('pred'), r = numv('predReal');
@@ -3584,7 +3622,7 @@ const PART = {
   3(){
     ghover = null; drawGraph();
     const tbl = k => `<table><tr><th style="text-align:left;width:210px">용수철 ${k} · 추의 개수</th>${FS.map(n => `<td><b>${n}개</b></td>`).join('')}</tr>
-        <tr><th style="text-align:left">탄성력의 크기 (N)</th>${FS.map(n => `<td>${n}</td>`).join('')}</tr>
+        <tr><th style="text-align:left">탄성력의 크기 (N)<br><small>추 1개 ${esc(val('#w' + k))} g</small></th>${FS.map(n => `<td>${fmt2(Fof(k, n))}</td>`).join('')}</tr>
         <tr><th style="text-align:left">아래 끝의 눈금 (cm)</th>${FS.map(n => `<td>${esc(val('#r' + k + n)) || ' '}</td>`).join('')}</tr>
         <tr><th style="text-align:left">늘어난 길이 (cm)</th>${FS.map(n => `<td>${n ? (esc(val('#e' + k + n)) || ' ') : '0'}</td>`).join('')}</tr></table>`;
     const hasB = FS.some(n => val('#rB' + n) || (n && val('#eB' + n)));
@@ -3595,7 +3633,7 @@ const PART = {
       <div class="a">그래프 모양: ${esc(chipTxt('#shape')) || '고르지 않음'}\n탄성력의 크기는 늘어난 길이에 ${esc(chipTxt('#rel')) || '(  )'}</div>${rs('relR')}
       <div class="qq">두 용수철 비교</div>
       <div class="a">더 많이 늘어난 용수철: ${esc(chipTxt('#cmpMore')) || '-'}\n더 가파른 그래프: ${esc(chipTxt('#cmpSteep')) || '-'}\n${esc(val('#cmpWhy'))}</div>${rs('cmpR')}
-      <div class="qq">예측: 용수철 A에 추 6개 → ${esc(val('#pred')) || '  '} cm${val('#predReal') ? ` (실제 ${esc(val('#predReal'))} cm)` : ''}</div><div class="a">${esc(val('#predWhy')) || ' '}</div>${rs('predR')}${rs('realR')}
+      <div class="qq">예측: 용수철 A에 추 6개(약 ${fmt2(6 * W('A'))} N) → ${esc(val('#pred')) || '  '} cm${val('#predReal') ? ` (실제 ${esc(val('#predReal'))} cm)` : ''}</div><div class="a">${esc(val('#predWhy')) || ' '}</div>${rs('predR')}${rs('realR')}
       <div class="qq">함정 주의: 전체 길이 20 cm일 때 탄성력 → ${esc(val('#trap')) || '  '} N</div><div class="a">${esc(val('#trapWhy')) || ' '}</div>${rs('trapR')}`;
   },
 
@@ -3736,6 +3774,7 @@ if (who) loadFor(asKey(who));
         <div class="tv-seg" id="tvCls" role="group" aria-label="반 선택"></div>
     <span class="tv-live" id="tvLive"><i></i><span>연결 중</span></span>
     <span class="tv-sp"></span>
+    <button type="button" class="tv-b" id="tvQr">📱 학생 QR</button>
     <button type="button" class="tv-b close" id="tvClose">활동 화면으로 ✕</button>
   </div>
   <div class="tv-sub">
@@ -3780,6 +3819,85 @@ if (who) loadFor(asKey(who));
     <div class="pw-row"><button type="button" class="btn ghost" id="pwCancel">취소</button><button type="button" class="btn" id="pwOk">확인</button></div>
   </div>
 </div>
+<div id="qrBox" hidden role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+  <div class="qr-card">
+    <p class="qr-top">비상교육 과학 1 · 학생 활동지</p>
+    <h2 id="qrTitle"></h2>
+    <p class="qr-sub">태블릿 카메라로 찍어서 들어와요</p>
+    <canvas id="qrCanvas" width="1000" height="1000" aria-label="학생용 QR 코드"></canvas>
+    <p class="qr-url" id="qrUrl"></p>
+    <p class="qr-sub2">들어오면 반을 고르고 번호를 적은 뒤 시작해요</p>
+    <button type="button" class="tv-b close" id="qrClose">닫기 ✕</button>
+  </div>
+</div>
+<script>
+/* ---------- 학생용 QR (교사 화면에서 띄우기) — 외부 파일 없이 직접 그려요 (바이트 모드, 오류 정정 M, 버전 1~6) ---------- */
+const QRMini = (() => {
+  const ECC = {1:[10,[[1,16]]],2:[16,[[1,28]]],3:[26,[[1,44]]],4:[18,[[2,32]]],5:[24,[[2,43]]],6:[16,[[4,27]]]};
+  const AL = {1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34]};
+  const mul = (x, y) => { let z = 0; for (let i = 7; i >= 0; i--) { z = (z << 1) ^ ((z >>> 7) * 0x11D); z ^= ((y >>> i) & 1) * x; } return z & 255; };
+  function gen(deg) { const r = new Array(deg).fill(0); r[deg - 1] = 1; let root = 1;
+    for (let i = 0; i < deg; i++) { for (let j = 0; j < deg; j++) { r[j] = mul(r[j], root); if (j + 1 < deg) r[j] ^= r[j + 1]; } root = mul(root, 2); } return r; }
+  function rem(data, div) { const res = new Array(div.length).fill(0);
+    for (const b of data) { const f = b ^ res.shift(); res.push(0); div.forEach((c, i) => { res[i] ^= mul(c, f); }); } return res; }
+  function encode(text) {
+    const data = Array.from(new TextEncoder().encode(text)); let ver, ec, groups, cap;
+    for (ver = 1; ver <= 6; ver++) { [ec, groups] = ECC[ver]; cap = groups.reduce((t, g) => t + g[0] * g[1], 0); if (12 + data.length * 8 <= cap * 8) break; }
+    if (ver > 6) return null;
+    const bits = []; const add = (v, n) => { for (let i = n - 1; i >= 0; i--) bits.push((v >>> i) & 1); };
+    add(4, 4); add(data.length, 8); data.forEach(b => add(b, 8)); add(0, Math.min(4, cap * 8 - bits.length)); add(0, (8 - bits.length % 8) % 8);
+    for (let k = 0; bits.length < cap * 8; k++) add(k % 2 ? 0x11 : 0xEC, 8);
+    const cw = []; for (let i = 0; i < bits.length; i += 8) cw.push(parseInt(bits.slice(i, i + 8).join(''), 2));
+    const blocks = [], div = gen(ec); let pos = 0;
+    groups.forEach(([n, k]) => { for (let i = 0; i < n; i++) { const d = cw.slice(pos, pos + k); pos += k; blocks.push([d, rem(d, div)]); } });
+    const out = []; const ml = Math.max(...blocks.map(b => b[0].length));
+    for (let i = 0; i < ml; i++) blocks.forEach(b => { if (i < b[0].length) out.push(b[0][i]); });
+    for (let i = 0; i < ec; i++) blocks.forEach(b => out.push(b[1][i]));
+    const size = ver * 4 + 17, M = [...Array(size)].map(() => new Array(size).fill(false)), F = [...Array(size)].map(() => new Array(size).fill(false));
+    const setf = (x, y, v) => { M[y][x] = v; F[y][x] = true; };
+    for (let i = 0; i < size; i++) { setf(6, i, i % 2 === 0); setf(i, 6, i % 2 === 0); }
+    const finder = (cx, cy) => { for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) { const x = cx + dx, y = cy + dy;
+      if (x >= 0 && x < size && y >= 0 && y < size) { const d = Math.max(Math.abs(dx), Math.abs(dy)); setf(x, y, d !== 2 && d !== 4); } } };
+    finder(3, 3); finder(size - 4, 3); finder(3, size - 4);
+    const al = AL[ver], n = al.length;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      if ((i === 0 && j === 0) || (i === 0 && j === n - 1) || (i === n - 1 && j === 0)) continue;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) setf(al[i] + dx, al[j] + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+    }
+    const drawFormat = mask => { const d = mask; let r = d; for (let i = 0; i < 10; i++) r = (r << 1) ^ ((r >>> 9) * 0x537);
+      const b = ((d << 10) | r) ^ 0x5412, g = i => ((b >>> i) & 1) === 1;
+      for (let i = 0; i < 6; i++) setf(8, i, g(i)); setf(8, 7, g(6)); setf(8, 8, g(7)); setf(7, 8, g(8));
+      for (let i = 9; i < 15; i++) setf(14 - i, 8, g(i)); for (let i = 0; i < 8; i++) setf(size - 1 - i, 8, g(i));
+      for (let i = 8; i < 15; i++) setf(8, size - 15 + i, g(i)); setf(8, size - 8, true); };
+    drawFormat(0);
+    const all = []; out.forEach(c => { for (let i = 7; i >= 0; i--) all.push((c >>> i) & 1); });
+    let idx = 0;
+    for (let right = size - 1; right >= 1; right -= 2) { if (right === 6) right = 5;
+      for (let v = 0; v < size; v++) for (let j = 0; j < 2; j++) { const x = right - j, up = ((right + 1) & 2) === 0, y = up ? size - 1 - v : v;
+        if (!F[y][x] && idx < all.length) { M[y][x] = all[idx] === 1; idx++; } } }
+    const maskFn = [(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,(x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,(x,y)=>x*y%2+x*y%3===0,(x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+    const applyMask = mk => { for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (!F[y][x] && maskFn[mk](x, y)) M[y][x] = !M[y][x]; };
+    const penalty = () => { let p = 0;
+      const lines = [...M, ...M[0].map((_, x) => M.map(r => r[x]))];
+      lines.forEach(r => { let run = 1; for (let k = 1; k < size; k++) { if (r[k] === r[k - 1]) run++; else { if (run >= 5) p += run - 2; run = 1; } } if (run >= 5) p += run - 2;
+        const s = r.map(v => v ? 1 : 0).join(''); p += 40 * ((s.match(/10111010000/g) || []).length + (s.match(/00001011101/g) || []).length); });
+      for (let y = 0; y < size - 1; y++) for (let x = 0; x < size - 1; x++) if (M[y][x] === M[y][x + 1] && M[y][x] === M[y + 1][x] && M[y][x] === M[y + 1][x + 1]) p += 3;
+      const dark = M.flat().filter(Boolean).length, tot = size * size; p += 10 * Math.floor(Math.abs(dark * 20 - tot * 10) / tot); return p; };
+    let best = [Infinity, 0];
+    for (let mk = 0; mk < 8; mk++) { applyMask(mk); drawFormat(mk); const pn = penalty(); if (pn < best[0]) best = [pn, mk]; applyMask(mk); }
+    applyMask(best[1]); drawFormat(best[1]);
+    return M;
+  }
+  function draw(canvas, text) {
+    const M = encode(text); const x = canvas.getContext('2d'); if (!M) return false;
+    const n = M.length, q = 4, cell = Math.floor(canvas.width / (n + q * 2)), off = Math.floor((canvas.width - cell * n) / 2);
+    x.fillStyle = '#fff'; x.fillRect(0, 0, canvas.width, canvas.height); x.fillStyle = '#000';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (M[r][c]) x.fillRect(off + c * cell, off + r * cell, cell, cell);
+    return true;
+  }
+  return { encode, draw };
+})();
+</script>
 <script>
 /* ---------- 3. 교사 공유화면 · 4. 발표 학생 뽑기 — 같은 파일의 '교사용' 탭에서 비밀번호로 열어요 (?teacher=1 주소도 그대로 됨) ---------- */
 (()=>{
@@ -3810,7 +3928,7 @@ const order=new Map(),fresh=new Set(),imgCache=new Map();
 /* 교사 버튼 보이기/숨기기 */
 function showTeacher(on){
   document.body.classList.toggle('tmode',on);
-  $('#tvOpen').hidden=!on;$('#tLock').hidden=!(on&&unlocked);
+  $('#tvOpen').hidden=!on;$('#qrOpen').hidden=!on;$('#tLock').hidden=!(on&&unlocked);
   $('#tTab').hidden=on&&unlocked;
 }
 $('#tTab').addEventListener('click',()=>{pwNext='tab';unlocked?(showTeacher(true),openTV()):openPW();});
@@ -3951,7 +4069,16 @@ $('#tvWipe').addEventListener('click',async()=>{const api=window.shareAPI;if(!ap
   try{await api.wipe(ids);st.sel=[];order.clear();applyNew(false);}catch(e){alert('지우지 못했어요. 파이어베이스 규칙에서 삭제가 허용돼 있는지 확인해 주세요.');}
   b.disabled=false;b.textContent='이 반 답안 비우기';});
 
+/* 학생용 QR 띄우기 — 이 파일 주소(교사용 표시 ?teacher=1 은 뺀 주소)로 바로 그려요 */
+const stuURL=()=>location.href.split('#')[0].split('?')[0];
+function openQR(){const u=stuURL();$('#qrTitle').textContent=(document.querySelector('.hero h1')||{}).textContent||document.title;
+  $('#qrUrl').textContent=u;if(!QRMini.draw($('#qrCanvas'),u))$('#qrUrl').textContent='주소가 너무 길어 QR을 만들 수 없어요: '+u;
+  $('#qrBox').hidden=false;wakeOn();}
+function closeQR(){$('#qrBox').hidden=true;if($('#tv').hidden)wakeOff();}
+$('#qrOpen').addEventListener('click',openQR);$('#tvQr').addEventListener('click',openQR);
+$('#qrClose').addEventListener('click',closeQR);$('#qrBox').addEventListener('click',e=>{if(e.target.id==='qrBox')closeQR();});
 document.addEventListener('keydown',e=>{
+  if(!$('#qrBox').hidden){if(e.key==='Escape')closeQR();return;}
   if(!$('#pwBox').hidden){if(e.key==='Escape')closePW();return;}
   if(!$('#tvCmp').hidden){if(e.key==='Escape')closeCmp();return;}
   if(!$('#tv').hidden&&e.key==='Escape')closeTV();});
