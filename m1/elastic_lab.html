@@ -574,7 +574,7 @@ table.mini td small{font-size:12.5px; color:var(--muted); font-weight:700}
       <button class="btn light" id="gUndo">되돌리기</button><button class="btn light" id="gClear">모두 지우기</button><button class="btn" id="gCheck">점 확인하기</button><span class="legend" id="gCount">점 0개 · 선 0개</span>
     </div>
     <div class="gwrap">
-      <div class="boardwrap"><canvas id="graph" width="600" height="420" aria-label="늘어난 길이와 탄성력의 크기 그래프 그리기 칸"></canvas></div>
+      <div class="boardwrap"><canvas id="graph" width="600" height="500" aria-label="늘어난 길이와 탄성력의 크기 그래프 그리기 칸"></canvas></div>
       <aside class="gdata" aria-label="내 측정값">
         <div class="gd-title">내 측정값 <small>위 실험 기록과 연결돼요</small></div>
         <table class="mini" id="gData"><thead><tr><th>추</th><th>용수철 A<br>탄성력 · 늘어난 길이</th><th>용수철 B<br>탄성력 · 늘어난 길이</th></tr></thead><tbody></tbody></table>
@@ -1572,7 +1572,7 @@ drawLab();
 
 /* 그래프 — 가로축 눈금은 측정값에 맞춰 저절로 바뀌어요 */
 const gc = document.getElementById('graph'), g = gc.getContext('2d');
-const GW = 600, GH = 420, GL = 70, GB = 360, GT = 20, GR = 580;
+const GW = 600, GH = 500, GL = 70, GB = 440, GT = 20, GR = 580;
 let YMAX = 5;
 const NICEY = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30];
 const NICE = [5, 6, 8, 10, 12, 15, 20, 25, 30, 40];
@@ -1582,33 +1582,47 @@ let pts = [], glines = [], ghist = [], gdrag = null, ghover = null, gser = 'A', 
 function calcXMax() {
   let m = 0; ['A', 'B'].forEach(s => series(s).forEach(o => m = Math.max(m, o.x)));
   pts.forEach(p => m = Math.max(m, p.x)); if (pDone && predV) m = Math.max(m, predV);
-  m *= 1.12; return NICE.find(v => v >= m) || 40;
+  m *= 1.05; return Math.max(20, NICE.find(v => v >= m) || 40);   // 늘어난 길이는 늘 20 cm까지 보여요(더 길면 25·30 cm)
 }
+/* 세로축 눈금: 고른 추의 무게에 맞춰 눈금선이 측정값(예: 0.3 N, 0.5 N)에 딱 맞게 놓여요 */
+let YMINOR = 0.5, YLAB = 1;
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
 function calcYMax() {
   let m = 0; ['A', 'B'].forEach(s => { if (series(s).length) m = Math.max(m, Fof(s, 4)); });
   pts.forEach(p => m = Math.max(m, p.y)); if (pDone && predV) m = Math.max(m, 6 * W('A'));
-  if (!m) m = 4; m *= 1.12; return NICEY.find(v => v >= m) || 30;
+  if (!m) m = 4 * Math.max(W('A'), W('B'));
+  const used = ['A', 'B'].filter(s => series(s).length), ws = (used.length ? used : ['A', 'B']).map(s => Math.round(W(s) * 100));
+  let st = ws.reduce(gcd) / 100;
+  const NS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.25, 0.5, 1, 2, 5];
+  const topOf = v => Math.round((Math.ceil(m * 1.06 / v - 1e-9) * v + v) * 1000) / 1000;
+  let top = topOf(st);
+  while (top / st > 24) { st = NS.find(v => v > st + 1e-9) || st * 2; top = topOf(st); }
+  const n = Math.round(top / st);
+  const px = (GB - GT) / n;   // 눈금 한 칸의 높이(px) — 18px 이상이면 모든 눈금에 숫자를 써요
+  if (n < 8) { YMINOR = st / 2; YLAB = st; } else { YMINOR = st; YLAB = st * (px >= 17 ? 1 : px >= 9 ? 2 : 5); }
+  return top;
 }
-const minorY = () => YMAX <= 2 ? 0.1 : YMAX <= 5 ? 0.25 : YMAX <= 10 ? 0.5 : 1;
-const majorY = () => YMAX <= 2 ? 0.5 : YMAX <= 10 ? 1 : 5;
-const tolY = () => Math.max(0.12, YMAX * 0.035);
-const minorX = () => XMAX <= 6 ? 0.2 : XMAX <= 15 ? 0.5 : 1;
-const majorX = () => XMAX <= 15 ? 1 : 5;
-const tolX = () => Math.max(XMAX * 0.025, 0.15);
+const minorY = () => YMINOR;
+const majorY = () => YLAB;
+const tolY = () => Math.max(YMINOR * 0.45, YMAX * 0.015);
+const minorX = () => XMAX <= 6 ? 0.2 : XMAX <= 20 ? 0.5 : 1;
+const majorX = () => XMAX <= 20 ? 1 : 5;
+const tolX = () => Math.max(XMAX * 0.015, 0.15);
 const fmt = v => String(Math.round(v * 10) / 10);
 function drawGraph() {
   XMAX = calcXMax(); YMAX = calcYMax();
   g.fillStyle = '#fff'; g.fillRect(0, 0, GW, GH);
   const mi = minorX(), ma = majorX();
-  for (let k = 0; k * mi <= XMAX + 1e-9; k++) { const x = k * mi, big = Math.abs(x / ma - Math.round(x / ma)) < 1e-6; g.strokeStyle = big ? '#C9D3E3' : '#EEF2F8'; g.lineWidth = 1; g.beginPath(); g.moveTo(Math.round(gx(x)) + .5, GT); g.lineTo(Math.round(gx(x)) + .5, GB); g.stroke(); }
+  for (let k = 0; k * mi <= XMAX + 1e-9; k++) { const x = k * mi, big = Math.abs(x / ma - Math.round(x / ma)) < 1e-6; g.strokeStyle = big ? '#A9B7CB' : '#DCE3ED'; g.lineWidth = 1; g.beginPath(); g.moveTo(Math.round(gx(x)) + .5, GT); g.lineTo(Math.round(gx(x)) + .5, GB); g.stroke(); }
   const miy = minorY(), may = majorY();
-  for (let k = 0; k * miy <= YMAX + 1e-9; k++) { const v = k * miy, big = Math.abs(v / may - Math.round(v / may)) < 1e-6; g.strokeStyle = big ? '#C9D3E3' : '#EEF2F8'; g.beginPath(); g.moveTo(GL, Math.round(gy(v)) + .5); g.lineTo(GR, Math.round(gy(v)) + .5); g.stroke(); }
+  for (let k = 0; k * miy <= YMAX + 1e-9; k++) { const v = k * miy, big = Math.abs(v / may - Math.round(v / may)) < 1e-6; g.strokeStyle = big ? '#A9B7CB' : '#DCE3ED'; g.beginPath(); g.moveTo(GL, Math.round(gy(v)) + .5); g.lineTo(GR, Math.round(gy(v)) + .5); g.stroke(); }
   g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(GL, GT); g.lineTo(GL, GB); g.lineTo(GR, GB); g.stroke();
-  g.font = 'bold 14px "Gothic A1", sans-serif'; g.fillStyle = INK; g.textAlign = 'center'; g.textBaseline = 'top';
+  g.font = 'bold 15px "Gothic A1", sans-serif'; g.fillStyle = INK; g.textAlign = 'center'; g.textBaseline = 'top';
   for (let k = 0; k * ma <= XMAX + 1e-9; k++) g.fillText(fmt(k * ma), gx(k * ma), GB + 6);
   g.fillText('용수철이 늘어난 길이 (cm)', (GL + GR) / 2, GB + 30);
   g.textAlign = 'right'; g.textBaseline = 'middle';
-  for (let k = 0; k * may <= YMAX + 1e-9; k++) g.fillText(fmt(k * may), GL - 8, gy(k * may));
+  g.font = 'bold 15px "Gothic A1", sans-serif';
+  for (let k = 0; k * may <= YMAX + 1e-9; k++) g.fillText(fmt2(k * may), GL - 8, gy(k * may));
   g.save(); g.translate(18, (GT + GB) / 2); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.fillText('탄성력의 크기 (N)', 0, 0); g.restore();
   g.save(); g.beginPath(); g.rect(GL, GT, GR - GL, GB - GT); g.clip();
   glines.forEach(l => { g.strokeStyle = '#7B3FE4'; g.lineWidth = 3.5; g.lineCap = 'round'; g.beginPath(); g.moveTo(gx(l[0]), gy(l[1])); g.lineTo(gx(l[2]), gy(l[3])); g.stroke(); });
@@ -1646,8 +1660,8 @@ const gpos = e => { const r = gc.getBoundingClientRect(); return [(e.clientX - r
 const gdata = P => [(P[0] - GL) / (GR - GL) * XMAX, (GB - P[1]) / (GB - GT) * YMAX];
 function gval(P) {
   const [x, y] = gdata(P);
-  const sx = XMAX <= 15 ? 0.1 : 0.5;
-  const sy = minorY() / 2;
+  const sx = XMAX <= 20 ? 0.1 : 0.5;
+  const sy = minorY();
   let v = [Math.max(0, Math.min(XMAX, Math.round(x / sx) * sx)), Math.max(0, Math.min(YMAX, Math.round(y / sy) * sy))];
   v[1] = Math.round(v[1] * 100) / 100;
   v[0] = Math.round(v[0] * 10) / 10;
@@ -3519,8 +3533,8 @@ function dirComposite(type, q){
 function shareImg(k){
   if (k === 'g') {
     ghover = null; drawGraph();
-    const c = document.createElement('canvas'); c.width = 600; c.height = 420; const x = c.getContext('2d');
-    x.fillStyle = '#fff'; x.fillRect(0, 0, 600, 420); x.drawImage(gc, 0, 0, 600, 420);
+    const c = document.createElement('canvas'); c.width = 600; c.height = 500; const x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, 600, 500); x.drawImage(gc, 0, 0, 600, 500);
     return c.toDataURL('image/jpeg', 0.85);
   }
   if (k === 'e') return sortComposite('image/jpeg', 0.85);
