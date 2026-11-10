@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>새총 명사수 - 탄성력 게임</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gothic+A1:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script><!-- game 폴더 안의 config(sciencelab27-game) 사용 -->
+<style>
+:root{
+  --paper:#FBFCFE; --grid:#E3EAF5; --ink:#1E2A44; --soft:#5B6782;
+  --red:#E5383B; --blue:#2563C9; --mint:#1BA97A; --yellow:#FFC93C; --line:#C9D3E3;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0; color:var(--ink); font-family:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  background-color:#EEF2F8;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px; line-height:1.6;
+}
+#sheet{max-width:1040px; margin:0 auto; padding:28px 22px 40px; background:var(--paper);}
+h1,h2{font-family:"Do Hyeon","Gothic A1",sans-serif; font-weight:400; margin:0}
+.hero{position:relative; padding:8px 0 22px; border-bottom:3px solid var(--ink); margin-bottom:24px}
+.hero .page{font-size:14px; color:var(--soft)}
+.hero h1{font-size:44px; line-height:1.15; margin-top:4px}
+.hero svg{position:absolute; right:0; top:10px; width:150px; height:70px}
+.who{display:flex; gap:10px; flex-wrap:wrap; margin-top:16px}
+.who label{display:flex; align-items:center; gap:6px; font-weight:600; font-size:15px}
+.who input{width:90px}
+.who input.name{width:120px}
+input[type=text],textarea{
+  font:inherit; font-size:15px; color:var(--ink); border:1.5px solid var(--line); border-radius:6px;
+  padding:6px 9px; background:#fff;
+}
+textarea{width:100%; resize:vertical; min-height:64px}
+input:focus,textarea:focus,button:focus-visible{outline:3px solid var(--yellow); outline-offset:1px}
+section{margin:34px 0}
+.sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:10px}
+.num{font-family:"Do Hyeon",sans-serif; font-size:38px; line-height:1; color:var(--yellow); -webkit-text-stroke:1.5px var(--ink)}
+h2{font-size:27px}
+.guide{color:var(--soft); font-size:15px; margin:0 0 14px}
+.card{border:1.5px solid var(--line); border-radius:10px; padding:14px; background:#fff; margin-bottom:12px}
+.card .tag{font-weight:800; font-size:14px; color:var(--mint)}
+.frame{display:grid; grid-template-columns:auto 1fr; gap:8px 10px; align-items:center; margin:8px 0 10px}
+.frame span{font-size:14px; font-weight:600; color:var(--soft); white-space:nowrap}
+.frame input{width:100%}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip{font:inherit; font-size:14px; border:1.5px solid var(--line); background:#fff; color:var(--ink);
+  border-radius:999px; padding:5px 12px; cursor:pointer}
+.chip.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+.scenes{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px}
+@media (min-width:880px){ .scenes{grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px} }
+.item .chips{display:grid; grid-template-columns:1fr 1fr; gap:5px}
+.item .chip{text-align:center; padding:6px 4px}
+.item{border:1.5px solid var(--line); border-radius:10px; padding:10px; background:#fff}
+.item svg,.item img{display:block; aspect-ratio:200/140; object-fit:cover; width:100%; height:auto; border-radius:6px; background:#F1F5FB}
+.item .chip{font-size:13.5px}
+@media (max-width:560px){ .scenes{grid-template-columns:1fr} }
+.item p{margin:8px 0 8px; font-weight:600; font-size:13.5px; line-height:1.45; min-height:4.35em}
+.item .fb{font-size:12.5px; line-height:1.45; margin-top:6px; min-height:0}
+.ok{color:var(--mint)} .no{color:var(--red)}
+.btn{font:inherit; font-weight:800; font-size:15px; border:none; border-radius:8px; padding:9px 16px; cursor:pointer;
+  background:var(--ink); color:#fff}
+.btn.light{background:#fff; color:var(--ink); border:1.5px solid var(--ink)}
+.btn.on{background:var(--red); color:#fff; border-color:var(--red)}
+.row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:10px 0}
+.blank-text{font-size:16px; line-height:2.4}
+.blank-text input{width:110px; text-align:center; font-weight:800}
+.drawgrid{display:grid; grid-template-columns:minmax(0,600px) minmax(0,1fr); gap:18px; align-items:start}
+.drawgrid .frame.side,.check-side{margin-top:56px}
+.frame.two{grid-template-columns:auto 1fr auto 1fr}
+@media (max-width:880px){ .frame.two{grid-template-columns:auto 1fr} .drawgrid .frame.side,.check-side{margin-top:0} }
+.drawgrid .row{margin-top:0}
+.frame.side{grid-template-columns:1fr; gap:4px 0; margin:0}
+.frame.side input{margin-bottom:8px}
+@media (max-width:880px){ .drawgrid{grid-template-columns:1fr} }
+.boardwrap{border:2px solid var(--ink); border-radius:8px; overflow:hidden; background:#fff}
+canvas{display:block; width:100%; height:auto; touch-action:none; cursor:crosshair}
+.legend{font-size:13.5px; color:var(--soft)}
+.result{font-weight:800; margin-top:8px; min-height:1.4em}
+.final{border-top:3px solid var(--ink); padding-top:22px}
+.save{display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:30px}
+.btn.pad{background:var(--mint); color:#fff; text-decoration:none; display:inline-flex; align-items:center}
+.save .btn.pad{background:var(--mint)}
+.ov-btns{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+.ov-btns .btn{font-size:17px; padding:12px 22px}
+#galleryBtn{background:var(--red)}
+.save .btn{font-size:18px; padding:14px 28px; background:var(--red)}
+.ver{text-align:center; font-size:12px; color:var(--soft); margin-top:14px}
+#overlay{position:fixed; inset:0; background:rgba(20,28,45,.85); display:none; flex-direction:column; align-items:center;
+  justify-content:center; padding:20px; z-index:10; gap:12px; color:#fff; text-align:center}
+#overlay img{max-width:100%; max-height:75vh; background:#fff; border-radius:6px}
+@media (max-width:560px){ .hero h1{font-size:34px} .hero svg{display:none} .frame{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+input[type=number]{font:inherit; font-size:15px; color:var(--ink); border:1.5px solid var(--line); border-radius:6px; padding:6px 9px; background:#fff; width:80px; text-align:center; font-weight:800}
+.pgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px}
+@media (max-width:880px){ .pgrid{grid-template-columns:1fr} }
+.prob{border:1.5px solid var(--line); border-radius:10px; padding:12px; background:#fff}
+.prob h3{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:21px; margin:0 0 4px}
+.prob .given{font-size:14px; font-weight:600; color:var(--soft); margin:0 0 8px}
+.prob .boardwrap{border-width:1.5px}
+.ans{display:grid; grid-template-columns:auto 1fr; gap:6px 10px; align-items:center; margin-top:10px}
+.ans > span{font-size:14px; font-weight:600; color:var(--soft); white-space:nowrap}
+.ans input{width:80px; text-align:center; font-weight:800}
+.fb{font-size:13.5px; line-height:1.5; margin-top:6px; min-height:1.4em}
+.sub{font-family:"Do Hyeon",sans-serif; font-size:22px; margin:18px 0 8px}
+.cases{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px}
+@media (max-width:760px){ .cases{grid-template-columns:1fr} }
+.cases .item p{min-height:0}
+.cases .item .chips{grid-template-columns:1fr 1fr}
+.claim{font-size:16px; line-height:2.3}
+.claim .chips{display:inline-flex; vertical-align:middle; margin:0 4px}
+.selfrow{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px dashed var(--line); font-size:15px}
+.penguin{display:grid; grid-template-columns:200px 1fr; gap:16px; align-items:center}
+@media (max-width:560px){ .penguin{grid-template-columns:1fr} }
+.penguin svg{width:100%; height:auto}
+.dir h3 .ang{font-family:"Gothic A1",sans-serif; font-size:13px; color:var(--soft); font-weight:600; margin-left:6px}
+.dir .clue{width:100%; margin-top:8px}
+.labwrap{display:grid; grid-template-columns:minmax(0,360px) 1fr; gap:20px; align-items:start}
+@media (max-width:760px){ .labwrap{grid-template-columns:1fr} }
+.labview{border:2px solid var(--ink); border-radius:8px; overflow:hidden}
+.labview svg{display:block; width:100%; height:auto}
+.readout{margin-top:18px; border:1.5px dashed var(--line); border-radius:10px; padding:12px 14px; font-size:16px; line-height:1.9; background:#fff}
+.readout b{font-size:22px; font-family:"Do Hyeon",sans-serif; font-weight:400}
+.tblwrap{overflow-x:auto}
+table.rec{border-collapse:collapse; width:100%; min-width:480px; font-size:15px}
+table.rec th,table.rec td{border:1.5px solid var(--line); padding:6px; text-align:center}
+table.rec th{background:#F1F5FB; font-weight:800}
+table.rec input{width:80px}
+#dirGrid{grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px}
+@media (max-width:760px){ #dirGrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.dir{padding:10px}
+.dir h3{word-break:keep-all; font-size:17px; line-height:1.3; min-height:2.6em}
+.dir .clue{font-size:13.5px; padding:5px 7px}
+.dir .row{gap:5px; margin:8px 0 4px}
+.dir .row .btn{font-size:13px; padding:6px 9px}
+.dir .fb{font-size:12.5px}
+.sort .item p{font-size:14.5px; min-height:2.9em}
+.hud{display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center; margin:0 0 10px; font-weight:800}
+.hud .pill{background:#fff; border:1.5px solid var(--line); border-radius:999px; padding:4px 14px; font-size:15px}
+.hud .stars{color:#E0A800}
+#game{display:block; width:100%; height:auto; touch-action:none; cursor:grab; border:2px solid var(--ink); border-radius:8px}
+#quiz{position:fixed; inset:0; background:rgba(20,28,45,.72); display:none; align-items:center; justify-content:center; padding:20px; z-index:9}
+#quiz .qcard{background:#fff; border-radius:12px; max-width:560px; width:100%; padding:22px; border:2px solid var(--ink)}
+#quiz h3{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:26px; margin:0 0 4px}
+#quiz .qstars{font-size:28px; color:#E0A800; letter-spacing:4px}
+#quiz .qq{font-weight:800; font-size:17px; margin:12px 0 10px}
+#quiz .opts{display:grid; gap:8px}
+#quiz .opts .chip{font-size:16px; padding:10px 14px; border-radius:10px; text-align:left}
+#quiz .fb{font-size:15px; margin-top:10px}
+.lvls{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px}
+@media (max-width:640px){ .lvls{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.lvls div{border:1.5px solid var(--line); border-radius:10px; padding:8px; background:#fff; text-align:center; font-size:14px; font-weight:700}
+.lvls b{display:block; color:#E0A800; font-size:20px; letter-spacing:2px}
+#qlog{margin:0; padding-left:20px; font-size:15px}
+#qlog li{margin:4px 0}
+
+select{font:inherit; font-size:15px; color:var(--ink); border:1.5px solid var(--line); border-radius:6px; padding:6px 9px; background:#fff}
+.who .fixed{display:inline-block; min-width:46px; text-align:center; border:1.5px solid var(--line); border-radius:6px; padding:6px 9px; background:#F1F5FB}
+.save .btn.share{background:var(--blue)}
+.share-msg{text-align:center; font-weight:800; min-height:1.6em; margin-top:10px}
+.linkbtn{font:inherit; font-size:12px; color:var(--soft); background:none; border:none; text-decoration:underline; cursor:pointer; padding:0 4px}
+/* 교사 화면 */
+body.teacher-mode #sheet{display:none}
+#teacher[hidden]{display:none}
+#teacher{max-width:1220px; margin:0 auto; padding:22px 24px 40px; background:var(--paper); min-height:100vh}
+.t-top{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; border-bottom:3px solid var(--ink); padding-bottom:14px}
+.t-top h1{font-size:34px; margin-right:auto}
+.t-top select{font-size:18px; font-weight:800}
+.t-count{font-weight:800; font-size:18px}
+#tRefresh.on{background:var(--red)}
+.t-tabs{display:flex; flex-wrap:wrap; gap:8px; margin:16px 0}
+.t-tabs .chip{font-size:17px; padding:8px 18px; font-weight:800}
+.t-empty{font-size:20px; color:var(--soft); text-align:center; padding:60px 10px}
+.t-graph{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:22px; align-items:start}
+@media (max-width:900px){ .t-graph{grid-template-columns:1fr} }
+.t-gbox{border:2px solid var(--ink); border-radius:8px; background:#fff; padding:6px}
+.t-gbox svg{display:block; width:100%; height:auto}
+.t-side{font-size:17px; line-height:1.7}
+.t-side .lg{display:flex; align-items:center; gap:8px; font-weight:800}
+.t-side .q{border-left:5px solid var(--yellow); padding:8px 12px; background:#fff; margin:14px 0; font-weight:700}
+.t-qs{display:grid; gap:14px}
+.t-q{border:1.5px solid var(--line); border-radius:10px; padding:14px 16px; background:#fff}
+.t-q.low{border-color:var(--red); border-width:2.5px}
+.t-qh{font-weight:800; font-size:19px}
+.t-qa{color:var(--mint); font-weight:800; margin:2px 0 8px}
+.t-bar{height:22px; border-radius:999px; background:#EEF2F8; overflow:hidden}
+.t-bar span{display:block; height:100%; background:var(--mint)}
+.t-q.low .t-bar span{background:var(--red)}
+.t-qn{margin-top:6px; font-size:17px}
+.t-prompt{font-size:19px; font-weight:800; margin:0 0 12px}
+.t-cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px}
+.t-card{border:1.5px solid var(--line); border-radius:10px; padding:12px 14px; background:#fff}
+.t-card b{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:22px; color:var(--blue)}
+.t-card p{margin:4px 0 0; font-size:18px; line-height:1.55; white-space:pre-wrap; word-break:keep-all}
+.t-none{color:var(--soft); font-size:16px; margin-top:14px}
+.t-foot{margin-top:34px; display:flex; justify-content:flex-end}
+.t-ch{display:flex; align-items:center; gap:8px}
+.t-tm{color:var(--soft); font-weight:700; font-size:15px; margin-right:auto}
+.bonus{font:inherit; font-weight:800; font-size:15px; border:1.5px solid var(--line); background:#fff; color:var(--soft); border-radius:999px; padding:4px 12px; cursor:pointer}
+.t-card.got{border-color:#E0A800; border-width:2.5px; background:#FFFBEA}
+.t-card.got .bonus{background:#FFC93C; border-color:#E0A800; color:var(--ink)}
+.t-rule{color:var(--soft); font-size:16px; margin:0 0 14px}
+.t-cover{text-align:center; padding:50px 10px; border:2px dashed var(--line); border-radius:12px; background:#fff}
+.t-cover p{font-size:22px; font-weight:800; margin:0 0 16px}
+.t-cover .btn{font-size:20px; padding:14px 30px; background:var(--blue)}
+.t-teams{display:grid; gap:12px}
+.t-team{display:grid; grid-template-columns:80px 1fr auto; gap:16px; align-items:center; border:1.5px solid var(--line); border-radius:12px; padding:14px 18px; background:#fff}
+.t-team.first{border:2.5px solid #E0A800; background:#FFFBEA}
+.t-rank{font-family:"Do Hyeon",sans-serif; font-size:34px; text-align:center}
+.t-tname{font-weight:800; font-size:21px}
+.t-tname span{font-weight:600; font-size:15px; color:var(--soft); margin-left:8px}
+.t-team .t-bar{margin:6px 0 4px}
+.t-team.first .t-bar span{background:#E0A800}
+.t-tdet{font-size:16px; color:var(--soft)}
+.t-total{font-family:"Do Hyeon",sans-serif; font-size:40px; line-height:1}
+.t-total small{font-size:20px; margin-left:2px}
+@media (max-width:640px){ .t-team{grid-template-columns:56px 1fr; } .t-total{grid-column:2} }
+</style>
+</head>
+<body>
+<div id="sheet">
+
+  <header class="hero">
+    <div class="page">비상교육 과학 1 · 166~169쪽 · 탄성력 마무리 게임</div>
+    <h1>새총 명사수</h1>
+    <svg viewBox="0 0 150 70" aria-hidden="true">
+      <path d="M30 66 V40 M30 40 L18 14 M30 40 L42 14" stroke="#8A5A32" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M18 16 L6 34 L42 16" stroke="#E5383B" stroke-width="3" fill="none"/>
+      <circle cx="6" cy="34" r="6" fill="#FFC93C" stroke="#1E2A44" stroke-width="2"/>
+      <circle cx="118" cy="30" r="20" fill="#fff" stroke="#E5383B" stroke-width="4"/><circle cx="118" cy="30" r="11" fill="#E5383B"/><circle cx="118" cy="30" r="4" fill="#fff"/>
+      <path d="M58 40 Q80 4 100 24" stroke="#9AA6BC" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+    </svg>
+    <div class="who">
+      <label>학년 <span class="fixed">1</span></label>
+      <label>반 <select id="cls"><option value="">선택</option></select></label>
+      <label>번호 <select id="num"><option value="">선택</option></select></label>
+      <label>모둠 <select id="team"><option value="">선택</option></select></label>
+    </div>
+  </header>
+
+  <section style="margin-top:20px">
+    <p class="guide">새총의 공을 손가락으로 <b>뒤로 끌었다가 놓으면</b> 날아가요. 고무줄을 많이 당길수록 탄성력이 커져요. 공 위의 <b>파란 화살표(탄성력)</b>를 보면서 5단계 과녁을 모두 맞혀 보세요. 적게 쏠수록 별을 많이 받아요. 단계를 깰 때마다 퀴즈가 나와요.</p>
+    <div class="hud">
+      <span class="pill" id="hLv"></span>
+      <span class="pill" id="hBand"></span>
+      <span class="pill" id="hTry"></span>
+      <span class="pill">모은 별 <span class="stars" id="hStar"></span></span>
+    </div>
+    <canvas id="game" width="1000" height="560" aria-label="새총 게임 화면"></canvas>
+    <div class="row" data-html2canvas-ignore="true"><button class="btn light" id="restart">처음부터 다시</button><span class="legend">이전에 쏜 공의 길은 점선으로 남아요. 비교하면서 조절해 보세요.</span></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="num">1</span><h2>발사 기록</h2></div>
+    <p class="guide">쏠 때마다 자동으로 기록돼요. 당긴 길이와 탄성력 사이에 어떤 규칙이 있는지 살펴보세요.</p>
+    <div class="tblwrap">
+      <table class="rec" id="log">
+        <thead><tr><th>번호</th><th>단계</th><th>고무줄</th><th>당긴 길이 (cm)</th><th>탄성력 (N)</th><th>결과</th></tr></thead>
+        <tbody><tr class="empty"><td colspan="6" style="color:var(--soft)">아직 쏘지 않았어요.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="num">2</span><h2>단계별 결과</h2></div>
+    <div class="lvls" id="lvls"></div>
+    <p class="sub" style="font-size:19px">퀴즈 기록</p>
+    <ol id="qlog"><li style="color:var(--soft);list-style:none;margin-left:-20px">단계를 깨면 퀴즈 결과가 여기에 기록돼요.</li></ol>
+  </section>
+
+  <section class="final">
+    <div class="sec-head"><span class="num">3</span><h2>게임을 마치며</h2></div>
+    <div class="card">
+      <div class="tag">규칙 찾기</div>
+      <p style="font-weight:600;margin:4px 0 8px">발사 기록을 보고 답해 보세요. 고무줄을 당긴 길이와 탄성력 사이에는 어떤 규칙이 있나요? 두꺼운 고무줄은 보통 고무줄과 어떻게 달랐나요?</p>
+      <textarea id="rule" placeholder="고무줄을 2배로 당기면 탄성력은 … / 두꺼운 고무줄은 같은 길이를 당겨도 …"></textarea>
+    </div>
+    <div class="card">
+      <div class="tag">명사수의 비법</div>
+      <p style="font-weight:600;margin:4px 0 8px">친구에게 과녁을 잘 맞히는 비법을 알려 준다면? '탄성력', '방향', '크기'라는 말을 넣어 써 보세요.</p>
+      <textarea id="tip" placeholder="공을 멀리 보내려면 …"></textarea>
+    </div>
+  </section>
+
+  <div class="save" data-html2canvas-ignore="true"><button class="btn share" id="shareBtn">선생님께 공유</button><button class="btn" id="saveBtn">이미지로 저장하기</button><a class="btn pad" href="https://padlet.com/pad228_2/padlet-s024c1id8pk3k1lkvwqn" target="_blank" rel="noopener">패들렛 바로가기</a></div>
+  <div class="share-msg" id="shareMsg" data-html2canvas-ignore="true"></div>
+  <div class="ver" data-html2canvas-ignore="true">저장 방식 v5 <button class="linkbtn" id="tEnter">교사용</button></div>
+</div>
+
+<div id="quiz" data-html2canvas-ignore="true">
+  <div class="qcard">
+    <h3 id="qTitle"></h3>
+    <div class="qstars" id="qStars"></div>
+    <div class="qq" id="qQ"></div>
+    <div class="opts chips" id="qOpts"></div>
+    <div class="fb" id="qFb"></div>
+    <div class="row"><button class="btn" id="qNext" style="display:none">다음 단계로</button></div>
+  </div>
+</div>
+
+<div id="overlay">
+  <img id="shot" alt="저장된 활동지">
+  <div class="ov-btns">
+    <button class="btn" id="galleryBtn">갤러리에 저장</button>
+    <a class="btn pad" href="https://padlet.com/pad228_2/padlet-s024c1id8pk3k1lkvwqn" target="_blank" rel="noopener">패들렛 바로가기</a>
+    <button class="btn light" id="closeShot">닫기</button>
+  </div>
+  <div id="ovMsg">저장 창이 뜨면 <b>'이미지 저장'</b>을 누르세요. 저장이 안 되면 그림을 길게 눌러 저장할 수 있어요.</div>
+</div>
+
+<div id="teacher" hidden>
+  <div class="t-top">
+    <h1>새총 명사수 · 교사 화면</h1>
+    <select id="tCls"><option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option><option value="5">5반</option></select>
+    <span class="t-count" id="tCount">0명 공유</span>
+    <button class="btn" id="tRefresh">새 답 불러오기</button>
+    <button class="btn light" id="tExit">나가기</button>
+  </div>
+  <div class="t-tabs" id="tTabs">
+    <button class="chip on" data-tab="graph">반 전체 발사 기록</button>
+    <button class="chip" data-tab="quiz">퀴즈 정답률</button>
+    <button class="chip" data-tab="rule">규칙 찾기</button>
+    <button class="chip" data-tab="tip">명사수의 비법</button>
+    <button class="chip" data-tab="team">모둠 점수</button>
+  </div>
+  <div id="tBody"></div>
+  <div class="t-foot"><button class="btn light" id="tClear">이 반 기록 모두 지우기</button></div>
+</div>
+
+<script>
+const INK = '#1E2A44', RED = '#E5383B', BLUE = '#2563C9', MINT = '#1BA97A';
+const cv = document.getElementById('game'), ctx = cv.getContext('2d');
+const W = 1000, H = 560, GY = 480, SX = 210, SY = 370, PPM = 18.8, PXCM = 16, MAXCM = 10, VF = 1.8, G = 9.8;
+const toS = (x, y) => [SX + x * PPM, GY - y * PPM];
+const Y0 = (GY - SY) / PPM;
+
+const LEVELS = [
+  { name: '첫 발사', msg: '가까운 상자를 맞혀 보세요!', k: 1, tg: { t: 'box', x: 12, w: 2.6, h: 2.6 }, walls: [],
+    q: { q: '공은 고무줄을 당긴 방향과 비교해 어느 방향으로 날아갔나요?', o: ['당긴 방향과 같은 방향', '당긴 방향과 반대 방향', '당긴 방향과 직각인 방향', '당긴 방향과 상관없이 항상 위쪽'], a: 1,
+      e: '탄성력은 늘어난 고무줄이 원래 모양으로 돌아가려는 방향, 즉 당긴 방향의 반대로 작용해요.' } },
+  { name: '멀리멀리', msg: '멀리 있는 상자를 맞혀요.', k: 1, tg: { t: 'box', x: 25, w: 2.6, h: 2.6 }, walls: [],
+    q: { q: '공을 더 멀리 보내려면 고무줄을 어떻게 해야 할까요?', o: ['더 많이 당긴다', '더 적게 당긴다', '당긴 길이와 상관없다', '당기지 않고 공만 세게 민다'], a: 0,
+      e: '고무줄이 많이 변형될수록(많이 늘어날수록) 탄성력이 커져서 공을 더 세게 밀어내요.' } },
+  { name: '풍선 터뜨리기', msg: '하늘의 풍선을 맞혀요. 어느 쪽으로 당겨야 할까요?', k: 1, tg: { t: 'bal', x: 15, y: 10, r: 1.5 }, walls: [],
+    q: { q: '보통 고무줄을 2 cm 당겼을 때 탄성력은 2 N이었어요. 4 cm 당기면 탄성력은?', o: ['1 N', '2 N', '4 N', '8 N'], a: 2,
+      e: '당긴 길이가 2배가 되면 탄성력도 2배가 돼요. 탄성력은 늘어난 길이에 비례해요.' } },
+  { name: '두꺼운 고무줄', msg: '고무줄이 두꺼워졌어요! 아주 먼 상자를 맞혀요.', k: 2, tg: { t: 'box', x: 39, w: 2.6, h: 2.6 }, walls: [],
+    q: { q: '두꺼운 고무줄을 보통 고무줄과 같은 길이만큼 당기면 탄성력은?', o: ['보통 고무줄보다 크다', '보통 고무줄과 같다', '보통 고무줄보다 작다', '당길 때마다 커지기도 작아지기도 한다'], a: 0,
+      e: '같은 5 cm를 당겨도 보통 고무줄은 5 N, 두꺼운 고무줄은 10 N이었어요. 탄성체에 따라 탄성력의 크기가 달라요.' } },
+  { name: '벽 넘기기', msg: '높은 벽 너머의 상자를 맞혀요.', k: 1, tg: { t: 'box', x: 23, w: 2.6, h: 2.6 }, walls: [{ x: 14, w: 1.2, h: 7 }],
+    q: { q: '새총 게임에서 탄성력을 내는 탄성체는 무엇이었나요?', o: ['공', '고무줄', '과녁', '새총의 나무 손잡이'], a: 1,
+      e: '늘어난 고무줄이 원래 모양으로 돌아가려는 힘(탄성력)이 공을 밀어 날려 보냈어요.' } },
+];
+
+let lv, tries, stars, phase, pull, ball, trail, ghost, shots, bursts, quizFirst, logArr = [];
+function reset() {
+  lv = 0; tries = 0; stars = [0, 0, 0, 0, 0]; phase = 'aim'; pull = null; ball = null; trail = []; ghost = null; shots = 0; bursts = [];
+  quizFirst = []; logArr = [];
+  renderLog(); renderQlog();
+  hud(); lvlBoxes(); persist();
+}
+const starStr = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+function hud() {
+  const L = LEVELS[Math.min(lv, 4)];
+  document.getElementById('hLv').textContent = lv > 4 ? '모든 단계 완료!' : `${lv + 1}단계 / 5 · ${L.name}`;
+  document.getElementById('hBand').textContent = lv > 4 ? '명사수 인증' : (L.k === 2 ? '두꺼운 고무줄 (1 cm당 2 N)' : '보통 고무줄 (1 cm당 1 N)');
+  document.getElementById('hTry').textContent = lv > 4 ? `총 ${shots}번 발사` : `이번 단계 ${tries}번 쏨`;
+  document.getElementById('hStar').textContent = `${stars.reduce((a, b) => a + b, 0)} / 15`;
+}
+function lvlBoxes() {
+  document.getElementById('lvls').innerHTML = LEVELS.map((L, i) => `<div>${i + 1}. ${L.name}<b>${stars[i] ? starStr(stars[i]) : '—'}</b></div>`).join('');
+}
+
+/* ---------- 그리기 ---------- */
+function arrow(x1, y1, x2, y2, c, w) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1); if (L < 4) return;
+  const hd = Math.min(18, L * .5);
+  ctx.strokeStyle = c; ctx.fillStyle = c; ctx.lineWidth = w; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - Math.cos(a) * hd * .8, y2 - Math.sin(a) * hd * .8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - hd * Math.cos(a - .45), y2 - hd * Math.sin(a - .45)); ctx.lineTo(x2 - hd * Math.cos(a + .45), y2 - hd * Math.sin(a + .45)); ctx.closePath(); ctx.fill();
+}
+function label(t, x, y, c) {
+  ctx.font = 'bold 18px "Gothic A1", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const w = ctx.measureText(t).width + 12; x = Math.max(w / 2 + 4, Math.min(W - w / 2 - 4, x)); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - w / 2, y - 13, w, 26);
+  ctx.fillStyle = c; ctx.fillText(t, x, y);
+}
+function drawTarget(T) {
+  if (T.t === 'box') {
+    const [x1, y1] = toS(T.x - T.w / 2, T.h), w = T.w * PPM, h = T.h * PPM;
+    ctx.fillStyle = '#E8B86A'; ctx.fillRect(x1, y1, w, h); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.strokeRect(x1, y1, w, h);
+    const cx = x1 + w / 2, cy = y1 + h / 2;
+    [[22, '#fff'], [15, RED], [8, '#fff'], [3, RED]].forEach(([r, c]) => { ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = c; ctx.fill(); });
+  } else {
+    const [cx, cy] = toS(T.x, T.y), r = T.r * PPM;
+    ctx.beginPath(); ctx.moveTo(cx, cy + r); ctx.quadraticCurveTo(cx - 8, cy + r + 30, cx + 4, cy + r + 60); ctx.strokeStyle = '#5B6782'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx, cy, r * .88, r, 0, 0, Math.PI * 2); ctx.fillStyle = RED; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx - r * .3, cy - r * .35, r * .18, r * .28, -.5, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fill();
+  }
+}
+function restPos() { return pull ? [SX + pull.x, SY + pull.y] : [SX, SY]; }
+function draw() {
+  const L = LEVELS[Math.min(lv, 4)];
+  const sky = ctx.createLinearGradient(0, 0, 0, GY); sky.addColorStop(0, '#BFE0FF'); sky.addColorStop(1, '#EAF5FF');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+  [[640, 80, 1], [860, 140, .8], [300, 60, .7]].forEach(([x, y, s]) => { ctx.fillStyle = 'rgba(255,255,255,.85)'; [[0, 0, 26], [24, -10, 30], [52, 0, 24]].forEach(([dx, dy, r]) => { ctx.beginPath(); ctx.arc(x + dx * s, y + dy * s, r * s, 0, Math.PI * 2); ctx.fill(); }); });
+  ctx.fillStyle = '#9ED7B5'; ctx.fillRect(0, GY, W, H - GY); ctx.fillStyle = '#7CC59B'; ctx.fillRect(0, GY, W, 6);
+  // 거리 눈금
+  ctx.font = 'bold 13px "Gothic A1", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = '#3E7D5A';
+  for (let m = 0; m <= 40; m += 5) { const [x] = toS(m, 0); ctx.fillRect(x - 1, GY + 6, 2, 10); ctx.fillText(m + ' m', x, GY + 20); }
+  if (lv > 4) { label('5단계 모두 성공! 아래로 내려가 기록을 확인하세요.', W / 2, 200, MINT); return; }
+  L.walls.forEach(w => { const [x1, y1] = toS(w.x - w.w / 2, w.h); ctx.fillStyle = '#8892A6'; ctx.fillRect(x1, y1, w.w * PPM, w.h * PPM); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.strokeRect(x1, y1, w.w * PPM, w.h * PPM);
+    ctx.strokeStyle = '#6B7488'; ctx.lineWidth = 1; for (let yy = y1 + 16; yy < GY; yy += 16) { ctx.beginPath(); ctx.moveTo(x1, yy); ctx.lineTo(x1 + w.w * PPM, yy); ctx.stroke(); } });
+  if (!(phase === 'done' && bursts.length)) drawTarget(L.tg);
+  // 지난 궤적
+  if (ghost) { ctx.setLineDash([5, 7]); ctx.strokeStyle = 'rgba(30,42,68,.45)'; ctx.lineWidth = 2; ctx.beginPath(); ghost.forEach((p, i) => { const [x, y] = toS(p[0], p[1]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); ctx.setLineDash([]); }
+  // 새총
+  const fx = SX, fy = SY;
+  ctx.strokeStyle = '#8A5A32'; ctx.lineWidth = 12; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(fx, GY); ctx.lineTo(fx, fy + 40); ctx.lineTo(fx - 26, fy - 6); ctx.moveTo(fx, fy + 40); ctx.lineTo(fx + 26, fy - 6); ctx.stroke();
+  const [bx, by] = phase === 'aim' ? restPos() : [SX, SY];
+  const bandW = L.k === 2 ? 9 : 4;
+  ctx.strokeStyle = RED; ctx.lineWidth = bandW;
+  ctx.beginPath(); ctx.moveTo(fx - 26, fy - 6); ctx.lineTo(bx, by); ctx.lineTo(fx + 26, fy - 6); ctx.stroke();
+  // 공
+  let ballS = null;
+  if (phase === 'aim') ballS = [bx, by];
+  else if (ball) ballS = toS(ball.x, ball.y);
+  if (trail.length > 1) { ctx.strokeStyle = 'rgba(229,56,59,.5)'; ctx.lineWidth = 3; ctx.beginPath(); trail.forEach((p, i) => { const [x, y] = toS(p[0], p[1]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); }
+  if (ballS) { ctx.beginPath(); ctx.arc(ballS[0], ballS[1], 11, 0, Math.PI * 2); ctx.fillStyle = '#FFC93C'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.stroke(); }
+  // 탄성력 표시
+  if (phase === 'aim' && pull) {
+    const cm = pullCm(), F = cm * L.k;
+    if (cm >= 1) {
+      const len = Math.hypot(pull.x, pull.y), ux = -pull.x / len, uy = -pull.y / len, al = 20 + F * 7.5;
+      arrow(bx + ux * 14, by + uy * 14, bx + ux * (14 + al), by + uy * (14 + al), BLUE, 6);
+      label(`탄성력 ${F} N`, bx + ux * (30 + al) , by + uy * (30 + al) - 4, BLUE);
+      label(cm >= MAXCM ? `당긴 길이 ${cm} cm (최대!)` : `당긴 길이 ${cm} cm`, bx, by + 34, cm >= MAXCM ? RED : INK);
+      if (cm >= MAXCM) label('최대로 당겼어요! 더 멀리 보내려면 쏘는 각도(높이)를 바꿔 보세요', SX + 120, SY - 150, RED);
+    }
+  }
+  bursts.forEach(b => { ctx.strokeStyle = b.c; ctx.lineWidth = 3; for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(b.x + Math.cos(a) * b.r * .4, b.y + Math.sin(a) * b.r * .4); ctx.lineTo(b.x + Math.cos(a) * b.r, b.y + Math.sin(a) * b.r); ctx.stroke(); } });
+  // 미션
+  ctx.font = '400 26px "Do Hyeon", sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillStyle = INK;
+  ctx.fillText(`${lv + 1}단계 · ${L.name}`, 18, 16);
+  ctx.font = 'bold 16px "Gothic A1", sans-serif'; ctx.fillStyle = '#3B4763'; ctx.fillText(L.msg, 18, 50);
+  if (phase === 'aim' && !pull && tries === 0) { ctx.textAlign = 'center'; label('공을 뒤로 끌었다가 놓아요', SX + 40, SY - 60, INK); }
+  if (phase === 'aim' && msgTimer > 0) label(lastMsg, W / 2, 120, lastMsgC);
+}
+let lastMsg = '', lastMsgC = INK, msgTimer = 0;
+
+/* ---------- 조작 ---------- */
+function pullCm() { return Math.min(MAXCM, Math.round(Math.hypot(pull.x, pull.y) / PXCM)); }
+const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+let dragging = false;
+cv.addEventListener('pointerdown', e => {
+  if (phase !== 'aim' || lv > 4) return;
+  const [x, y] = pt(e); if (Math.hypot(x - SX, y - SY) > 90) return;
+  dragging = true; cv.setPointerCapture(e.pointerId); movePull(x, y);
+});
+function movePull(x, y) {
+  let dx = x - SX, dy = y - SY; const d = Math.hypot(dx, dy), m = MAXCM * PXCM;
+  if (d > m) { dx *= m / d; dy *= m / d; }
+  pull = { x: dx, y: dy };
+}
+cv.addEventListener('pointermove', e => { if (dragging) { const [x, y] = pt(e); movePull(x, y); } });
+const release = () => {
+  if (!dragging) return; dragging = false;
+  if (!pull || pullCm() < 1) { pull = null; return; }
+  launch();
+};
+cv.addEventListener('pointerup', release); cv.addEventListener('pointercancel', release);
+
+/* ---------- 발사 ---------- */
+let cur = null;
+function launch() {
+  const L = LEVELS[lv], cm = pullCm(), F = cm * L.k, len = Math.hypot(pull.x, pull.y);
+  const v = VF * F;
+  ball = { x: 0, y: Y0, vx: -pull.x / len * v, vy: pull.y / len * v };
+  cur = { cm, F, k: L.k };
+  pull = null; trail = [[0, Y0]]; phase = 'fly'; tries++; shots++; hud();
+}
+function hitTarget(T, x, y) {
+  if (T.t === 'box') return x > T.x - T.w / 2 - .35 && x < T.x + T.w / 2 + .35 && y < T.h + .35;
+  return Math.hypot(x - T.x, y - T.y) < T.r + .4;
+}
+function step() {
+  if (phase === 'fly') {
+    const L = LEVELS[lv];
+    for (let s = 0; s < 4; s++) {
+      const dt = 1 / 60 * 1.5 / 4;
+      ball.vy -= G * dt; ball.x += ball.vx * dt; ball.y += ball.vy * dt;
+      if (hitTarget(L.tg, ball.x, ball.y)) { finish(true); break; }
+      if (L.walls.some(w => ball.x > w.x - w.w / 2 - .4 && ball.x < w.x + w.w / 2 + .4 && ball.y < w.h + .4)) { finish(false, '벽에 부딪혔어요! 더 높이 쏘아 볼까요?'); break; }
+      if (ball.y <= 0) { ball.y = 0; finish(false); break; }
+      if (ball.x > 46 || ball.x < -7) { finish(false, ball.x < 0 ? '공이 뒤로 날아갔어요! 당기는 방향을 바꿔 보세요.' : '너무 멀리 날아갔어요!'); break; }
+    }
+    trail.push([ball.x, ball.y]);
+  }
+  bursts.forEach(b => b.r += 3); bursts = bursts.filter(b => b.r < 90);
+  if (msgTimer > 0) msgTimer--;
+  draw(); requestAnimationFrame(step);
+}
+function finish(hit, why) {
+  const L = LEVELS[lv];
+  logShot(hit);
+  if (hit) {
+    phase = 'done';
+    const [x, y] = L.tg.t === 'box' ? toS(L.tg.x, L.tg.h / 2) : toS(L.tg.x, L.tg.y);
+    bursts.push({ x, y, r: 20, c: RED }, { x, y, r: 6, c: '#FFC93C' });
+    stars[lv] = tries === 1 ? 3 : tries <= 3 ? 2 : 1; lvlBoxes(); hud(); persist();
+    setTimeout(openQuiz, 1100);
+  } else {
+    phase = 'wait'; ghost = trail.slice(); trail = [];
+    const land = Math.round(ball.x);
+    lastMsg = why || (ball.x < L.tg.x ? `${land} m에 떨어졌어요. 조금 모자라요!` : `${land} m에 떨어졌어요. 너무 멀리 갔어요!`);
+    lastMsgC = RED; msgTimer = 150;
+    setTimeout(() => { ball = null; phase = 'aim'; }, 600);
+  }
+}
+function logShot(hit) {
+  logArr.push({ n: shots, lv: lv + 1, k: cur.k, cm: cur.cm, F: cur.F, hit: !!hit });
+  renderLog(); persist();
+}
+function renderLog() {
+  const tb = document.querySelector('#log tbody');
+  if (!logArr.length) { tb.innerHTML = '<tr class="empty"><td colspan="6" style="color:var(--soft)">아직 쏘지 않았어요.</td></tr>'; return; }
+  tb.innerHTML = logArr.map(r => `<tr><td>${r.n}</td><td>${r.lv}</td><td>${r.k === 2 ? '두꺼운' : '보통'}</td><td><b>${r.cm}</b></td><td><b>${r.F}</b></td><td class="${r.hit ? 'ok' : 'no'}" style="font-weight:800">${r.hit ? '명중!' : '빗나감'}</td></tr>`).join('');
+}
+
+/* ---------- 퀴즈 ---------- */
+const quiz = document.getElementById('quiz');
+let qTried = false;
+function openQuiz() {
+  const L = LEVELS[lv], Q = L.q; qTried = quizFirst[lv] != null;
+  document.getElementById('qTitle').textContent = `${lv + 1}단계 성공!`;
+  document.getElementById('qStars').textContent = starStr(stars[lv]);
+  document.getElementById('qQ').textContent = Q.q;
+  document.getElementById('qFb').textContent = '';
+  const nx = document.getElementById('qNext'); nx.style.display = 'none'; nx.textContent = lv === 4 ? '결과 보기' : '다음 단계로';
+  const o = document.getElementById('qOpts');
+  o.innerHTML = Q.o.map((t, i) => `<button class="chip" data-i="${i}">${t}</button>`).join('');
+  o.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    if (nx.style.display !== 'none') return;
+    o.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b));
+    const fb = document.getElementById('qFb'), ok = +b.dataset.i === Q.a;
+    if (!qTried) { qTried = true; quizFirst[lv] = ok; persist(); }
+    if (ok) { fb.className = 'fb ok'; fb.textContent = '✔ 정답! ' + Q.e; nx.style.display = ''; addQlog(lv); }
+    else { fb.className = 'fb no'; fb.textContent = '✘ 다시 생각해 보세요. 게임에서 본 파란 화살표를 떠올려요.'; }
+  });
+  quiz.style.display = 'flex';
+}
+function qlogHTML(i) {
+  const Q = LEVELS[i].q;
+  return `<li>${Q.q} → <b>${Q.o[Q.a]}</b> <span class="${quizFirst[i] ? 'ok' : 'no'}" style="font-weight:800">(${quizFirst[i] ? '한 번에 정답' : '다시 풀어 정답'})</span></li>`;
+}
+function addQlog(i) {
+  const ol = document.getElementById('qlog'); if (ol.querySelector('li[style]')) ol.innerHTML = '';
+  ol.insertAdjacentHTML('beforeend', qlogHTML(i));
+}
+function renderQlog() {
+  const n = Math.min(lv, 5), ol = document.getElementById('qlog');
+  ol.innerHTML = n ? [...Array(n).keys()].map(qlogHTML).join('') : '<li style="color:var(--soft);list-style:none;margin-left:-20px">단계를 깨면 퀴즈 결과가 여기에 기록돼요.</li>';
+}
+document.getElementById('qNext').onclick = () => {
+  quiz.style.display = 'none';
+  lv++; tries = 0; ghost = null; trail = []; ball = null; bursts = []; phase = lv > 4 ? 'end' : 'aim'; hud(); persist();
+  if (lv > 4) document.getElementById('log').scrollIntoView({ behavior: 'smooth' });
+};
+document.getElementById('restart').onclick = () => { if (confirm('처음부터 다시 할까요? 기록이 모두 지워져요.')) reset(); };
+
+/* ---------- 자동 저장 (1시간 유지) ---------- */
+const SKEY = 'slingshot-m1-v1', $ = id => document.getElementById(id);
+for (let i = 1; i <= 5; i++) $('cls').insertAdjacentHTML('beforeend', `<option value="${i}">${i}</option>`);
+for (let i = 1; i <= 8; i++) $('team').insertAdjacentHTML('beforeend', `<option value="${i}">${i}</option>`);
+for (let i = 1; i <= 30; i++) $('num').insertAdjacentHTML('beforeend', `<option value="${i}">${i}</option>`);
+function persist() {
+  try {
+    localStorage.setItem(SKEY, JSON.stringify({ t: Date.now(), lv, tries, stars, shots, quizFirst, logArr,
+      cls: $('cls').value, num: $('num').value, team: $('team').value, rule: $('rule').value, tip: $('tip').value }));
+  } catch (e) {}
+}
+function restore() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SKEY) || 'null');
+    if (!s || Date.now() - s.t > 3600e3) return false;
+    lv = s.lv; tries = s.tries; stars = s.stars; shots = s.shots; quizFirst = s.quizFirst || []; logArr = s.logArr || [];
+    pull = null; ball = null; trail = []; ghost = null; bursts = []; phase = lv > 4 ? 'end' : 'aim';
+    $('cls').value = s.cls || ''; $('num').value = s.num || ''; $('team').value = s.team || ''; $('rule').value = s.rule || ''; $('tip').value = s.tip || '';
+    renderLog(); renderQlog(); hud(); lvlBoxes();
+    if (lv <= 4 && stars[lv] > 0) { phase = 'done'; setTimeout(openQuiz, 300); }
+    return true;
+  } catch (e) { return false; }
+}
+['cls', 'num', 'team'].forEach(id => $(id).addEventListener('change', persist));
+['rule', 'tip'].forEach(id => $(id).addEventListener('input', persist));
+
+if (!restore()) reset();
+requestAnimationFrame(step);
+
+const overlay = document.getElementById('overlay');
+document.getElementById('closeShot').onclick = () => overlay.style.display = 'none';
+// 저장 방식: 샤를 법칙 활동지와 동일
+let shotBlob = null, shotName = 'report.png', downloadsNS = null;
+if (window.claude && typeof window.claude.use === 'function') {
+  window.claude.use('downloads').then(ns => { downloadsNS = ns; }).catch(() => {});
+}
+const ovMsg = document.getElementById('ovMsg');
+document.getElementById('saveBtn').onclick = async () => {
+  const cls = $('cls').value, num = $('num').value;
+  if (!cls || !num) { alert('반과 번호를 먼저 골라 주세요.'); $(cls ? 'num' : 'cls').focus(); return; }
+  const sid = `1-${cls}-${num}`;
+  if (typeof html2canvas !== 'function') { alert('이미지 도구를 불러오지 못했어요. 페이지를 새로 고친 뒤 다시 눌러 주세요.'); return; }
+  const btn = document.getElementById('saveBtn'); btn.textContent = '이미지 만드는 중…'; btn.disabled = true;
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const canvas = await html2canvas(document.getElementById('sheet'), { scale: 2, backgroundColor: '#FBFCFE', useCORS: true });
+    const url = canvas.toDataURL('image/png');
+    shotBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    shotName = `slingshot_${(sid.replace(/[^0-9A-Za-z-]/g, '') || 'report')}_${Date.now().toString().slice(-6)}.png`;
+    document.getElementById('shot').src = url;
+    document.getElementById('galleryBtn').textContent = '갤러리에 저장';
+    ovMsg.innerHTML = "미리 보기예요. <b>갤러리에 저장</b>을 누른 뒤 <b>패들렛 바로가기</b>로 올려 주세요.<br>저장이 안 되면 그림을 길게 눌러 이미지 저장(사진에 추가)을 고르거나 화면을 캡처하세요.";
+    overlay.style.display = 'flex';
+  } catch (err) { alert('이미지를 만들지 못했어요. 잠시 뒤 다시 눌러 주세요.'); }
+  btn.textContent = '이미지로 저장하기'; btn.disabled = false;
+};
+function anchorDownload() {
+  const u = URL.createObjectURL(shotBlob);
+  const a = document.createElement('a'); a.href = u; a.download = shotName; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 60000);
+}
+document.getElementById('galleryBtn').onclick = async () => {
+  if (!shotBlob) return;
+  // 1) Claude 안에서 열었을 때
+  if (downloadsNS) {
+    try { await downloadsNS.save({ filename: shotName, data: shotBlob }); ovMsg.textContent = '저장했어요. 패들렛 바로가기를 눌러 올려 주세요.'; return; }
+    catch (e) {
+      if (e && e.code === 'declined') { ovMsg.textContent = '저장을 취소했어요. 다시 누르면 저장할 수 있어요.'; return; }
+      if (e && e.code === 'rate_limited') { ovMsg.textContent = '저장 창이 이미 열려 있어요. 잠시 뒤 다시 눌러 주세요.'; return; }
+    }
+  }
+  // 2) 아이패드·아이폰만 공유 창 사용 (안드로이드는 바로 내려받으면 갤러리에 자동 저장)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS) {
+    try {
+      const file = new File([shotBlob], shotName, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: '새총 명사수 기록지' });
+        ovMsg.textContent = "공유 창에서 '이미지 저장'을 골랐다면 사진에 저장됐어요. 패들렛 바로가기로 올려 주세요.";
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') { ovMsg.textContent = '저장을 취소했어요. 다시 누르면 저장할 수 있어요.'; return; }
+    }
+  }
+  // 3) 그 밖의 기기: 파일로 내려받기
+  try { anchorDownload(); ovMsg.textContent = '저장했어요! 갤러리에서 확인한 뒤 패들렛 바로가기로 올려 주세요.'; }
+  catch (e) { ovMsg.textContent = '바로 저장할 수 없어요. 위 그림을 길게 눌러 이미지 저장을 고르거나 화면을 캡처하세요.'; }
+};
+
+/* ---------- 선생님께 공유 ---------- */
+const TEACHER_PW = '2026';   // 교사 화면 비밀번호 — 다른 활동지와 같은 비밀번호로 바꿔 쓰세요
+const COL = 'slingshot';     // 파이어베이스에 저장되는 이름
+let db = null;
+function getDB() {
+  if (db) return db;
+  if (typeof firebase === 'undefined') return null;
+  try {
+    if (!firebase.apps.length) {
+      const cfg = window.firebaseConfig || (typeof firebaseConfig !== 'undefined' ? firebaseConfig : null);
+      if (!cfg) return null;
+      firebase.initializeApp(cfg);
+    }
+    db = firebase.firestore();
+  } catch (e) { console.error(e); return null; }
+  return db;
+}
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const shareMsg = $('shareMsg');
+function sMsg(t, ok) { shareMsg.textContent = t; shareMsg.className = 'share-msg ' + (ok ? 'ok' : 'no'); }
+$('shareBtn').onclick = async () => {
+  const cls = $('cls').value, num = $('num').value, team = $('team').value, rule = $('rule').value.trim(), tip = $('tip').value.trim();
+  if (!cls || !num || !team) { alert('반, 번호, 모둠을 먼저 골라 주세요.'); $(!cls ? 'cls' : !num ? 'num' : 'team').focus(); return; }
+  if (!logArr.length) { alert('아직 쏜 기록이 없어요. 게임을 먼저 해 보세요.'); return; }
+  if (lv <= 4 && !confirm('아직 5단계를 모두 깨지 않았어요. 지금까지의 기록을 보낼까요?')) return;
+  if ((!rule || !tip) && !confirm("'게임을 마치며' 답을 다 쓰지 않았어요. 그래도 보낼까요?")) return;
+  const d = getDB();
+  if (!d) { sMsg('선생님 화면과 연결하지 못했어요. 선생님께 말씀드려 주세요.', false); return; }
+  const btn = $('shareBtn'); btn.disabled = true; btn.textContent = '보내는 중…';
+  try {
+    const job = d.collection(COL).doc(`c${cls}_n${num}`).set({
+      cls: +cls, num: +num, team: +team,
+      shots: logArr.map(r => ({ lv: r.lv, k: r.k, cm: r.cm, F: r.F, hit: !!r.hit })),
+      stars: stars.slice(), quiz: [0, 1, 2, 3, 4].map(i => quizFirst[i] == null ? null : !!quizFirst[i]),
+      rule, tip, done: lv > 4, ts: Date.now()
+    }, { merge: true });   // merge: 선생님이 준 보너스는 다시 보내도 남아 있음
+    await Promise.race([job, new Promise((_, rj) => setTimeout(() => rj(new Error('timeout')), 10000))]);
+    sMsg(`${cls}반 ${num}번(${team}모둠) 기록을 선생님께 보냈어요. 답을 고친 뒤 다시 누르면 새 답으로 바뀌어요.`, true);
+  } catch (e) { console.error(e); sMsg('보내지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.', false); }
+  btn.disabled = false; btn.textContent = '선생님께 공유';
+};
+
+/* ---------- 교사 화면 (새 답이 와도 '새 답 불러오기'를 누르기 전까지 그대로) ---------- */
+let revealed = false, live = new Map(), shown = [], shownKey = {}, loaded = false, tTab = 'graph', showLine = false, unsub = null;
+const tCls = $('tCls');
+const classDocs = () => [...live.values()].filter(d => String(d.cls) === tCls.value).sort((a, b) => a.num - b.num);
+function takeSnapshot() {
+  shown = classDocs(); shownKey = {}; shown.forEach(d => shownKey[d.num] = d.ts);
+  updatePending(); tRender();
+}
+function updatePending() {
+  const now = classDocs();
+  const n = now.filter(d => shownKey[d.num] !== d.ts).length + Object.keys(shownKey).filter(k => !now.some(d => String(d.num) === k)).length;
+  const b = $('tRefresh'); b.textContent = n ? `새 답 불러오기 (${n})` : '새 답 불러오기'; b.classList.toggle('on', n > 0);
+}
+$('tEnter').onclick = () => {
+  const p = prompt('교사 비밀번호를 입력하세요'); if (p === null) return;
+  if (p !== TEACHER_PW) { alert('비밀번호가 맞지 않아요.'); return; }
+  const d = getDB();
+  if (!d) { alert('파이어베이스에 연결하지 못했어요. firebase-config.js가 함께 올라가 있는지 확인해 주세요.'); return; }
+  document.body.classList.add('teacher-mode'); $('teacher').hidden = false; window.scrollTo(0, 0);
+  if (!unsub) unsub = d.collection(COL).onSnapshot(snap => {
+    live = new Map(); snap.forEach(doc => live.set(doc.id, doc.data()));
+    if (!loaded) { loaded = true; takeSnapshot(); } else updatePending();
+  }, err => { console.error(err); $('tBody').innerHTML = `<p class="t-empty no">기록을 불러오지 못했어요. (${esc(err.message)})</p>`; });
+  tRender();
+};
+$('tExit').onclick = () => { document.body.classList.remove('teacher-mode'); $('teacher').hidden = true; };
+$('tRefresh').onclick = takeSnapshot;
+tCls.onchange = () => { revealed = false; takeSnapshot(); };
+$('tTabs').onclick = e => {
+  const b = e.target.closest('[data-tab]'); if (!b) return;
+  tTab = b.dataset.tab; $('tTabs').querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b)); tRender();
+};
+$('tBody').onclick = async e => {
+  if (e.target.id === 'tLine') { showLine = !showLine; tRender(); return; }
+  if (e.target.id === 'tReveal') { revealed = true; tRender(); return; }
+  const bb = e.target.closest('[data-bonus]'); if (!bb) return;
+  const d = shown.find(x => String(x.num) === bb.dataset.bonus); if (!d) return;
+  const v = !d.bonus; d.bonus = v; tRender();
+  try { await db.collection(COL).doc(`c${d.cls}_n${d.num}`).update({ bonus: v }); }
+  catch (err) { d.bonus = !v; tRender(); alert('보너스를 저장하지 못했어요. 잠시 뒤 다시 눌러 주세요.'); }
+};
+$('tClear').onclick = async () => {
+  const c = tCls.value;
+  const ids = [...live.entries()].filter(([, d]) => String(d.cls) === c).map(([id]) => id);
+  if (!ids.length) { alert(`${c}반에는 지울 기록이 없어요.`); return; }
+  if (!confirm(`${c}반 기록 ${ids.length}개를 모두 지울까요? 되돌릴 수 없어요.`)) return;
+  try { const b = db.batch(); ids.forEach(id => b.delete(db.collection(COL).doc(id))); await b.commit(); setTimeout(takeSnapshot, 400); }
+  catch (e) { alert('지우지 못했어요. 잠시 뒤 다시 눌러 주세요.'); }
+};
+
+function tRender() {
+  $('tCount').textContent = `${tCls.value}반 ${shown.length}명 공유`;
+  const body = $('tBody');
+  if (!loaded) { body.innerHTML = '<p class="t-empty">기록을 불러오는 중…</p>'; return; }
+  if (!shown.length) { body.innerHTML = "<p class=\"t-empty\">아직 공유한 학생이 없어요.<br>학생들이 '선생님께 공유'를 누르면 '새 답 불러오기'에 숫자가 떠요.</p>"; return; }
+  if (tTab === 'graph') body.innerHTML = tGraph();
+  else if (tTab === 'quiz') body.innerHTML = tQuiz();
+  else if (tTab === 'rule') body.innerHTML = tAnswers('rule', '고무줄을 당긴 길이와 탄성력 사이에는 어떤 규칙이 있나요? 두꺼운 고무줄은 어떻게 달랐나요?');
+  else if (tTab === 'team') body.innerHTML = tTeam();
+  else body.innerHTML = tAnswers('tip', "과녁을 잘 맞히는 비법 ('탄성력', '방향', '크기'를 넣어서)");
+}
+function tGraph() {
+  const cnt = {}; let nN = 0, nT = 0;
+  shown.forEach(d => (d.shots || []).forEach(s => { const key = s.k + '_' + s.cm; cnt[key] = (cnt[key] || 0) + 1; s.k === 2 ? nT++ : nN++; }));
+  const W = 660, H = 440, L = 64, R = 22, T = 22, B = 56, pw = W - L - R, ph = H - T - B;
+  const X = cm => L + cm / 10 * pw, Y = F => T + ph - F / 20 * ph, f = 'font-family="Gothic A1, sans-serif"';
+  let g = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="당긴 길이와 탄성력 그래프">`;
+  for (let c = 0; c <= 10; c++) g += `<line x1="${X(c)}" y1="${T}" x2="${X(c)}" y2="${T + ph}" stroke="#E3EAF5"/><text x="${X(c)}" y="${T + ph + 22}" text-anchor="middle" font-size="15" fill="#5B6782" ${f}>${c}</text>`;
+  for (let F = 0; F <= 20; F += 2) g += `<line x1="${L}" y1="${Y(F)}" x2="${L + pw}" y2="${Y(F)}" stroke="#E3EAF5"/><text x="${L - 10}" y="${Y(F) + 5}" text-anchor="end" font-size="15" fill="#5B6782" ${f}>${F}</text>`;
+  g += `<line x1="${L}" y1="${T + ph}" x2="${L + pw}" y2="${T + ph}" stroke="#1E2A44" stroke-width="2"/><line x1="${L}" y1="${T}" x2="${L}" y2="${T + ph}" stroke="#1E2A44" stroke-width="2"/>`;
+  g += `<text x="${L + pw / 2}" y="${H - 8}" text-anchor="middle" font-size="17" font-weight="800" fill="#1E2A44" ${f}>당긴 길이 (cm)</text>`;
+  g += `<text x="18" y="${T + ph / 2}" text-anchor="middle" font-size="17" font-weight="800" fill="#1E2A44" transform="rotate(-90 18 ${T + ph / 2})" ${f}>탄성력 (N)</text>`;
+  if (showLine) g += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(10)}" y2="${Y(10)}" stroke="#2563C9" stroke-width="2.5" stroke-dasharray="8 6"/><line x1="${X(0)}" y1="${Y(0)}" x2="${X(10)}" y2="${Y(20)}" stroke="#E5383B" stroke-width="2.5" stroke-dasharray="8 6"/>`;
+  Object.entries(cnt).forEach(([key, c]) => {
+    const [k, cm] = key.split('_').map(Number), x = X(cm), y = Y(cm * k), r = Math.min(22, 6 + Math.sqrt(c) * 3);
+    g += k === 2
+      ? `<rect x="${x - r}" y="${y - r}" width="${2 * r}" height="${2 * r}" rx="3" fill="#E5383B" fill-opacity=".85" stroke="#1E2A44" stroke-width="1.5"/>`
+      : `<circle cx="${x}" cy="${y}" r="${r}" fill="#2563C9" fill-opacity=".85" stroke="#1E2A44" stroke-width="1.5"/>`;
+    if (c > 1) g += `<text x="${x}" y="${y + 5}" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" ${f}>${c}</text>`;
+  });
+  g += '</svg>';
+  return `<div class="t-graph"><div class="t-gbox">${g}</div><div class="t-side">
+    <div class="lg"><svg width="22" height="22"><circle cx="11" cy="11" r="9" fill="#2563C9" stroke="#1E2A44" stroke-width="1.5"/></svg>보통 고무줄 ${nN}발</div>
+    <div class="lg"><svg width="22" height="22"><rect x="2" y="2" width="18" height="18" rx="3" fill="#E5383B" stroke="#1E2A44" stroke-width="1.5"/></svg>두꺼운 고무줄 ${nT}발</div>
+    <p style="margin:6px 0 0;color:var(--soft);font-size:15px">점이 클수록, 숫자가 클수록 같은 기록이 많아요.</p>
+    <div class="q">점들이 어떤 모양으로 모여 있나요?<br>두꺼운 고무줄의 점은 보통 고무줄과 무엇이 다른가요?</div>
+    <button class="btn ${showLine ? 'on' : 'light'}" id="tLine">${showLine ? '규칙선 숨기기' : '규칙선 보기'}</button>
+  </div></div>`;
+}
+function tQuiz() {
+  return '<div class="t-qs">' + LEVELS.map((Lv, i) => {
+    const att = shown.filter(d => d.quiz && d.quiz[i] != null), ok = att.filter(d => d.quiz[i]).length;
+    const pct = att.length ? Math.round(ok / att.length * 100) : 0, low = att.length && pct < 60;
+    return `<div class="t-q${low ? ' low' : ''}"><div class="t-qh">${i + 1}단계 · ${esc(Lv.q.q)}</div>
+      <div class="t-qa">정답: ${esc(Lv.q.o[Lv.q.a])}</div>
+      <div class="t-bar"><span style="width:${pct}%"></span></div>
+      <div class="t-qn">한 번에 정답 <b>${ok}</b> / ${att.length}명${att.length ? ` (${pct}%)` : ''}${shown.length - att.length ? ` · 아직 못 푼 학생 ${shown.length - att.length}명` : ''}</div></div>`;
+  }).join('') + '</div>';
+}
+/* 개인 점수: 별 1개 1점 + 퀴즈 한 번에 정답 4점 (최대 35점) / 모둠 점수: 모둠원 평균 + 보너스 3점씩 */
+const BONUS = 3;
+const myScore = d => (d.stars || []).reduce((a, b) => a + (b || 0), 0) + 4 * (d.quiz || []).filter(q => q === true).length;
+function tTeam() {
+  const g = {};
+  shown.forEach(d => { if (!d.team) return; (g[d.team] = g[d.team] || []).push(d); });
+  const rows = Object.entries(g).map(([t, m]) => {
+    const avg = m.reduce((a, d) => a + myScore(d), 0) / m.length, bn = m.filter(d => d.bonus).length * BONUS;
+    return { t: +t, m, avg: Math.round(avg * 10) / 10, bn, total: Math.round((avg + bn) * 10) / 10 };
+  }).sort((a, b) => b.total - a.total || a.t - b.t);
+  if (!rows.length) return '<p class="t-empty">모둠을 고르고 공유한 학생이 아직 없어요.</p>';
+  const rule = `<p class="t-rule">개인 점수 = 별 1개당 1점 + 퀴즈 한 번에 정답 4점 (최대 35점) · 모둠 점수 = 모둠원 평균 + 보너스 답 1개당 ${BONUS}점</p>`;
+  if (!revealed) return rule + `<div class="t-cover"><p>${rows.length}개 모둠의 점수가 모였어요.</p><button class="btn share" id="tReveal">모둠 점수 공개하기</button></div>`;
+  const max = Math.max(...rows.map(r => r.total), 1);
+  let rank = 0, prev = null;
+  return rule + '<div class="t-teams">' + rows.map((r, i) => {
+    if (r.total !== prev) { rank = i + 1; prev = r.total; }
+    return `<div class="t-team${rank === 1 ? ' first' : ''}"><div class="t-rank">${rank}등</div>
+      <div class="t-tinfo"><div class="t-tname">${r.t}모둠 <span>${r.m.map(d => d.num + '번').join(', ')}</span></div>
+      <div class="t-bar"><span style="width:${r.total / max * 100}%"></span></div>
+      <div class="t-tdet">평균 ${r.avg}점${r.bn ? ` + 보너스 ${r.bn}점` : ''}</div></div>
+      <div class="t-total">${r.total}<small>점</small></div></div>`;
+  }).join('') + '</div><p class="t-none">공유하지 않은 모둠원은 평균에 들어가지 않아요. 보너스는 \'규칙 찾기\'·\'명사수의 비법\' 탭의 답 카드에서 줄 수 있어요.</p>';
+}
+function tAnswers(field, prompt) {
+  const has = shown.filter(d => (d[field] || '').trim()), none = shown.filter(d => !(d[field] || '').trim()).map(d => d.num + '번');
+  return `<p class="t-prompt">${esc(prompt)}</p>
+    <div class="t-cards">${has.map(d => `<div class="t-card${d.bonus ? ' got' : ''}"><div class="t-ch"><b>${d.num}번</b><span class="t-tm">${d.team ? d.team + '모둠' : ''}</span>
+      ${d.team ? `<button class="bonus" data-bonus="${d.num}">${d.bonus ? '★ 보너스 +3' : '☆ 보너스'}</button>` : ''}</div><p>${esc(d[field])}</p></div>`).join('')}</div>
+    ${none.length ? `<p class="t-none">아직 안 쓴 학생: ${none.join(', ')}</p>` : ''}`;
+}
+</script>
+</body>
+</html>
