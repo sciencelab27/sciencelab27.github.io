@@ -371,7 +371,7 @@ td.stuck{background:rgba(226,61,61,.15); font-weight:800}
         <div class="tires" id="tires"></div>
         <div class="fline" style="font-size:17px">🎒 모래 주머니 2개: 달리다가 <b>모래</b>를 누르면 차 아래에 모래가 깔려요.<br>🌀 커브에서 <b>드리프트</b>를 누르고 있으면 뒷바퀴 마찰력이 줄어 미끄러지며 돌아요. 미끄러지는 동안 게이지가 차면 <b>🔥 부스터</b>를 쓸 수 있어요!<br>🏁 그냥 두면 기본 속도로만 달려요. <b>별 3개</b>를 받으려면 드리프트로 부스터를 모아 직선에서 써야 해요. 단, 바닥이 미끄러운 곳에서 드리프트하면 길 밖으로 밀려날 수 있어요!</div>
         <div class="ghosts" id="pitGhosts"></div>
-        <div class="fline" style="font-size:16px; color:var(--soft)">🕹️ 태블릿은 화면 버튼, 컴퓨터는 키보드(← → 핸들, ↓ 브레이크, ↑ 가속, Shift 드리프트, Ctrl 부스터, 스페이스바 모래)로 운전해요. 처음에는 <b>자동 가속</b>과 <b>핸들 도우미</b>가 켜져 있어서, 커브 앞에서 <b>브레이크</b>만 잘 밟으면 돼요. 익숙해지면 레이스 화면 오른쪽 위에서 끄고 직접 운전해 보세요.</div>
+        <div class="fline" style="font-size:16px; color:var(--soft)">🕹️ 태블릿은 화면 버튼, 컴퓨터는 키보드(← → 핸들, ↓ 브레이크, ↑ 가속, Shift 드리프트, Ctrl 부스터, 스페이스바 모래)로 운전해요. <b>자동 가속</b>이 켜져 있어서 차는 저절로 달려요. <b>핸들 도우미</b>는 완만한 길만 살짝 도와줘요. <b>급한 커브는 직접 ◀ ▶로 돌려야</b> 길 밖으로 밀려나지 않아요!</div>
         <div class="row"><button class="btn red" id="goRace" disabled>출발! ▶</button><button class="btn ghost" data-go="map">지도로</button></div>
       </div>
     </div>
@@ -838,14 +838,14 @@ $('goRace').onclick = () => { if (guardLocked() || !tireSel) return; startRace(S
 const rc = $('rc'), cx = rc.getContext('2d');
 const bgCv = document.createElement('canvas'); bgCv.width = 1200; bgCv.height = 675;
 const ctl = { left: false, right: false, gas: false, brake: false, drift: false };
-let R = null, raf = 0, autoGas = true, assist = true;
+let R = null, raf = 0, autoGas = true, assist = true, ASSIST = 0.35;
 function steerInput() {
   if (ctl.left || ctl.right) return (ctl.right ? 1 : 0) - (ctl.left ? 1 : 0);
   if (!assist || !R) return 0;
   const st = R.st, spd = Math.hypot(R.vx, R.vy), tp = st.S[(R.idx + Math.round(14 + spd / 30)) % st.N];
   let d = Math.atan2(tp.y - R.y, tp.x - R.x) - R.h;
   while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
-  return Math.max(-1, Math.min(1, d * 3));
+  return Math.max(-ASSIST, Math.min(ASSIST, d * 3));  // 도우미는 살짝만 돌려 줘요. 급한 커브는 직접!
 }
 const gasOn = () => ctl.gas || (autoGas && !ctl.brake);
 function startRace(i, tire) {
