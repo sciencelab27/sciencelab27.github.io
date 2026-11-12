@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>마찰력 그랑프리 — 미끄러져라, 멈춰라!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gothic+A1:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  color-scheme: light dark;
+  --bg:#DCEAF4; --scratch:rgba(255,255,255,.38); --panel:#FFFFFF; --panel2:#EEF4FA; --ink:#17324D; --soft:#55708A; --line:#B9CCDD;
+  --okc:#13875F; --noc:#D02F2F; --okbg:#E3F6EE; --nobg:#FDECEC;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){ --bg:#0E2133; --scratch:rgba(255,255,255,.04); --panel:#18324A; --panel2:#1F3D58; --ink:#E6F0F8; --soft:#9FB6CA; --line:#36536E; --okc:#4FD1A0; --noc:#FF8080; --okbg:#123D30; --nobg:#4A1E22; }
+}
+:root[data-theme="dark"]{ --bg:#0E2133; --scratch:rgba(255,255,255,.04); --panel:#18324A; --panel2:#1F3D58; --ink:#E6F0F8; --soft:#9FB6CA; --line:#36536E; --okc:#4FD1A0; --noc:#FF8080; --okbg:#123D30; --nobg:#4A1E22; }
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0; color:var(--ink); font-family:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",sans-serif; line-height:1.55; min-height:100vh;
+  background-color:var(--bg); background-image:repeating-linear-gradient(115deg,var(--scratch) 0 2px,transparent 2px 46px),repeating-linear-gradient(28deg,var(--scratch) 0 1px,transparent 1px 73px)}
+body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:21; background:#17324D}
+h1,h2,h3{font-family:"Do Hyeon","Gothic A1",sans-serif; font-weight:400; margin:0}
+:focus-visible{outline:3px solid #FFC93C; outline-offset:2px}
+.soft{color:var(--soft)} .ok{color:var(--okc)} .no{color:var(--noc)}
+
+/* 상단 상태바 */
+.hud{position:sticky; top:env(safe-area-inset-top,0px); z-index:20; background:#17324D; color:#fff; display:flex; align-items:center; gap:10px; padding:8px 16px; border-bottom:4px solid #E23D3D; flex-wrap:wrap}
+.hud-title{font-family:"Do Hyeon",sans-serif; font-size:24px; flex:1; min-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.pill{display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.35); color:#fff; border-radius:999px; padding:4px 12px; font:inherit; font-weight:800; font-size:15px}
+button.pill{cursor:pointer}
+.pill b{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:21px; color:#FFC93C}
+
+/* 버튼 */
+.btn{font:inherit; font-weight:800; font-size:18px; color:#17324D; background:#FFC93C; border:2.5px solid #17324D; border-radius:12px; padding:10px 20px; cursor:pointer; box-shadow:0 4px 0 #17324D; transition:transform .06s, box-shadow .06s; touch-action:manipulation; text-decoration:none; display:inline-flex; align-items:center; gap:6px}
+.btn:active:not(:disabled){transform:translateY(3px); box-shadow:0 1px 0 #17324D}
+.btn.red{background:#E23D3D; color:#fff} .btn.blue{background:#2B6CB0; color:#fff} .btn.mint{background:#159A6E; color:#fff} .btn.ghost{background:#fff; color:#17324D}
+.btn.mini{font-size:16px; padding:6px 14px; box-shadow:0 3px 0 #17324D}
+.btn:disabled{opacity:.45; cursor:default}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:12px 0}
+.screen{max-width:1180px; margin:0 auto; padding:16px 20px 70px}
+.coach{display:flex; gap:12px; align-items:flex-start; margin:4px 0 14px}
+.coach .av{flex:none; width:62px; height:62px}
+.coach .av svg{width:100%; height:100%}
+.bubble{position:relative; flex:1; background:var(--panel); border:2.5px solid var(--ink); border-radius:16px; padding:10px 16px; font-size:19px; font-weight:600; line-height:1.6}
+.bubble::before{content:""; position:absolute; left:-13px; top:20px; border-style:solid; border-width:10px 13px 10px 0; border-color:transparent var(--ink) transparent transparent}
+.bubble::after{content:""; position:absolute; left:-9px; top:22px; border-style:solid; border-width:8px 10px 8px 0; border-color:transparent var(--panel) transparent transparent}
+.panel{background:var(--panel); border:2.5px solid var(--ink); border-radius:16px; padding:14px 16px}
+.fline{font-size:19px; font-weight:700; line-height:1.8; margin:8px 0}
+.msg{font-size:18px; font-weight:700; margin-top:10px; min-height:1.6em; line-height:1.6}
+textarea{font:inherit; width:100%; resize:vertical; min-height:72px; font-weight:600; font-size:17px; line-height:1.55; color:var(--ink); background:var(--panel); border:2px solid var(--line); border-radius:10px; padding:6px 10px}
+
+/* 시작 화면 */
+#sStart{max-width:none; padding:3vh 0 5vh; min-height:100vh; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(180deg,#0A2A66 0%,#1A4FAF 22%,#3D7ED6 33%,#8FC0EE 40%,#BFD9F2 44%)}
+#sStart .sc{position:absolute; pointer-events:none}
+.sc.lights{inset:0 0 auto 0; height:46%; background:
+  radial-gradient(circle at 6% 7%,#fff 0 .9%,rgba(190,225,255,.6) 2%,transparent 7%),
+  radial-gradient(circle at 12% 10%,#fff 0 .7%,rgba(190,225,255,.5) 1.6%,transparent 6%),
+  radial-gradient(circle at 17% 12%,#fff 0 .5%,rgba(190,225,255,.4) 1.2%,transparent 5%),
+  radial-gradient(circle at 94% 7%,#fff 0 .9%,rgba(190,225,255,.6) 2%,transparent 7%),
+  radial-gradient(circle at 88% 10%,#fff 0 .7%,rgba(190,225,255,.5) 1.6%,transparent 6%),
+  radial-gradient(circle at 83% 12%,#fff 0 .5%,rgba(190,225,255,.4) 1.2%,transparent 5%),
+  linear-gradient(118deg,transparent 18%,rgba(255,255,255,.13) 26%,transparent 34%),
+  linear-gradient(62deg,transparent 66%,rgba(255,255,255,.13) 74%,transparent 82%)}
+.sc.crowd{left:0; right:0; top:19%; height:15%; background:radial-gradient(circle,rgba(8,26,70,.6) 34%,transparent 40%) 0 0/13px 13px, radial-gradient(circle,rgba(255,200,120,.35) 30%,transparent 38%) 6px 5px/13px 13px, linear-gradient(#1A3B80,#2A5BAE); filter:blur(1.2px)}
+.sc.wall{left:0; right:0; top:33.5%; height:8%; background:repeating-linear-gradient(90deg,#E23D3D 0 6vw,#fff 6vw 12vw); border-bottom:.8vh solid #17324D; box-shadow:0 .6vh 1vh rgba(0,40,100,.2)}
+.sc.road{left:50%; bottom:0; transform:translateX(-50%); width:max(140vw,240vh); height:58.5%}
+.sc.carL{left:1vw; top:38vh; width:min(24vw,40vh)}
+.sc.carR{right:1vw; top:47vh; width:min(27vw,44vh)}
+.startbox{position:relative; z-index:3; display:flex; flex-direction:column; align-items:center; width:100%}
+.titlewrap{position:relative; display:flex; flex-direction:column; align-items:center; margin-top:min(15vh,17vw)}
+.crest{position:absolute; left:50%; bottom:calc(100% - 7vh); transform:translateX(-50%); width:min(46vw,54vh); height:auto; z-index:0}
+.plate{position:relative; z-index:1; transform:rotate(-1.5deg); background:linear-gradient(180deg,rgba(236,247,255,.95),rgba(165,207,245,.92)); border:.45vh solid #fff; border-radius:3vh; padding:1.4vh 3vw 4.6vh;
+  box-shadow:0 0 0 .7vh #2C6FD1, 0 0 3vh rgba(140,200,255,.9), 0 1.4vh 2.4vh rgba(0,40,110,.35)}
+.ttl{font-family:"Black Han Sans","Do Hyeon",sans-serif; font-size:min(7.4vw,10.5vh); line-height:1.1; letter-spacing:-.02em; white-space:nowrap; margin:0}
+.ttl span{--o:#0E3A8A; text-shadow:-.04em -.04em 0 var(--o),.04em -.04em 0 var(--o),-.04em .04em 0 var(--o),.04em .04em 0 var(--o),0 -.05em 0 var(--o),0 .05em 0 var(--o),-.05em 0 0 var(--o),.05em 0 0 var(--o),0 .11em 0 #0A2A66,0 .16em .2em rgba(0,20,70,.35)}
+.t1{color:#fff} .t2{color:#FFD43B}
+.ribbon{position:relative; z-index:2; margin-top:-3.8vh; font-family:"Black Han Sans","Do Hyeon",sans-serif; font-size:min(4.6vw,6.4vh); color:#fff; padding:.3vh 4.5vw; border:.45vh solid #fff; border-radius:1vh;
+  background:linear-gradient(#F44D4D,#C81E2B); box-shadow:0 .7vh 0 #8E1420, 0 1.4vh 2.2vh rgba(120,0,10,.3); text-shadow:0 .08em 0 #8E1420; word-spacing:.15em}
+.ribbon::before,.ribbon::after{content:""; position:absolute; top:1.4vh; width:4vw; height:100%; background:#A3141E; z-index:-1}
+.ribbon::before{left:-3.5vw; clip-path:polygon(0 0,100% 0,100% 100%,0 100%,35% 50%)}
+.ribbon::after{right:-3.5vw; clip-path:polygon(0 0,100% 0,65% 50%,100% 100%,0 100%)}
+.reg2{position:relative; margin-top:5.4vh; width:min(68vw,1000px); background:linear-gradient(#FFFFFF,#E8F1FB); border:.5vh solid #2C6FD1; border-radius:2.4vh; padding:5vh 2.6vw 2.6vh;
+  box-shadow:0 0 0 .4vh #fff, 0 0 2.4vh rgba(90,160,255,.7), 0 1.2vh 2vh rgba(0,40,110,.25)}
+.regtab{position:absolute; left:50%; top:0; transform:translate(-50%,-55%); display:flex; align-items:center; gap:.8vw; white-space:nowrap; font-family:"Black Han Sans","Do Hyeon",sans-serif; font-size:min(3.4vw,4.8vh); color:#fff;
+  background:linear-gradient(#2F6FE0,#123E9C); border:.45vh solid #8DB4FF; border-radius:999px; padding:.3vh 3vw; box-shadow:0 .5vh 0 #0B2A66}
+.regtab svg{width:1.2em; height:1.2em; fill:#fff}
+.fields3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:2vw}
+.fields3 label{display:flex; flex-direction:column; gap:.8vh; font-weight:800; font-size:clamp(15px,2.9vh,26px); color:#17324D}
+.fields3 label span{display:flex; align-items:center; gap:.5vw}
+.fields3 label svg{width:1.05em; height:1.05em; fill:#1F4E9C}
+.fields3 select{width:100%; height:clamp(42px,7.2vh,64px); font:inherit; font-size:clamp(17px,3.2vh,28px); font-weight:800; color:#17324D; background:#fff; border:2px solid #B9CCDD; border-radius:1.4vh; padding:0 1vw; box-shadow:inset 0 2px 4px rgba(23,50,77,.08)}
+.fields3 select:focus{border-color:#2B6CB0; outline:3px solid #FFC93C}
+.go{margin-top:3vh; display:inline-flex; align-items:center; gap:1.4vw; font-family:"Black Han Sans","Do Hyeon",sans-serif; font-size:min(4.4vw,6.4vh); color:#fff; padding:1vh 5vw; border-radius:999px; border:.5vh solid #fff; cursor:pointer;
+  background:linear-gradient(#FF6262 0%,#E3242B 55%,#B5141C 100%); box-shadow:0 .9vh 0 #8A0F15, 0 0 0 .5vh rgba(255,140,140,.45), 0 1.6vh 3vh rgba(150,0,0,.35); text-shadow:0 .07em 0 #8A0F15; transition:transform .06s, box-shadow .06s; touch-action:manipulation}
+.go b{font-weight:400; font-size:1.1em; line-height:1}
+.go:active:not(:disabled){transform:translateY(.7vh); box-shadow:0 .2vh 0 #8A0F15, 0 0 0 .5vh rgba(255,140,140,.45)}
+.go:disabled{filter:saturate(.6); cursor:wait}
+.goicon{width:1.5em; height:auto}
+.startmsg{margin-top:2.4vh; text-align:center; font-weight:800; font-size:clamp(14px,2.3vh,21px); color:#fff; background:rgba(23,50,77,.75); border-radius:999px; padding:.3vh 1.4vw}
+.startmsg.err{background:#D7263D}
+@media (max-width:700px){ .fields3{grid-template-columns:1fr} .sc.carL,.sc.carR{opacity:.35} .reg2{width:88vw} }
+
+/* 그랑프리 지도 */
+.gp{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px}
+@media (max-width:900px){ .gp{grid-template-columns:1fr 1fr} }
+.gpc{position:relative; background:var(--panel); border:3px solid var(--ink); border-radius:18px; padding:10px 12px 12px; box-shadow:0 5px 0 var(--ink); cursor:pointer; text-align:left; font:inherit; color:var(--ink)}
+.gpc canvas{display:block; width:100%; height:auto; border-radius:10px; border:2px solid var(--line); background:#fff}
+.gpc .no{font-family:"Do Hyeon",sans-serif; font-size:16px; color:var(--soft)}
+.gpc h3{font-size:24px; line-height:1.2; margin:2px 0 6px}
+.gpc .rec{font-size:16px; font-weight:800}
+.gpc .st{color:#E0A800; font-size:20px; letter-spacing:2px}
+.gpc.lock{cursor:not-allowed}
+.gpc.lock canvas,.gpc.lock h3{filter:grayscale(1); opacity:.45}
+.gpc.now{border-color:#E23D3D; box-shadow:0 5px 0 #E23D3D}
+.gpc.now::before{content:"도전!"; position:absolute; right:10px; top:8px; background:#E23D3D; color:#fff; font-family:"Do Hyeon",sans-serif; font-size:17px; padding:0 10px; border-radius:999px; z-index:2}
+.gpc.done::after{content:"✔"; position:absolute; right:-8px; top:-8px; width:32px; height:32px; border-radius:50%; background:#159A6E; color:#fff; display:grid; place-items:center; font-size:18px; border:2px solid #fff}
+.total{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:18px}
+.total .big{font-family:"Do Hyeon",sans-serif; font-size:34px}
+
+/* 정비소 */
+.pit{display:grid; grid-template-columns:minmax(0,1.25fr) minmax(320px,1fr); gap:16px; align-items:start}
+@media (max-width:900px){ .pit{grid-template-columns:1fr} }
+.legend{display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:8px; font-weight:800; font-size:15px}
+.legend i{display:inline-block; width:18px; height:14px; border-radius:3px; border:1.5px solid #17324D; vertical-align:-2px; margin-right:4px}
+.qbox{background:var(--panel); border:2.5px solid var(--ink); border-radius:16px; padding:14px 16px; margin-bottom:14px}
+.qbox h3{font-size:22px; color:#E23D3D}
+.qopts{display:grid; gap:8px; margin-top:8px}
+.qopt{font:inherit; font-size:17px; font-weight:700; text-align:left; border:2.5px solid var(--line); background:var(--panel); color:var(--ink); border-radius:12px; padding:8px 12px; cursor:pointer}
+.qopt.right{border-color:#159A6E; background:var(--okbg)}
+.qopt.wrong{border-color:#E23D3D; background:var(--nobg)}
+.qopt:disabled{cursor:default}
+.tires{display:grid; gap:10px}
+.tire{display:flex; gap:12px; align-items:center; text-align:left; font:inherit; color:var(--ink); background:var(--panel); border:3px solid var(--line); border-radius:14px; padding:6px 12px; cursor:pointer}
+.tire svg{flex:none; width:50px; height:50px}
+.tire b{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:22px; display:block}
+.tire span{font-size:15px; font-weight:600; line-height:1.45}
+.tire.on{border-color:#E23D3D; box-shadow:0 0 0 3px #E23D3D}
+
+/* 레이스 */
+#sRace{max-width:1240px; padding-top:10px}
+.track{position:relative; border:3px solid #17324D; border-radius:16px; overflow:hidden; background:#222; touch-action:none; user-select:none; -webkit-user-select:none}
+.track canvas{display:block; width:100%; height:auto}
+.rhud{position:absolute; left:10px; top:10px; display:flex; gap:8px; flex-wrap:wrap; pointer-events:none}
+.rhud span{background:rgba(23,50,77,.85); color:#fff; border-radius:10px; padding:2px 12px; font-weight:800; font-size:16px}
+.rhud b{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:24px; color:#FFC93C; margin-left:4px}
+.surf{position:absolute; right:10px; top:10px; background:rgba(23,50,77,.85); color:#fff; border-radius:10px; padding:2px 12px; font-weight:800; font-size:16px; pointer-events:none}
+.surf b{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:22px; margin-left:4px}
+.ctl{position:absolute; bottom:12px; display:flex; gap:12px}
+.ctl.l{left:12px} .ctl.r{right:12px}
+.cb{width:clamp(70px,8.4vw,104px); height:clamp(70px,8.4vw,104px); border-radius:22px; border:3px solid rgba(255,255,255,.9); background:rgba(23,50,77,.55); color:#fff; font-family:"Do Hyeon",sans-serif; font-size:clamp(22px,2.6vw,32px); display:grid; place-items:center; touch-action:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; cursor:pointer; line-height:1.1; text-align:center}
+.cb.on{background:rgba(255,201,60,.85); color:#17324D}
+.cb.gas{background:rgba(21,154,110,.6)} .cb.gas.on{background:rgba(21,154,110,.95); color:#fff}
+.cb.brk{background:rgba(226,61,61,.6); font-size:clamp(16px,1.9vw,23px)} .cb.brk.on{background:rgba(226,61,61,.95); color:#fff}
+.cb small{display:block; font-size:.5em; font-family:"Gothic A1",sans-serif; font-weight:800}
+.sandbtn{position:absolute; right:12px; bottom:calc(clamp(70px,8.4vw,104px) + 24px); background:rgba(226,192,122,.92); color:#17324D; border:3px solid #fff; border-radius:999px; font:inherit; font-weight:800; font-size:17px; padding:6px 14px; touch-action:none; cursor:pointer}
+.sandbtn:disabled{opacity:.4}
+.count{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; font-family:"Black Han Sans","Do Hyeon",sans-serif; font-size:clamp(70px,12vw,150px); color:#fff; text-shadow:0 6px 0 #17324D, 0 0 30px rgba(0,0,0,.4)}
+.result{position:absolute; inset:0; display:grid; place-items:center; background:rgba(10,22,36,.6); padding:16px}
+.rbox{background:var(--panel); color:var(--ink); border:3px solid #17324D; border-radius:20px; padding:16px 22px; width:min(640px,100%); max-height:100%; overflow:auto; box-shadow:0 8px 0 #17324D}
+.rbox h2{font-size:34px}
+.rbig{font-family:"Do Hyeon",sans-serif; font-size:52px; line-height:1.1}
+.rstars{font-size:38px; color:#E0A800; letter-spacing:4px}
+.fb{background:var(--panel2); border-radius:12px; padding:8px 12px; font-size:17px; font-weight:700; margin-top:8px; line-height:1.6}
+.pitbtn{position:absolute; right:10px; top:52px; background:rgba(255,255,255,.9); color:#17324D; border:2px solid #17324D; border-radius:10px; font:inherit; font-weight:800; font-size:15px; padding:2px 10px; cursor:pointer}
+.stuck{position:absolute; left:50%; top:34%; transform:translateX(-50%); background:var(--panel); color:var(--ink); border:3px solid #E23D3D; border-radius:16px; padding:12px 16px; font-size:18px; font-weight:800; text-align:center; width:min(560px,90%); line-height:1.7}
+.wrongway{position:absolute; left:50%; top:22%; transform:translateX(-50%); background:#E23D3D; color:#fff; font-family:"Do Hyeon",sans-serif; font-size:30px; border-radius:12px; padding:2px 18px; pointer-events:none}
+
+/* 기록 카드 */
+#recCard{--panel:#fff; --panel2:#EEF4FA; --ink:#17324D; --soft:#55708A; --line:#B9CCDD; --okc:#13875F; color:var(--ink); background:#fff; border:4px solid #17324D; border-radius:22px; overflow:hidden; max-width:980px; margin:0 auto}
+.rc-head{background:#17324D; color:#fff; padding:16px 22px; display:flex; justify-content:space-between; align-items:center; gap:16px; border-bottom:6px solid #E23D3D; position:relative; overflow:hidden}
+.rc-head .k{font-size:15px; font-weight:800; color:#FFC93C}
+.rc-head .nm{font-family:"Do Hyeon",sans-serif; font-size:42px; line-height:1.1}
+.rc-head .meta{font-size:17px; font-weight:700; opacity:.9}
+.rc-head .flag{width:120px; height:80px; flex:none; background:conic-gradient(#fff 25%,#17324D 0 50%,#fff 0 75%,#17324D 0) 0 0/20px 20px; border:3px solid #fff; border-radius:6px; transform:rotate(-8deg)}
+.rc-body{padding:16px 22px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px}
+@media (max-width:700px){ .rc-body{grid-template-columns:1fr 1fr} }
+.rc-stat{border:2px solid var(--line); border-radius:12px; padding:8px 12px; background:var(--panel2)}
+.rc-stat h3{font-size:19px}
+.rc-big{font-family:"Do Hyeon",sans-serif; font-size:28px; line-height:1.25}
+.rc-sub{font-size:15px; font-weight:700; color:var(--soft)}
+.rc-st{color:#E0A800; font-size:18px}
+.rc-wide{grid-column:1/-1}
+.rc-score{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; background:#FFF6D6; border-color:#E0A800}
+.rc-score .rc-big{font-size:38px}
+.rc-write label{display:block; font-weight:800; font-size:17px; margin-bottom:4px}
+.rc-write textarea{background:#fff; color:#17324D; border-color:#B9CCDD}
+.ta-print{border:2px solid #B9CCDD; border-radius:10px; padding:6px 10px; min-height:72px; font-weight:600; font-size:17px; line-height:1.55; white-space:pre-wrap; background:#fff}
+.rc-foot{padding:0 22px 12px; font-size:13px; color:var(--soft); text-align:right}
+.save{display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:22px}
+.save .btn{font-size:20px; padding:12px 26px}
+
+/* 교사용 순위판 */
+#sBoard{max-width:1280px}
+.btop{display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:#17324D; color:#fff; border-radius:16px; padding:10px 16px; margin-bottom:14px; border-bottom:4px solid #E23D3D}
+.btop h1{font-size:30px; flex:1; min-width:200px}
+.btop select{font:inherit; font-family:"Do Hyeon",sans-serif; font-size:22px; border-radius:10px; border:2px solid #FFC93C; background:#17324D; color:#fff; padding:2px 10px}
+.bstate{font-family:"Do Hyeon",sans-serif; font-size:20px; padding:2px 14px; border-radius:999px; background:#159A6E; color:#fff}
+.bstate.end{background:#E23D3D}
+.bbtn{font:inherit; font-weight:800; font-size:16px; color:#fff; background:transparent; border:2.5px solid #fff; border-radius:12px; padding:6px 12px; cursor:pointer}
+.bbtn.red{background:#E23D3D}
+.banner{font-family:"Do Hyeon",sans-serif; font-size:26px; text-align:center; background:#E23D3D; color:#fff; border-radius:14px; padding:6px 12px; margin-bottom:14px}
+.teams{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px}
+.team{position:relative; background:var(--panel); border:3px solid var(--ink); border-radius:20px; padding:14px 18px 16px; box-shadow:0 5px 0 var(--ink)}
+.team .rank{position:absolute; right:14px; top:10px; font-family:"Do Hyeon",sans-serif; font-size:40px; line-height:1; color:var(--soft)}
+.team h2{font-size:30px}
+.team .tot{font-family:"Do Hyeon",sans-serif; font-size:60px; line-height:1.05; margin:4px 0}
+.team .tot small{font-size:26px; margin-left:4px}
+.team .calc{font-size:16px; font-weight:800; color:var(--soft)}
+.bars{display:grid; gap:4px; margin-top:10px; font-size:15px; font-weight:800}
+.bar{display:flex; align-items:center; gap:8px}
+.bar span{flex:none; width:80px}
+.bar i{flex:1; height:12px; border-radius:6px; background:var(--panel2); border:1.5px solid var(--line); overflow:hidden}
+.bar i b{display:block; height:100%; background:#2B6CB0}
+.bar em{font-style:normal; flex:none; width:44px; text-align:right}
+.team.first{border-color:#E0A800; box-shadow:0 5px 0 #E0A800}
+.team.first .rank{color:#E0A800}
+.team.first.final::after{content:"🏆"; position:absolute; left:-16px; top:-34px; font-size:40px; transform:rotate(-14deg)}
+.empty{grid-column:1/-1; text-align:center; font-size:22px; font-weight:700; color:var(--soft); padding:50px 10px}
+.solo{margin-top:22px; background:var(--panel); border:3px solid var(--ink); border-radius:18px; padding:14px 16px}
+.solo h2{font-size:26px; margin-bottom:8px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse; width:100%; min-width:900px; font-size:16px}
+th,td{border:1.5px solid var(--line); padding:6px 8px; text-align:center}
+th{background:var(--panel2); font-weight:800}
+td.stuck{background:rgba(226,61,61,.15); font-weight:800}
+.foot{font-size:14px; color:var(--soft); margin-top:8px}
+.brule{margin-top:18px; font-size:15px; font-weight:600; color:var(--soft); text-align:center}
+
+/* 창, 알림 */
+.modal{position:fixed; inset:0; background:rgba(10,22,36,.72); display:grid; place-items:center; padding:20px; z-index:40}
+.modal .box{background:var(--panel); border:3px solid var(--ink); border-radius:20px; padding:18px 20px; max-width:900px; width:100%; max-height:88vh; overflow:auto}
+.modal .box h2{font-size:28px; margin-bottom:10px}
+.pwshow{font-family:"Do Hyeon",sans-serif; font-size:36px; line-height:1.4; letter-spacing:8px; min-height:56px; border-bottom:3px solid var(--ink); width:230px; margin:0 auto; text-align:center; color:var(--ink)}
+.pwshow.empty{color:var(--soft); font-size:20px; letter-spacing:0; line-height:2.6}
+.pad{display:grid; grid-template-columns:repeat(3,68px); gap:8px; justify-content:center; margin:14px 0 4px}
+.pad button{height:56px; font:inherit; font-family:"Do Hyeon",sans-serif; font-size:26px; border:2px solid var(--line); border-radius:12px; background:var(--panel2); color:var(--ink); cursor:pointer; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:manipulation}
+.pad button:active,.pad button:focus,.pad button:hover{background:var(--panel2); outline:none}
+#overlay{position:fixed; inset:0; background:rgba(20,28,45,.88); display:none; flex-direction:column; align-items:center; justify-content:center; padding:20px; z-index:60; gap:12px; color:#fff; text-align:center; font-size:17px}
+#overlay img{max-width:100%; max-height:72vh; background:#fff; border-radius:6px}
+.toast{position:fixed; left:50%; bottom:46px; transform:translate(-50%,20px); background:#17324D; color:#fff; border:2.5px solid #FFC93C; border-radius:14px; padding:10px 18px; font-size:18px; font-weight:800; opacity:0; transition:.25s; z-index:50; pointer-events:none; max-width:90vw; text-align:center}
+.toast.show{opacity:1; transform:translate(-50%,0)}
+.tlink{font:inherit; font-size:12px; font-weight:800; color:var(--soft); background:transparent; border:1.5px solid var(--line); border-radius:999px; padding:0 10px; margin-left:8px; cursor:pointer}
+.copy{position:fixed; left:0; right:0; bottom:0; text-align:center; font-size:12.5px; color:var(--soft); padding:3px 0 calc(3px + env(safe-area-inset-bottom,0px)); background:var(--bg); z-index:5}
+@media (prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important} }
+</style>
+</head>
+<body>
+
+<header class="hud" id="hud" hidden>
+  <button class="pill" data-go="map">🏁 지도</button>
+  <div class="hud-title" id="hudTitle"></div>
+  <span class="pill" id="hudName"></span>
+  <span class="pill">리그 점수 <b id="hScore">0</b></span>
+  <button class="pill" id="sndBtn" aria-label="소리 켜고 끄기">🔊</button>
+</header>
+
+<!-- 시작 -->
+<section class="screen" id="sStart">
+  <div class="sc lights"></div>
+  <div class="sc crowd"></div>
+  <div class="sc wall"></div>
+  <svg class="sc road" viewBox="0 0 1600 700" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+    <defs><pattern id="chk2" width="40" height="40" patternUnits="userSpaceOnUse"><rect width="40" height="40" fill="#fff"/><rect width="20" height="20" fill="#17324D"/><rect x="20" y="20" width="20" height="20" fill="#17324D"/></pattern></defs>
+    <rect width="1600" height="700" fill="#5DB34E"/>
+    <path d="M0 0 H1600 V700 H0Z" fill="url(#g)" opacity="0"/>
+    <polygon points="600,0 1000,0 1600,640 1600,700 0,700 0,640" fill="#3E4450"/>
+    <polyline points="600,0 0,640" stroke="#fff" stroke-width="26" stroke-dasharray="40 40" fill="none"/><polyline points="600,0 0,640" stroke="#E23D3D" stroke-width="26" stroke-dasharray="40 40" stroke-dashoffset="40" fill="none"/>
+    <polyline points="1000,0 1600,640" stroke="#fff" stroke-width="26" stroke-dasharray="40 40" fill="none"/><polyline points="1000,0 1600,640" stroke="#E23D3D" stroke-width="26" stroke-dasharray="40 40" stroke-dashoffset="40" fill="none"/>
+    <line x1="800" y1="0" x2="800" y2="700" stroke="#fff" stroke-width="10" stroke-dasharray="50 50" opacity=".7"/>
+    <polygon points="258,365 1342,365 1390,416 210,416" fill="url(#chk2)" opacity=".95"/>
+  </svg>
+  <svg class="sc carL" viewBox="-90 30 500 160" aria-hidden="true"><g>
+    <ellipse cx="200" cy="168" rx="185" ry="12" fill="rgba(0,0,0,.25)"/>
+    <path d="M20 128 Q22 100 70 92 L150 82 Q185 52 240 50 L300 52 Q330 56 350 84 L382 96 Q396 102 394 126 L392 140 L20 140 Z" fill="#E3242B" stroke="#17324D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M168 84 Q196 62 238 60 L292 62 Q312 66 326 84 Z" fill="#BFE6F7" stroke="#17324D" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M30 116 L380 116" stroke="#fff" stroke-width="10"/><path d="M30 116 L380 116" stroke="#8E1018" stroke-width="4" stroke-dasharray="18 12"/>
+    <rect x="4" y="76" width="44" height="14" rx="4" fill="#17324D"/><rect x="20" y="88" width="8" height="30" fill="#17324D"/>
+    <circle cx="96" cy="140" r="32" fill="#1C1F26" stroke="#17324D" stroke-width="5"/><circle cx="96" cy="140" r="13" fill="#C9D3E3"/>
+    <circle cx="316" cy="140" r="32" fill="#1C1F26" stroke="#17324D" stroke-width="5"/><circle cx="316" cy="140" r="13" fill="#C9D3E3"/>
+    <circle cx="210" cy="100" r="16" fill="#fff" stroke="#17324D" stroke-width="4"/><text x="210" y="107" text-anchor="middle" font-family="Black Han Sans, sans-serif" font-size="20" fill="#17324D">1</text>
+    <path d="M-30 100 h-40 M-20 120 h-60 M-30 140 h-34" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".8"/>
+  </g></svg>
+  <svg class="sc carR" viewBox="-10 30 500 160" aria-hidden="true"><g transform="translate(400 0) scale(-1 1)">
+    <ellipse cx="200" cy="168" rx="185" ry="12" fill="rgba(0,0,0,.25)"/>
+    <path d="M20 128 Q22 100 70 92 L150 82 Q185 52 240 50 L300 52 Q330 56 350 84 L382 96 Q396 102 394 126 L392 140 L20 140 Z" fill="#2B63D9" stroke="#17324D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M168 84 Q196 62 238 60 L292 62 Q312 66 326 84 Z" fill="#BFE6F7" stroke="#17324D" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M30 116 L380 116" stroke="#fff" stroke-width="10"/><path d="M30 116 L380 116" stroke="#123E9C" stroke-width="4" stroke-dasharray="18 12"/>
+    <rect x="4" y="76" width="44" height="14" rx="4" fill="#17324D"/><rect x="20" y="88" width="8" height="30" fill="#17324D"/>
+    <circle cx="96" cy="140" r="32" fill="#1C1F26" stroke="#17324D" stroke-width="5"/><circle cx="96" cy="140" r="13" fill="#C9D3E3"/>
+    <circle cx="316" cy="140" r="32" fill="#1C1F26" stroke="#17324D" stroke-width="5"/><circle cx="316" cy="140" r="13" fill="#C9D3E3"/>
+    <circle cx="210" cy="100" r="16" fill="#fff" stroke="#17324D" stroke-width="4"/><text x="210" y="107" text-anchor="middle" font-family="Black Han Sans, sans-serif" font-size="20" fill="#17324D">1</text>
+    <path d="M-30 100 h-40 M-20 120 h-60 M-30 140 h-34" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".8"/>
+  </g></svg>
+  <div class="startbox">
+    <div class="titlewrap">
+      <svg class="crest" viewBox="0 0 600 260" aria-hidden="true">
+  <defs><pattern id="chk" width="30" height="30" patternUnits="userSpaceOnUse"><rect width="30" height="30" fill="#fff"/><rect width="15" height="15" fill="#17324D"/><rect x="15" y="15" width="15" height="15" fill="#17324D"/></pattern></defs>
+  <g fill="#F2B632" stroke="#B57E10" stroke-width="2"><ellipse cx="77.2" cy="236.3" rx="8" ry="21" transform="rotate(147.0 77.2 236.3)"/><ellipse cx="75.2" cy="195.2" rx="8" ry="21" transform="rotate(157.5 75.2 195.2)"/><ellipse cx="80.8" cy="154.4" rx="8" ry="21" transform="rotate(168.0 80.8 154.4)"/><ellipse cx="93.7" cy="115.3" rx="8" ry="21" transform="rotate(178.5 93.7 115.3)"/><ellipse cx="113.5" cy="79.2" rx="8" ry="21" transform="rotate(189.0 113.5 79.2)"/><ellipse cx="139.5" cy="47.3" rx="8" ry="21" transform="rotate(199.5 139.5 47.3)"/><ellipse cx="170.9" cy="20.7" rx="8" ry="21" transform="rotate(210.0 170.9 20.7)"/><ellipse cx="522.8" cy="236.3" rx="8" ry="21" transform="rotate(-147.0 522.8 236.3)"/><ellipse cx="524.8" cy="195.2" rx="8" ry="21" transform="rotate(-157.5 524.8 195.2)"/><ellipse cx="519.2" cy="154.4" rx="8" ry="21" transform="rotate(-168.0 519.2 154.4)"/><ellipse cx="506.3" cy="115.3" rx="8" ry="21" transform="rotate(-178.5 506.3 115.3)"/><ellipse cx="486.5" cy="79.2" rx="8" ry="21" transform="rotate(-189.0 486.5 79.2)"/><ellipse cx="460.5" cy="47.3" rx="8" ry="21" transform="rotate(-199.5 460.5 47.3)"/><ellipse cx="429.1" cy="20.7" rx="8" ry="21" transform="rotate(-210.0 429.1 20.7)"/></g>
+  <path d="M250 250 L250 175 Q250 140 300 140 Q350 140 350 175 L350 250 Z" fill="#FFC93C" stroke="#9C6400" stroke-width="5"/>
+  <g transform="translate(320 255) rotate(22)"><g><line x1="0" y1="0" x2="0" y2="-210" stroke="#3B4A63" stroke-width="10" stroke-linecap="round"/><circle cx="0" cy="-214" r="9" fill="#FFC93C" stroke="#9C6400" stroke-width="3"/><path d="M5 -205 Q60 -225 115 -200 T225 -195 L225 -105 Q170 -130 115 -110 T5 -115 Z" fill="url(#chk)" stroke="#17324D" stroke-width="4" stroke-linejoin="round"/></g></g>
+  <g transform="translate(280 255) rotate(-22) scale(-1 1)"><g><line x1="0" y1="0" x2="0" y2="-210" stroke="#3B4A63" stroke-width="10" stroke-linecap="round"/><circle cx="0" cy="-214" r="9" fill="#FFC93C" stroke="#9C6400" stroke-width="3"/><path d="M5 -205 Q60 -225 115 -200 T225 -195 L225 -105 Q170 -130 115 -110 T5 -115 Z" fill="url(#chk)" stroke="#17324D" stroke-width="4" stroke-linejoin="round"/></g></g>
+</svg>
+      <div class="plate"><h1 class="ttl"><span class="t1">미끄러져라,</span> <span class="t2">멈춰라!</span></h1></div>
+      <div class="ribbon">🏁 마찰력 그랑프리 🏁</div>
+    </div>
+    <div class="reg2">
+      <div class="regtab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zm8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 13c-3.3 0-6 1.8-6 4v2h12v-2c0-2.2-2.7-4-6-4zm8 0c-.6 0-1.2.1-1.8.2 1.1.9 1.8 2.1 1.8 3.8v2h6v-2c0-2.2-2.7-4-6-4z"/></svg>선수 등록</div>
+      <div class="fields3">
+        <label><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 1 9l11 6 9-4.9V17h2V9L12 3zM5 13.2v4L12 21l7-3.8v-4L12 17l-7-3.8z"/></svg>반</span>
+          <select id="ban"><option value="">선택</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+        <label><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4.4 0-8 2.2-8 5v2h16v-2c0-2.8-3.6-5-8-5z"/></svg>번호</span>
+          <select id="num"><option value="">선택</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option><option>24</option><option>25</option><option>26</option><option>27</option><option>28</option><option>29</option><option>30</option></select></label>
+        <label><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zm8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 13c-3.3 0-6 1.8-6 4v2h12v-2c0-2.2-2.7-4-6-4zm8 0c-.6 0-1.2.1-1.8.2 1.1.9 1.8 2.1 1.8 3.8v2h6v-2c0-2.2-2.7-4-6-4z"/></svg>모둠</span>
+          <select id="team"><option value="">선택</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select></label>
+      </div>
+    </div>
+    <button class="go" id="startBtn"><svg class="goicon" viewBox="0 0 80 44" aria-hidden="true"><path d="M4 30 Q4 22 16 20 L28 10 Q32 6 40 6 L52 6 Q60 7 64 14 L72 20 Q78 22 78 30 L78 34 L4 34 Z" fill="#fff"/><circle cx="22" cy="35" r="7" fill="#fff" stroke="#B5141C" stroke-width="3"/><circle cx="60" cy="35" r="7" fill="#fff" stroke="#B5141C" stroke-width="3"/></svg><span id="goTxt">출발</span><b>»</b></button>
+    <div class="startmsg" id="startMsg">1학년 고정이에요. 튕겨도 같은 반·번호로 들어오면 하던 곳부터 이어져요.</div>
+  </div>
+</section>
+
+<!-- 그랑프리 지도 -->
+<section class="screen" id="sMap" hidden>
+  <div class="coach"><div class="av"></div><div class="bubble" id="mapMsg"></div></div>
+  <div class="gp" id="gp"></div>
+  <div class="total panel">
+    <span class="big" id="totScore">리그 점수 0점</span>
+    <span class="soft" style="font-weight:700">그랑프리 기록 점수 + 정비소 문제 보너스</span>
+    <span style="flex:1"></span>
+    <button class="btn red" id="toCard">🏆 기록 카드 만들기</button>
+  </div>
+</section>
+
+<!-- 정비소 -->
+<section class="screen" id="sPit" hidden>
+  <div class="coach"><div class="av"></div><div class="bubble" id="pitMsg"></div></div>
+  <div class="pit">
+    <div class="panel">
+      <h3 style="font-size:24px" id="pitName"></h3>
+      <canvas id="pitCv" width="1200" height="675" style="width:100%; height:auto; border-radius:10px; border:2px solid var(--line); display:block"></canvas>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div>
+      <div class="qbox" id="qbox" hidden>
+        <h3>🔧 정비소 문제</h3>
+        <div class="fline" id="qText"></div>
+        <div class="qopts" id="qOpts"></div>
+        <div class="msg" id="qMsg"></div>
+      </div>
+      <div id="tireArea">
+        <h3 style="font-size:24px; margin-bottom:8px">이 코스에 맞는 타이어를 골라요</h3>
+        <div class="tires" id="tires"></div>
+        <div class="fline" style="font-size:17px">🎒 모래 주머니 2개: 달리다가 <b>모래 뿌리기</b>를 누르면 차 아래에 모래가 깔려요.</div>
+        <div class="row"><button class="btn red" id="goRace" disabled>출발! ▶</button><button class="btn ghost" data-go="map">지도로</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 레이스 -->
+<section class="screen" id="sRace" hidden>
+  <div class="track" id="track">
+    <canvas id="rc" width="1200" height="675"></canvas>
+    <div class="rhud"><span>바퀴<b id="hLap">1/2</b></span><span>기록<b id="hTime">0.0</b></span><span id="hTire"></span></div>
+    <div class="surf" id="hSurf"></div>
+    <div class="wrongway" id="wrong" hidden>반대 방향!</div>
+    <button class="pitbtn" id="pitBtn">🔧 정비소</button>
+    <div class="stuck" id="stuck" hidden>바퀴가 헛돌고 있어요! 이 타이어로는 마찰력이 부족한가 봐요.<br><button class="btn red mini" id="stuckGo">🔧 정비소에서 타이어 바꾸기</button> <button class="btn ghost mini" id="stuckX">조금 더 해 볼게요</button></div>
+    <div class="ctl l"><div class="cb" data-k="left">◀</div><div class="cb" data-k="right">▶</div></div>
+    <div class="ctl r"><div class="cb brk" data-k="brake">브레이크<small>후진</small></div><div class="cb gas" data-k="gas">가속</div></div>
+    <button class="sandbtn" id="sandBtn">🎒 모래 뿌리기 <span id="sandN">2</span></button>
+    <div class="count" id="count" hidden></div>
+    <div class="result" id="result" hidden><div class="rbox" id="rbox"></div></div>
+  </div>
+</section>
+
+<!-- 기록 카드 -->
+<section class="screen" id="sEnd" hidden>
+  <div class="coach"><div class="av"></div><div class="bubble">카드 아래 두 칸을 채우고 <b>이미지로 저장하기</b>를 눌러요. 저장한 그림을 패들렛에 올리면 끝!</div></div>
+  <div id="recCard">
+    <div class="rc-head">
+      <div><div class="k">마찰력 그랑프리 선수 기록 카드</div><div class="nm" id="rcName"></div><div class="meta" id="rcMeta"></div></div>
+      <div class="flag" aria-hidden="true"></div>
+    </div>
+    <div class="rc-body">
+      <div class="rc-stat rc-wide rc-score"><h3>리그 점수</h3><div class="rc-big" id="rcScore"></div><div class="rc-sub" id="rcScoreSub"></div></div>
+      <div class="rc-stat"><h3 id="rcN0"></h3><div class="rc-big" id="rcT0"></div><div class="rc-sub" id="rcS0"></div></div>
+      <div class="rc-stat"><h3 id="rcN1"></h3><div class="rc-big" id="rcT1"></div><div class="rc-sub" id="rcS1"></div></div>
+      <div class="rc-stat"><h3 id="rcN2"></h3><div class="rc-big" id="rcT2"></div><div class="rc-sub" id="rcS2"></div></div>
+      <div class="rc-stat"><h3 id="rcN3"></h3><div class="rc-big" id="rcT3"></div><div class="rc-sub" id="rcS3"></div></div>
+      <div class="rc-write rc-wide"><label for="why">코스마다 타이어를 어떤 기준으로 골랐는지 마찰력을 넣어 써 보세요.</label><textarea id="why" placeholder="예: 빙판 호수는 얼음이라 마찰력이 작아서 …"></textarea></div>
+      <div class="rc-write rc-wide"><label for="life">생활 속에서 마찰력을 크게 하거나 작게 하는 예를 하나씩 써 보세요.</label><textarea id="life" placeholder="크게: …  /  작게: …"></textarea></div>
+    </div>
+    <div class="rc-foot">Copyright 2026 sapphire</div>
+  </div>
+  <div class="save"><button class="btn red" id="saveBtn">이미지로 저장하기</button><a class="btn mint" href="https://padlet.com/pad228_2/padlet-s024c1id8pk3k1lkvwqn" target="_blank" rel="noopener">패들렛 바로가기</a><button class="btn ghost" data-go="map">지도로</button></div>
+</section>
+
+<!-- 교사용 순위판 -->
+<section class="screen" id="sBoard" hidden>
+  <div class="btop">
+    <h1>🏁 마찰력 그랑프리 순위판</h1>
+    <select id="bBan" aria-label="반"><option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option><option value="5">5반</option></select>
+    <span class="bstate" id="bState">경기 중</span>
+    <button class="bbtn red" id="bEnd">경기 종료</button>
+    <button class="bbtn" id="bSolo">개인 기록 보기</button>
+    <button class="bbtn" id="bClear">이 반 기록 지우기</button>
+    <button class="bbtn" id="bBack">게임 화면으로</button>
+  </div>
+  <div class="banner" id="bBanner" hidden>경기 종료! 순위가 확정됐어요.</div>
+  <div class="teams" id="bTeams"></div>
+  <section class="solo" id="bSoloBox" hidden>
+    <h2>개인 기록 (선생님만 보기)</h2>
+    <div class="tw"><table>
+      <thead><tr><th>번호</th><th>모둠</th><th>지금 위치</th><th id="bh0"></th><th id="bh1"></th><th id="bh2"></th><th id="bh3"></th><th>정비소 정답</th><th>주행 횟수</th><th>리그 점수</th><th>카드</th><th>마지막 활동</th></tr></thead>
+      <tbody id="bBody"></tbody>
+    </table></div>
+    <div class="foot">빨간 칸은 5분 넘게 같은 곳에 머물러 있는 학생이에요. 도움이 필요한지 살펴봐 주세요.</div>
+  </section>
+  <p class="brule">리그 점수 = 그랑프리마다 기록 점수(기준 시간에 들어오면 100점, 더 빠르면 최대 150점) + 정비소 문제를 처음에 맞히면 20점 · 모둠 점수 = 모둠원 평균 + 전원 카드 저장 시 20점</p>
+</section>
+
+<!-- 경기 종료 창 -->
+<div class="modal" id="endModal" hidden>
+  <div class="box" style="max-width:560px; text-align:center">
+    <h2>경기 종료!</h2>
+    <p class="fline">선생님이 경기를 끝냈어요. 지금까지의 기록으로 확정됐어요.<br>기록 카드를 만들어 저장해 주세요.</p>
+    <div class="row" style="justify-content:center"><button class="btn red" id="endGo">기록 카드 만들기 ▶</button></div>
+  </div>
+</div>
+
+<!-- 비밀번호 창 -->
+<div class="modal" id="pwModal" hidden>
+  <div class="box" style="max-width:420px; text-align:center">
+    <h2>교사용 순위판</h2>
+    <p class="fline" style="margin-top:0">비밀번호를 입력하세요.</p>
+    <div class="pwshow empty" id="pwShow"></div>
+    <div class="pad" id="pwPad"></div>
+    <div class="msg no" id="pwMsg"></div>
+    <div class="row" style="justify-content:center"><button class="btn red" id="pwOk">들어가기</button><button class="btn ghost" data-close>닫기</button></div>
+  </div>
+</div>
+
+<div id="overlay">
+  <img id="shot" alt="저장된 기록 카드">
+  <div class="row" style="justify-content:center">
+    <button class="btn red" id="galleryBtn">갤러리에 저장</button>
+    <a class="btn mint" href="https://padlet.com/pad228_2/padlet-s024c1id8pk3k1lkvwqn" target="_blank" rel="noopener">패들렛 바로가기</a>
+    <button class="btn ghost" id="closeShot">닫기</button>
+  </div>
+  <div id="ovMsg"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<footer class="copy">Copyright 2026 sapphire <button class="tlink" id="teacherBtn">교사용</button></footer>
+<script>
+const $ = id => document.getElementById(id);
+const COACH = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M6 44 Q6 34 16 32 L22 22 Q26 16 34 16 L44 16 Q50 17 53 24 L58 32 Q62 34 62 42 L62 46 L6 46 Z" fill="#E3242B" stroke="#17324D" stroke-width="3" stroke-linejoin="round"/><path d="M24 30 L28 22 Q30 20 34 20 L43 20 Q47 21 49 25 L52 30 Z" fill="#BFE6F7" stroke="#17324D" stroke-width="2.5"/><circle cx="35" cy="26" r="2.4" fill="#17324D"/><circle cx="43" cy="26" r="2.4" fill="#17324D"/><path d="M36 37 q4 3 8 0" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="18" cy="47" r="7" fill="#1C1F26" stroke="#17324D" stroke-width="2.5"/><circle cx="50" cy="47" r="7" fill="#1C1F26" stroke="#17324D" stroke-width="2.5"/></svg>';
+document.querySelectorAll('.coach .av').forEach(a => a.innerHTML = COACH);
+function toast(html) { const t = $('toast'); t.innerHTML = html; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2800); }
+const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ================= 소리 ================= */
+let snd = true, actx = null;
+function beep(f, d = 0.12, type = 'square', vol = 0.06, delay = 0) {
+  if (!snd) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + delay;
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + d + 0.02);
+  } catch (e) {}
+}
+const fanfare = () => [523, 659, 784, 1047].forEach((f, i) => beep(f, 0.18, 'triangle', 0.08, i * 0.12));
+$('sndBtn').onclick = () => { snd = !snd; $('sndBtn').textContent = snd ? '🔊' : '🔇'; };
+
+/* ================= 바닥과 타이어 ================= */
+const G = 600, ENGINE = 360, BRAKE = 900, DRAG = 0.6, STEER = 2.7, HW = 46;
+const SURF = {
+  asphalt: { n: '아스팔트', c: '#4A4F57', roll: 28,  tag: '보통' },
+  ice:     { n: '얼음',     c: '#BFE6F7', roll: 10,  tag: '아주 작음' },
+  snow:    { n: '눈길',     c: '#C3D2E1', roll: 70,  tag: '작음' },
+  sand:    { n: '모래',     c: '#E2C07A', roll: 230, tag: '큼' },
+  grass:   { n: '모래밭',   c: '#E3C98E', roll: 260, tag: '큼' },
+  bank:    { n: '눈 더미',  c: '#FFFFFF', roll: 300, tag: '큼' },
+};
+const TIRES = {
+  slick: { n: '매끈한 레이싱 타이어', d: '표면에 홈이 거의 없이 매끈해요. 딱딱한 길에서 가볍게 굴러가서 빨라요.',
+           mu: { asphalt: 1.0, ice: 0.08, snow: 0.2, sand: 0.6, grass: 0.5, bank: 0.3 }, roll: { asphalt: -12 }, col: '#17324D' },
+  snowt: { n: '스노타이어', d: '홈이 깊고 고무가 말랑해서 눈이나 얼음을 꽉 붙잡아요.',
+           mu: { asphalt: 0.82, ice: 0.3, snow: 0.6, sand: 0.65, grass: 0.55, bank: 0.4 }, roll: { asphalt: 8 }, col: '#2B6CB0' },
+  chain: { n: '체인', d: '바퀴에 쇠사슬을 감았어요. 얼음과 눈을 아주 세게 붙잡지만, 딱딱한 길에서는 덜컹거려요.',
+           mu: { asphalt: 0.65, ice: 0.62, snow: 0.78, sand: 0.7, grass: 0.6, bank: 0.5 }, roll: { asphalt: 190 }, col: '#6B7582' },
+};
+function tireSVG(k) {
+  const ring = { slick: '', snowt: '<path d="M32 6v10M32 48v10M6 32h10M48 32h10M14 14l7 7M43 43l7 7M14 50l7-7M43 21l7-7" stroke="#55708A" stroke-width="5"/>',
+                 chain: '<circle cx="32" cy="32" r="25" fill="none" stroke="#C9D3E3" stroke-width="5" stroke-dasharray="7 5"/>' }[k];
+  return `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#1C1F26" stroke="#17324D" stroke-width="3"/>${ring}<circle cx="32" cy="32" r="12" fill="#C9D3E3" stroke="#17324D" stroke-width="3"/></svg>`;
+}
+
+/* ================= 코스 ================= */
+const STAGES = [
+  { name: '아스팔트 서킷', off: 'grass', bg: '#E3C98E', laps: 2,
+    pts: [[170,120],[600,95],[1030,120],[1110,300],[1010,470],[760,440],[600,560],[420,450],[190,470],[95,300]],
+    segs: [], slopes: [], intro: '첫 경기는 아스팔트 서킷! 길 밖은 거친 모래밭이에요. 어떤 타이어가 가장 빠를까요?' },
+  { name: '빙판 호수', off: 'bank', bg: '#FFFFFF', laps: 2,
+    pts: [[200,120],[480,110],[640,260],[820,110],[1060,150],[1080,380],[880,470],[650,400],[430,520],[170,440],[110,260]],
+    segs: [[0, 1, 'ice']], slopes: [], intro: '꽁꽁 언 호수 위를 달려요. 커브가 많으니 조심! 미끄러지면 눈 더미에 빠져요.' },
+  { name: '눈길 언덕', off: 'bank', bg: '#FFFFFF', laps: 2,
+    pts: [[180,140],[560,105],[900,125],[1090,250],[980,450],[700,500],[480,420],[300,520],[120,380]],
+    segs: [[0, 1, 'snow'], [0.08, 0.22, 'ice']], slopes: [[0.08, 0.22, 230], [0.55, 0.66, -160]],
+    intro: '눈 덮인 산길이에요. 얼어붙은 오르막을 올라가야 해요. 바퀴가 헛돌지 않으려면?' },
+  { name: '혼합 그랑프리', off: 'grass', bg: '#E3C98E', laps: 2,
+    pts: [[170,110],[620,95],[1060,120],[1100,330],[930,420],[1040,520],[700,560],[520,440],[300,540],[110,400],[120,230]],
+    segs: [[0, 1, 'asphalt'], [0.33, 0.55, 'ice'], [0.86, 0.99, 'snow']], slopes: [],
+    intro: '마지막 결승전! 아스팔트 직선, 얼음 구간, 눈길이 모두 섞여 있어요. 한 가지 타이어로 다 달려야 해요.' },
+];
+const PAR = [24, 30, 26, 40];
+const QUIZ = [
+  { q: '아스팔트 서킷 바깥에는 모래밭이 있어요. 길을 벗어난 차가 모래밭에서 금방 느려지는 까닭은?',
+    o: ['모래밭은 거칠어서 마찰력이 크기 때문', '모래밭은 매끄러워서 마찰력이 작기 때문', '모래가 차를 위로 밀어 올리기 때문'], a: 0,
+    e: '거친 모래는 마찰력이 커서 움직이는 차를 빨리 멈추게 해요. 그래서 경기장 바깥에 일부러 모래밭을 만들어요.' },
+  { q: '꽁꽁 언 호수 위 커브에서 차가 바깥쪽으로 미끄러지는 까닭은?',
+    o: ['얼음이 매끄러워서 마찰력이 작기 때문', '얼음이 거칠어서 마찰력이 크기 때문', '얼음 위에서는 중력이 없어지기 때문'], a: 0,
+    e: '얼음은 표면이 매끄러워 마찰력이 작아요. 방향을 바꾸려면 바퀴가 길을 붙잡아야 하는데, 마찰력이 작으면 붙잡지 못하고 미끄러져요.' },
+  { q: '눈 쌓인 언덕길을 오를 때 자동차 바퀴에 체인을 감는 까닭은?',
+    o: ['바퀴와 길 사이의 마찰력을 크게 하려고', '마찰력을 작게 해서 잘 미끄러지려고', '자동차를 가볍게 하려고'], a: 0,
+    e: '체인은 접촉면을 울퉁불퉁하게 만들어 마찰력을 크게 해요. 그래야 바퀴가 헛돌지 않고 언덕을 올라가요.' },
+  { q: '체인을 감은 채 아스팔트 직선 도로를 달리면 덜컹거리고 오히려 느려져요. 알맞은 설명은?',
+    o: ['마찰력이 너무 크면 움직임을 방해할 수 있다', '마찰력은 클수록 언제나 빨라진다', '아스팔트에는 마찰력이 없다'], a: 0,
+    e: '마찰력은 미끄러지지 않게 도와주지만, 필요 이상으로 크면 움직임을 방해해요. 상황에 맞게 크게 할지 작게 할지 골라야 해요.' },
+];
+
+function buildTrack(st) {
+  const P = st.pts, n = P.length, dense = [];
+  for (let i = 0; i < n; i++) {
+    const p0 = P[(i - 1 + n) % n], p1 = P[i], p2 = P[(i + 1) % n], p3 = P[(i + 2) % n];
+    for (let k = 0; k < 40; k++) {
+      const t = k / 40, t2 = t * t, t3 = t2 * t;
+      dense.push([0.5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
+                  0.5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3)]);
+    }
+  }
+  let L = 0; const acc = [0];
+  for (let i = 1; i <= dense.length; i++) { const a = dense[i - 1], b = dense[i % dense.length]; L += Math.hypot(b[0] - a[0], b[1] - a[1]); acc.push(L); }
+  const N = 600, S = [];
+  let j = 0;
+  for (let i = 0; i < N; i++) {
+    const d = L * i / N; while (acc[j + 1] < d) j++;
+    const a = dense[j], b = dense[(j + 1) % dense.length], f = (d - acc[j]) / (acc[j + 1] - acc[j] || 1);
+    S.push({ x: a[0] + (b[0] - a[0]) * f, y: a[1] + (b[1] - a[1]) * f });
+  }
+  S.forEach((p, i) => {
+    const q = S[(i + 1) % N], r = S[(i - 1 + N) % N], dx = q.x - r.x, dy = q.y - r.y, l = Math.hypot(dx, dy) || 1;
+    p.tx = dx / l; p.ty = dy / l;
+    const fr = i / N; p.s = 'asphalt'; p.slope = 0;
+    st.segs.forEach(([a, b, s]) => { if (fr >= a && fr < b) p.s = s; });
+    st.slopes.forEach(([a, b, v]) => { if (fr >= a && fr < b) p.slope = v; });
+  });
+  st.S = S; st.N = N; st.len = L;
+}
+STAGES.forEach(buildTrack);
+
+function drawTrack(c, st, opt = {}) {
+  const S = st.S, N = st.N;
+  c.fillStyle = st.bg; c.fillRect(0, 0, 1200, 675);
+  // 바탕 무늬
+  c.save(); c.globalAlpha = 0.25;
+  if (st.off === 'grass') { c.fillStyle = '#9C7A3C'; for (let k = 0; k < 900; k++) { const x = (Math.sin(k * 12.9898) * 43758.5453 % 1 + 1) % 1 * 1200, y = (Math.sin(k * 78.233) * 12543.12 % 1 + 1) % 1 * 675; c.fillRect(x, y, 3, 3); } }
+  else { c.fillStyle = '#B9CCDD'; for (let k = 0; k < 500; k++) { const x = (Math.sin(k * 12.9898) * 43758.5453 % 1 + 1) % 1 * 1200, y = (Math.sin(k * 78.233) * 12543.12 % 1 + 1) % 1 * 675; c.beginPath(); c.arc(x, y, 2.5, 0, 7); c.fill(); } }
+  c.restore();
+  if (st.off === 'bank') { // 나무
+    for (let k = 0; k < 26; k++) { const x = (Math.sin(k * 3.7 + 1) * 9999 % 1 + 1) % 1 * 1200, y = (Math.sin(k * 5.3 + 2) * 7777 % 1 + 1) % 1 * 675;
+      if (S.some(p => (p.x - x) ** 2 + (p.y - y) ** 2 < (HW + 40) ** 2)) continue;
+      c.fillStyle = '#2E7D5B'; c.beginPath(); c.moveTo(x, y - 22); c.lineTo(x + 14, y + 8); c.lineTo(x - 14, y + 8); c.closePath(); c.fill();
+      c.fillStyle = '#fff'; c.beginPath(); c.moveTo(x, y - 22); c.lineTo(x + 6, y - 10); c.lineTo(x - 6, y - 10); c.closePath(); c.fill(); } }
+  // 연석
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  c.strokeStyle = st.off === 'grass' ? '#fff' : '#6F92B5'; c.lineWidth = HW * 2 + 10;
+  c.beginPath(); S.forEach((p, i) => i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y)); c.closePath(); c.stroke();
+  if (st.off === 'grass') { c.save(); c.setLineDash([18, 18]); c.strokeStyle = '#E23D3D'; c.beginPath(); S.forEach((p, i) => i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y)); c.closePath(); c.stroke(); c.restore(); }
+  // 노면
+  c.lineWidth = HW * 2;
+  for (let i = 0; i < N; i++) {
+    const p = S[i], q = S[(i + 1) % N];
+    c.strokeStyle = SURF[p.s].c; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.stroke();
+  }
+  // 얼음 무늬
+  c.save(); c.strokeStyle = 'rgba(255,255,255,.75)'; c.lineWidth = 2;
+  for (let i = 0; i < N; i += 6) { const p = S[i]; if (p.s !== 'ice') continue; c.beginPath(); c.moveTo(p.x - p.ty * 30 - p.tx * 8, p.y + p.tx * 30 - p.ty * 8); c.lineTo(p.x + p.ty * 10 + p.tx * 10, p.y - p.tx * 10 + p.ty * 10); c.stroke(); }
+  c.restore();
+  // 눈길 바퀴 자국
+  c.save(); c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 3;
+  for (let i = 0; i < N; i += 3) { const p = S[i], q = S[(i + 3) % N]; if (p.s !== 'snow') continue;
+    [-16, 16].forEach(o => { c.beginPath(); c.moveTo(p.x - p.ty * o, p.y + p.tx * o); c.lineTo(q.x - q.ty * o, q.y + q.tx * o); c.stroke(); }); }
+  c.restore();
+  // 중앙선
+  c.save(); c.setLineDash([16, 18]); c.lineWidth = 3; c.strokeStyle = 'rgba(255,255,255,.55)';
+  c.beginPath(); S.forEach((p, i) => i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y)); c.closePath(); c.stroke(); c.restore();
+  // 경사 표시
+  st.slopes.forEach(([a, b, v]) => {
+    for (let fr = a + 0.015; fr < b; fr += 0.03) {
+      const p = S[Math.floor(fr * N)], ang = Math.atan2(p.ty, p.tx) + (v < 0 ? 0 : 0);
+      c.save(); c.translate(p.x, p.y); c.rotate(ang); c.strokeStyle = v > 0 ? '#E23D3D' : '#2B6CB0'; c.lineWidth = 5;
+      c.beginPath(); c.moveTo(-8, -16); c.lineTo(6, 0); c.lineTo(-8, 16); c.stroke(); c.restore();
+    }
+    const m = S[Math.floor((a + b) / 2 * N)];
+    badge(c, v > 0 ? '⬆ 오르막' : '⬇ 내리막', m.x + m.ty * 70, m.y - m.tx * 70, v > 0 ? '#E23D3D' : '#2B6CB0');
+  });
+  // 바닥 이름표
+  let prev = null, startI = 0;
+  for (let i = 0; i <= N; i++) {
+    const s = i < N ? S[i].s : null;
+    if (s !== prev) {
+      if (prev && prev !== 'asphalt' && i - startI > 25) { const m = S[Math.floor((startI + i) / 2) % N]; badge(c, SURF[prev].n, m.x - m.ty * 72, m.y + m.tx * 72, '#17324D'); }
+      prev = s; startI = i;
+    }
+  }
+  // 출발선
+  const p0 = S[0];
+  c.save(); c.translate(p0.x, p0.y); c.rotate(Math.atan2(p0.ty, p0.tx));
+  for (let k = -HW; k < HW; k += 10) for (let m = 0; m < 2; m++) { c.fillStyle = ((k / 10 + m) & 1) ? '#fff' : '#17324D'; c.fillRect(m * 10 - 10, k, 10, 10); }
+  c.restore();
+  if (opt.arrow) { const p = S[12]; c.save(); c.translate(p.x, p.y); c.rotate(Math.atan2(p.ty, p.tx)); c.fillStyle = '#FFC93C'; c.strokeStyle = '#17324D'; c.lineWidth = 3; c.beginPath(); c.moveTo(22, 0); c.lineTo(-6, -16); c.lineTo(-6, 16); c.closePath(); c.fill(); c.stroke(); c.restore(); }
+}
+function badge(c, t, x, y, col) {
+  c.save(); c.font = 'bold 22px "Gothic A1", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const w = c.measureText(t).width + 18; x = Math.max(w / 2 + 4, Math.min(1196 - w / 2, x)); y = Math.max(18, Math.min(657, y));
+  c.fillStyle = 'rgba(255,255,255,.92)'; c.strokeStyle = col; c.lineWidth = 3;
+  c.beginPath(); c.roundRect ? c.roundRect(x - w / 2, y - 16, w, 32, 10) : c.rect(x - w / 2, y - 16, w, 32); c.fill(); c.stroke();
+  c.fillStyle = col; c.fillText(t, x, y + 1); c.restore();
+}
+
+/* ================= 상태 ================= */
+const S = { ban: '', num: 0, team: '', locked: false, cardDone: false, best: [null, null, null, null], bestTire: [null, null, null, null],
+  quiz: [null, null, null, null], runs: 0 };
+let COINS = 0;
+function stagePts(i) { const t = S.best[i]; return t ? Math.round(100 * Math.min(1.5, PAR[i] / t)) : 0; }
+function starsOf(i, t = S.best[i]) { if (!t) return 0; return t <= PAR[i] ? 3 : t <= PAR[i] * 1.3 ? 2 : 1; }
+function scoreParts() {
+  const race = [0, 1, 2, 3].reduce((a, i) => a + stagePts(i), 0), quiz = S.quiz.filter(v => v === true).length * 20;
+  return { race, quiz, total: race + quiz };
+}
+const unlocked = i => i === 0 || !!S.best[i - 1];
+function whereLabel() {
+  if (S.cardDone) return '카드 저장';
+  const i = S.best.findIndex(b => !b);
+  return i < 0 ? '기록 카드' : `${i + 1}. ${STAGES[i].name}`;
+}
+function updateHud() { $('hScore').textContent = scoreParts().total; }
+
+/* ================= 화면 이동 ================= */
+const TITLES = { sMap: '마찰력 그랑프리', sPit: '🔧 정비소', sRace: '🏁 레이스', sEnd: '🏆 선수 기록 카드' };
+function show(id) {
+  if (id !== 'sRace') stopRace();
+  document.querySelectorAll('.screen').forEach(s => s.hidden = s.id !== id);
+  $('hud').hidden = id === 'sStart' || id === 'sBoard';
+  $('hudTitle').textContent = TITLES[id] || '';
+  if (id === 'sMap') renderMap();
+  if (id === 'sEnd') renderEnd();
+  window.scrollTo(0, 0); updateHud();
+}
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (!g) return;
+  if (g.dataset.go === 'map') show('sMap');
+});
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('.modal').hidden = true);
+
+/* ================= 저장, 파이어베이스 ================= */
+// game 폴더의 firebase-config.js를 자동으로 읽어요. 못 읽으면 아래 null 자리에 설정을 붙여 넣으세요.
+const PASTE_CONFIG = null;
+const COL = 'friction_race', CTRL = 'friction_race_ctrl';
+let db = null, netReady = null, saveT = null, ctrlWatching = false;
+async function readConfig() {
+  if (PASTE_CONFIG) return PASTE_CONFIG;
+  try {
+    const txt = await (await fetch('firebase-config.js', { cache: 'no-store' })).text();
+    const cfg = {}, re = /["']?(apiKey|authDomain|projectId|storageBucket|messagingSenderId|appId|measurementId|databaseURL)["']?\s*:\s*["'`]([^"'`]+)["'`]/g; let m;
+    while ((m = re.exec(txt))) cfg[m[1]] = m[2];
+    return cfg.apiKey && cfg.projectId ? cfg : null;
+  } catch (e) { return null; }
+}
+function initNet() {
+  if (netReady) return netReady;
+  netReady = (async () => {
+    if (typeof firebase === 'undefined') return null;
+    const cfg = await readConfig(); if (!cfg) return null;
+    try { const app = firebase.apps.find(a => a.name === 'race') || firebase.initializeApp(cfg, 'race'); db = app.firestore(); return db; }
+    catch (e) { return null; }
+  })();
+  return netReady;
+}
+initNet();
+const pid = () => `b${S.ban}_${S.num}`;
+function snapshot() {
+  return { ban: S.ban, num: S.num, team: S.team, best: [...S.best], bestTire: [...S.bestTire], quiz: [...S.quiz], runs: S.runs, cardDone: S.cardDone,
+    where: whereLabel(), score: scoreParts().total, ts: Date.now() };
+}
+function save() { if (!S.ban || S.locked) return; clearTimeout(saveT); saveT = setTimeout(saveNow, 500); }
+async function saveNow() {
+  clearTimeout(saveT);
+  const d = snapshot();
+  try { localStorage.setItem('frace_' + pid(), JSON.stringify(d)); } catch (e) {}
+  const x = await initNet();
+  if (x) { try { await x.collection(COL).doc(pid()).set(d); } catch (e) {} }
+}
+function restore(d) {
+  S.best = d.best || S.best; S.bestTire = d.bestTire || S.bestTire; S.quiz = d.quiz || S.quiz; S.runs = d.runs || 0; S.cardDone = !!d.cardDone;
+}
+function guardLocked() { if (S.locked) { $('endModal').hidden = false; return true; } return false; }
+function watchCtrl(x) {
+  if (ctrlWatching) return; ctrlWatching = true;
+  x.collection(CTRL).doc('b' + S.ban).onSnapshot(doc => {
+    const ended = doc.exists && doc.data().ended;
+    if (ended && !S.locked) { saveNow().finally(() => { S.locked = true; stopRace(); if ($('sBoard').hidden) $('endModal').hidden = false; }); }
+    else if (!ended && S.locked) { S.locked = false; $('endModal').hidden = true; toast('경기가 다시 시작됐어요!'); }
+  }, () => {});
+}
+$('endGo').onclick = () => { $('endModal').hidden = true; show('sEnd'); };
+
+/* ================= 시작 ================= */
+$('startBtn').onclick = async () => {
+  const ban = $('ban').value, num = parseInt($('num').value, 10), team = $('team').value;
+  if (!ban || !num || !team) { $('startMsg').textContent = '반, 번호, 모둠을 모두 정해야 경기에 나갈 수 있어요.'; $('startMsg').className = 'startmsg err'; return; }
+  S.ban = ban; S.num = num; S.team = team;
+  const btn = $('startBtn'); btn.disabled = true; $('startMsg').className = 'startmsg'; $('startMsg').textContent = '기록 불러오는 중…'; $('goTxt').textContent = '불러오는 중';
+  beep(440, 0.08);
+  const x = await Promise.race([initNet(), new Promise(res => setTimeout(() => res(null), 5000))]);
+  let d = null;
+  if (x) { try { const snap = await x.collection(COL).doc(pid()).get(); if (snap.exists) d = snap.data(); } catch (e) {} }
+  if (!d && !x) { try { const l = JSON.parse(localStorage.getItem('frace_' + pid()) || 'null'); if (l && Date.now() - l.ts < 3 * 3600e3) d = l; } catch (e) {} }
+  if (d) { restore(d); setTimeout(() => toast('하던 곳부터 이어서 해요!'), 300); }
+  S.team = team;
+  $('hudName').textContent = `${ban}반 ${num}번`;
+  btn.disabled = false; $('startMsg').textContent = ''; $('goTxt').textContent = '출발';
+  show('sMap');
+  if (x) { watchCtrl(x); saveNow(); }
+  else setTimeout(() => toast('순위판에 연결되지 않았어요. 게임은 그대로 할 수 있어요.'), 600);
+};
+
+/* ================= 지도 ================= */
+const fmtT = t => t == null ? '-' : t.toFixed(1) + '초';
+function renderMap() {
+  const now = S.best.findIndex(b => !b);
+  $('gp').innerHTML = STAGES.map((st, i) => {
+    const u = unlocked(i), done = !!S.best[i], s = starsOf(i);
+    return `<button class="gpc ${!u ? 'lock' : ''} ${done ? 'done' : ''} ${i === now ? 'now' : ''}" data-i="${i}">
+      <div class="no">GRAND PRIX ${i + 1}</div><h3>${u ? '' : '🔒 '}${st.name}</h3><canvas width="1200" height="675"></canvas>
+      <div class="rec">${done ? `최고 기록 ${fmtT(S.best[i])} <span class="st">${'★'.repeat(s)}${'☆'.repeat(3 - s)}</span><br><span class="soft">${TIRES[S.bestTire[i]].n}</span>` : u ? '<span class="soft">아직 기록 없음</span>' : '<span class="soft">앞 경기를 완주하면 열려요</span>'}</div>
+    </button>`;
+  }).join('');
+  $('gp').querySelectorAll('.gpc').forEach(b => {
+    const i = +b.dataset.i; drawTrack(b.querySelector('canvas').getContext('2d'), STAGES[i]);
+    b.onclick = () => { if (S.locked) { $('endModal').hidden = false; return; } if (!unlocked(i)) { toast('🔒 앞 그랑프리를 먼저 완주해야 열려요.'); return; } openPit(i); };
+  });
+  const sp = scoreParts();
+  $('totScore').textContent = `리그 점수 ${sp.total}점`;
+  $('mapMsg').innerHTML = now < 0 ? '네 그랑프리를 모두 완주했어요! 기록을 더 줄여도 좋고, <b>기록 카드</b>를 만들어도 좋아요.'
+    : now === 0 ? '마찰력 그랑프리에 온 걸 환영해요! 경기마다 <b>정비소</b>에서 코스를 보고 타이어를 골라 출발해요. 기준 시간 안에 들어오면 별 3개!'
+    : `다음 경기는 <b>${STAGES[now].name}</b>! 완주한 경기도 다시 달려서 기록을 줄일 수 있어요.`;
+}
+$('toCard').onclick = () => show('sEnd');
+
+/* ================= 정비소 ================= */
+let SI = 0, tireSel = null;
+function openPit(i) {
+  SI = i; tireSel = null; const st = STAGES[i];
+  $('pitName').textContent = `GRAND PRIX ${i + 1}. ${st.name}`;
+  $('pitMsg').innerHTML = st.intro + ` <span class="soft">(기준 시간 ${PAR[i]}초, ${st.laps}바퀴)</span>`;
+  drawTrack($('pitCv').getContext('2d'), st, { arrow: true });
+  const used = new Set(st.S.map(p => p.s)); used.add(st.off);
+  $('legend').innerHTML = [...used].map(k => `<span><i style="background:${SURF[k].c}"></i>${SURF[k].n}</span>`).join('') +
+    (st.slopes.length ? '<span style="color:#E23D3D">➤ 빨간 화살표: 오르막</span>' : '');
+  $('tires').innerHTML = Object.entries(TIRES).map(([k, t]) => `<button class="tire" data-k="${k}">${tireSVG(k)}<div><b>${t.n}</b><span>${t.d}</span></div></button>`).join('');
+  $('tires').querySelectorAll('.tire').forEach(b => b.onclick = () => {
+    tireSel = b.dataset.k; $('tires').querySelectorAll('.tire').forEach(x => x.classList.toggle('on', x === b)); $('goRace').disabled = false; beep(660, 0.06);
+  });
+  $('goRace').disabled = true;
+  renderQuiz();
+  show('sPit');
+}
+function renderQuiz() {
+  const Q = QUIZ[SI], ans = S.quiz[SI];
+  $('qbox').hidden = false;
+  $('qText').textContent = Q.q;
+  $('qOpts').innerHTML = Q.o.map((t, k) => `<button class="qopt" data-k="${k}">${t}</button>`).join('');
+  const pending = ans === null || ans === undefined;
+  $('tireArea').style.opacity = pending ? .45 : 1; $('tireArea').style.pointerEvents = pending ? 'none' : '';
+  if (!pending) {
+    $('qOpts').querySelectorAll('.qopt').forEach((b, k) => { b.disabled = true; if (k === Q.a) b.classList.add('right'); });
+    $('qMsg').innerHTML = (ans ? '<span class="ok">처음에 맞혀서 정비 보너스 20점을 받았어요.</span> ' : '<span class="soft">이 문제의 보너스는 지나갔어요.</span> ') + Q.e;
+    return;
+  }
+  $('qMsg').innerHTML = '<span class="soft">문제를 풀어야 타이어를 고를 수 있어요. <b>처음 고른 답만</b> 보너스로 인정돼요!</span>';
+  $('qOpts').querySelectorAll('.qopt').forEach(b => b.onclick = () => {
+    if (guardLocked()) return;
+    const k = +b.dataset.k, right = k === Q.a;
+    S.quiz[SI] = right; save(); updateHud();
+    right ? fanfare() : beep(180, 0.25, 'sawtooth', 0.05);
+    $('qOpts').querySelectorAll('.qopt').forEach((x, j) => { x.disabled = true; if (j === Q.a) x.classList.add('right'); else if (j === k) x.classList.add('wrong'); });
+    $('qMsg').innerHTML = (right ? '<span class="ok">정답! 정비 보너스 +20점</span> ' : '<span class="no">아쉬워요.</span> ') + Q.e;
+    $('tireArea').style.opacity = 1; $('tireArea').style.pointerEvents = '';
+    setTimeout(() => $('tireArea').scrollIntoView({ behavior: 'smooth', block: 'center' }), 900);
+  });
+}
+$('goRace').onclick = () => { if (guardLocked() || !tireSel) return; startRace(SI, tireSel); };
+
+/* ================= 레이스 ================= */
+const rc = $('rc'), cx = rc.getContext('2d');
+const bgCv = document.createElement('canvas'); bgCv.width = 1200; bgCv.height = 675;
+const ctl = { left: false, right: false, gas: false, brake: false };
+let R = null, raf = 0;
+function startRace(i, tire) {
+  const st = STAGES[i], p = st.S[0];
+  drawTrack(bgCv.getContext('2d'), st);
+  R = { i, st, tire, x: p.x - p.tx * 30, y: p.y - p.ty * 30, h: Math.atan2(p.ty, p.tx), vx: 0, vy: 0, idx: N0(st, p.x - p.tx * 30, p.y - p.ty * 30), prog: 0,
+    t: 0, phase: 'count', cnt: 3.4, sand: 2, patches: [], marks: [], stat: { slide: 0, off: 0, slopeFail: 0, chainAsph: 0, iceT: 0 },
+    fric: 0, surf: 'asphalt', last: performance.now(), done: false, lapShown: 1 };
+  R.prog = 0;
+  $('hTire').innerHTML = `${TIRES[tire].n}`;
+  $('result').hidden = true; $('wrong').hidden = true; $('stuck').hidden = true; $('count').hidden = false; $('count').textContent = '3';
+  $('sandN').textContent = 2; $('sandBtn').disabled = false;
+  Object.keys(ctl).forEach(k => ctl[k] = false); document.querySelectorAll('.cb').forEach(b => b.classList.remove('on'));
+  show('sRace'); $('hudTitle').textContent = `🏁 ${st.name}`;
+  beep(440, 0.15);
+  cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+}
+function stopRace() { cancelAnimationFrame(raf); if (R) R.phase = R.phase === 'done' ? 'done' : 'stop'; }
+function N0(st, x, y) { let bi = 0, bd = 1e9; st.S.forEach((p, i) => { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; bi = i; } }); return bi; }
+function nearest(x, y) {
+  const S2 = R.st.S, N = R.st.N; let bi = R.idx, bd = 1e12;
+  for (let k = -30; k <= 30; k++) { const i = (R.idx + k + N) % N, p = S2[i], d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; bi = i; } }
+  if (bd > (HW * 4) ** 2) { bi = N0(R.st, x, y); const p = S2[bi]; bd = (p.x - x) ** 2 + (p.y - y) ** 2; }
+  return { i: bi, d: Math.sqrt(bd) };
+}
+function physics(dt) {
+  const st = R.st, N = st.N;
+  const nr = nearest(R.x, R.y);
+  let dI = nr.i - R.idx; if (dI > N / 2) dI -= N; if (dI < -N / 2) dI += N;
+  if (Math.abs(dI) <= 12) R.prog += dI; R.idx = nr.i;  // 안쪽을 가로질러 건너뛰면 진행으로 치지 않아요
+  const sp = st.S[nr.i], onTrack = nr.d < HW;
+  let key = onTrack ? sp.s : st.off;
+  if (R.patches.some(q => (q.x - R.x) ** 2 + (q.y - R.y) ** 2 < 34 * 34)) key = 'sand';
+  R.surf = key;
+  const T = TIRES[R.tire], mu = T.mu[key], grip = mu * G;
+  const fx = Math.cos(R.h), fy = Math.sin(R.h);
+  // 경사 (길 방향으로 중력)
+  if (onTrack && sp.slope) { R.vx -= sp.slope * sp.tx * dt; R.vy -= sp.slope * sp.ty * dt; }
+  let vf = R.vx * fx + R.vy * fy, vl = -R.vx * fy + R.vy * fx;
+  let roll = (SURF[key].roll + (T.roll[key] || 0));
+  if (key === 'grass' || key === 'bank' || key === 'sand') roll *= Math.min(1, Math.abs(vf) / 60);
+  let fr = 0;
+  if (ctl.gas) vf += Math.min(ENGINE, grip) * dt;
+  if (ctl.brake) {
+    if (vf > 8) fr += Math.min(BRAKE, grip);
+    else { vf -= Math.min(160, grip) * dt; if (vf < -110) vf = -110; }
+  }
+  fr += Math.max(0, roll);
+  const dec = fr * dt;
+  if (Math.abs(vf) <= dec) vf = 0; else vf -= Math.sign(vf) * dec;
+  vf -= vf * DRAG * dt;
+  const lat = grip * dt, latBefore = Math.abs(vl);
+  if (Math.abs(vl) <= lat) vl = 0; else vl -= Math.sign(vl) * lat;
+  const slip = latBefore > lat + 2;
+  R.fric = fr + (latBefore - Math.abs(vl)) / dt;
+  const steer = (ctl.right ? 1 : 0) - (ctl.left ? 1 : 0);
+  R.h += steer * Math.min(STEER, Math.abs(vf) / 80) * Math.sign(vf || 1) * dt;
+  R.vx = vf * fx - vl * fy; R.vy = vf * fy + vl * fx;
+  R.x += R.vx * dt; R.y += R.vy * dt;
+  // 화면 밖 막기
+  if (R.x < 14 || R.x > 1186) { R.x = Math.max(14, Math.min(1186, R.x)); R.vx *= -0.3; beep(120, 0.08, 'sawtooth', 0.04); }
+  if (R.y < 14 || R.y > 661) { R.y = Math.max(14, Math.min(661, R.y)); R.vy *= -0.3; beep(120, 0.08, 'sawtooth', 0.04); }
+  // 통계
+  const spd = Math.hypot(R.vx, R.vy);
+  if (slip && Math.abs(vl) > 40) R.stat.slide += dt;
+  if (!onTrack) R.stat.off += dt;
+  if (onTrack && sp.slope > 0 && (ctl.gas && vf < 30)) R.stat.slopeFail += dt;
+  if (R.tire === 'chain' && key === 'asphalt') R.stat.chainAsph += dt;
+  if (key === 'ice') R.stat.iceT += dt;
+  if (slip && spd > 60 && Math.random() < 0.5) { R.marks.push([R.x, R.y, key === 'ice' || key === 'snow' ? 'rgba(90,120,160,.35)' : 'rgba(20,20,20,.35)']); if (R.marks.length > 900) R.marks.shift(); }
+  R.vf = vf;
+}
+function loop(now) {
+  if (!R || R.phase === 'stop') return;
+  let dt = Math.min(0.05, (now - R.last) / 1000); R.last = now;
+  if (R.phase === 'count') {
+    const before = Math.ceil(R.cnt - 0.4);
+    R.cnt -= dt;
+    const after = Math.ceil(R.cnt - 0.4);
+    if (after !== before) { if (after > 0) { $('count').textContent = after; beep(440, 0.15); } else { $('count').textContent = 'GO!'; beep(880, 0.3); } }
+    if (R.cnt <= 0) { R.phase = 'run'; setTimeout(() => $('count').hidden = true, 500); }
+  } else if (R.phase === 'run') {
+    const sub = 4; for (let k = 0; k < sub; k++) physics(dt / sub);
+    R.t += dt;
+    const lap = Math.min(R.st.laps, Math.floor(Math.max(0, R.prog) / R.st.N) + 1);
+    if (lap > R.lapShown) { R.lapShown = lap; beep(988, 0.15, 'triangle', 0.08); toast(lap === R.st.laps ? '마지막 바퀴!' : `${lap}바퀴째!`); }
+    $('hLap').textContent = `${lap}/${R.st.laps}`;
+    $('hTime').textContent = R.t.toFixed(1);
+    R.maxProg = Math.max(R.maxProg || 0, R.prog); $('wrong').hidden = !(R.prog < R.maxProg - 40);
+    const spdNow = Math.hypot(R.vx, R.vy);
+    if (ctl.gas && spdNow < 25) R.stuckT = (R.stuckT || 0) + dt; else R.stuckT = Math.max(0, (R.stuckT || 0) - dt * 2);
+    if (R.stuckT > 5 && !R.stuckShown) { R.stuckShown = true; $('stuck').hidden = false; }
+    if (R.prog >= R.st.N * R.st.laps) return finishRace();
+  }
+  const sf = SURF[R.surf];
+  $('hSurf').innerHTML = `바닥 <b>${sf.n}</b> <span style="font-size:14px; opacity:.85">마찰력 ${sf.tag}</span>`;
+  render();
+  raf = requestAnimationFrame(loop);
+}
+function render() {
+  const c = cx; c.drawImage(bgCv, 0, 0);
+  R.patches.forEach(q => { c.fillStyle = 'rgba(226,192,122,.92)'; c.beginPath(); c.arc(q.x, q.y, 34, 0, 7); c.fill(); c.fillStyle = 'rgba(150,110,50,.6)'; for (let k = 0; k < 18; k++) c.fillRect(q.x + Math.cos(k * 2.4) * 22 * ((k % 3) / 3 + .3), q.y + Math.sin(k * 2.4) * 22 * ((k % 3) / 3 + .3), 3, 3); });
+  R.marks.forEach(m => { c.fillStyle = m[2]; c.fillRect(m[0] - 2, m[1] - 2, 4, 4); });
+  // 차
+  c.save(); c.translate(R.x, R.y); c.rotate(R.h);
+  c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(-19, -10, 40, 24);
+  c.fillStyle = '#1C1F26'; [[-13, -12], [9, -12], [-13, 8], [9, 8]].forEach(([x, y]) => c.fillRect(x, y, 9, 5));
+  if (R.tire === 'chain') { c.fillStyle = '#C9D3E3'; [[-13, -12], [9, -12], [-13, 8], [9, 8]].forEach(([x, y]) => { c.fillRect(x + 2, y, 2, 5); c.fillRect(x + 6, y, 2, 5); }); }
+  c.fillStyle = '#E3242B'; c.strokeStyle = '#17324D'; c.lineWidth = 2.5;
+  c.beginPath(); c.moveTo(-18, -9); c.lineTo(12, -9); c.quadraticCurveTo(21, -8, 21, 0); c.quadraticCurveTo(21, 8, 12, 9); c.lineTo(-18, 9); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#BFE6F7'; c.fillRect(0, -6, 7, 12); c.fillStyle = '#fff'; c.fillRect(-16, -1.5, 30, 3);
+  c.restore();
+  // 마찰력 화살표
+  const spd = Math.hypot(R.vx, R.vy);
+  if (R.phase === 'run' && spd > 15 && R.fric > 20) {
+    const ux = -R.vx / spd, uy = -R.vy / spd, L = Math.min(80, 18 + R.fric / 12);
+    const x2 = R.x + ux * L, y2 = R.y + uy * L;
+    c.save(); c.strokeStyle = '#E5383B'; c.fillStyle = '#E5383B'; c.lineWidth = 5; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(R.x, R.y); c.lineTo(x2 - ux * 10, y2 - uy * 10); c.stroke();
+    c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - ux * 14 - uy * 8, y2 - uy * 14 + ux * 8); c.lineTo(x2 - ux * 14 + uy * 8, y2 - uy * 14 - ux * 8); c.closePath(); c.fill();
+    c.font = 'bold 15px "Gothic A1", sans-serif'; c.textAlign = 'center'; c.lineWidth = 4; c.strokeStyle = '#fff'; c.strokeText('마찰력', x2 + ux * 18, y2 + uy * 18); c.fillText('마찰력', x2 + ux * 18, y2 + uy * 18);
+    c.restore();
+  }
+}
+function feedback() {
+  const s = R.stat, out = [];
+  if (s.slopeFail > 1.2) out.push('얼어붙은 오르막에서 바퀴가 헛돌았어요. 마찰력이 작으면 바퀴가 길을 밀어 내지 못해 올라가기 어려워요.');
+  if (s.slide > 2.5 && s.iceT > 3) out.push('얼음 커브에서 차가 옆으로 미끄러졌어요. 얼음은 마찰력이 작아서 방향을 바꾸기 어려워요. 미리 속도를 줄이거나 바퀴가 길을 더 꽉 붙잡게 해 봐요.');
+  if (s.chainAsph > 4) out.push('체인이 아스팔트에서 덜컹거려 속도가 줄었어요. 마찰력이 필요 이상으로 크면 오히려 움직임을 방해해요.');
+  if (s.off > 2) out.push(`길 밖 ${SURF[R.st.off].n}에서 속도가 뚝 떨어졌어요. 거친 곳은 마찰력이 커서 차가 금방 느려져요.`);
+  if (!out.length) out.push('타이어 선택과 운전이 이 코스에 잘 맞았어요! 마찰력을 잘 이용했어요.');
+  return out.slice(0, 2);
+}
+function finishRace() {
+  R.phase = 'done'; cancelAnimationFrame(raf); render();
+  const i = R.i, t = Math.round(R.t * 10) / 10, prev = S.best[i], isBest = !prev || t < prev;
+  if (!S.locked) { S.runs++; if (isBest) { S.best[i] = t; S.bestTire[i] = R.tire; } save(); }
+  updateHud(); fanfare();
+  const st = starsOf(i, t), next = i < 3 && unlocked(i + 1);
+  $('rbox').innerHTML = `<h2>${isBest && !S.locked ? '🎉 최고 기록!' : '완주!'}</h2>
+    <div class="rbig">${t.toFixed(1)}초 <span class="rstars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</span></div>
+    <div class="fline" style="margin:4px 0">기준 시간 ${PAR[i]}초, ${TIRES[R.tire].n} · 내 최고 기록 ${fmtT(S.best[i])} (${stagePts(i)}점)${S.locked ? ' <span class="no">경기 종료 후라 기록에 반영되지 않아요</span>' : ''}</div>
+    ${feedback().map(f => `<div class="fb">💬 ${f}</div>`).join('')}
+    <div class="row">
+      <button class="btn" id="rAgain">다시 달리기</button>
+      <button class="btn ghost" id="rPit">타이어 바꾸기</button>
+      ${next ? `<button class="btn red" id="rNext">다음 경기 ▶</button>` : i === 3 ? `<button class="btn red" id="rCard">🏆 기록 카드</button>` : ''}
+      <button class="btn ghost" data-go="map">지도로</button>
+    </div>`;
+  $('result').hidden = false;
+  $('rAgain').onclick = () => { if (!guardLocked()) startRace(i, R.tire); };
+  $('rPit').onclick = () => { if (!guardLocked()) openPit(i); };
+  if ($('rNext')) $('rNext').onclick = () => { if (!guardLocked()) openPit(i + 1); };
+  if ($('rCard')) $('rCard').onclick = () => show('sEnd');
+}
+// 조작
+document.querySelectorAll('.cb').forEach(b => {
+  const k = b.dataset.k, on = v => { ctl[k] = v; b.classList.toggle('on', v); };
+  b.addEventListener('pointerdown', e => { e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (_) {} on(true); });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => b.addEventListener(t, () => on(false)));
+  b.addEventListener('contextmenu', e => e.preventDefault());
+});
+const KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'gas', ArrowDown: 'brake', a: 'left', d: 'right', w: 'gas', s: 'brake' };
+document.addEventListener('keydown', e => {
+  if ($('sRace').hidden) return;
+  if (KEYS[e.key]) { ctl[KEYS[e.key]] = true; e.preventDefault(); }
+  if (e.key === ' ') { dropSand(); e.preventDefault(); }
+});
+document.addEventListener('keyup', e => { if (KEYS[e.key]) ctl[KEYS[e.key]] = false; });
+function dropSand() {
+  if (!R || R.phase !== 'run' || R.sand <= 0) return;
+  R.sand--; R.patches.push({ x: R.x, y: R.y }); $('sandN').textContent = R.sand; $('sandBtn').disabled = R.sand <= 0; beep(300, 0.12, 'triangle', 0.06);
+}
+$('sandBtn').addEventListener('pointerdown', e => { e.preventDefault(); dropSand(); });
+$('pitBtn').onclick = () => { if (R) openPit(R.i); };
+$('stuckGo').onclick = () => { if (R) openPit(R.i); };
+$('stuckX').onclick = () => { $('stuck').hidden = true; R.stuckT = 0; setTimeout(() => { if (R) R.stuckShown = false; }, 8000); };
+
+/* ================= 기록 카드 ================= */
+function renderEnd() {
+  $('rcName').textContent = `1학년 ${S.ban}반 ${S.num}번`;
+  $('rcMeta').textContent = `${S.team}모둠` + (S.locked ? ', 경기 종료 후 확정 기록' : '');
+  const sp = scoreParts();
+  $('rcScore').textContent = `${sp.total}점`;
+  $('rcScoreSub').textContent = `그랑프리 기록 ${sp.race}점 + 정비소 문제 ${sp.quiz}점 (${S.quiz.filter(v => v === true).length}/4 정답)`;
+  STAGES.forEach((st, i) => {
+    $('rcN' + i).textContent = `${i + 1}. ${st.name}`;
+    const s = starsOf(i);
+    $('rcT' + i).innerHTML = S.best[i] ? `${fmtT(S.best[i])} <span class="rc-st">${'★'.repeat(s)}${'☆'.repeat(3 - s)}</span>` : '미완주';
+    $('rcS' + i).textContent = S.best[i] ? TIRES[S.bestTire[i]].n : '';
+  });
+}
+function swapTA(on) {
+  document.querySelectorAll('#recCard textarea').forEach(ta => {
+    if (on) { const d = document.createElement('div'); d.className = 'ta-print'; d.textContent = ta.value || ' '; ta.after(d); ta.style.display = 'none'; }
+    else { ta.style.display = ''; const d = ta.nextElementSibling; if (d && d.classList.contains('ta-print')) d.remove(); }
+  });
+}
+const overlay = $('overlay'), ovMsg = $('ovMsg');
+$('closeShot').onclick = () => overlay.style.display = 'none';
+let shotBlob = null, shotName = 'race.png', downloadsNS = null;
+if (window.claude && typeof window.claude.use === 'function') window.claude.use('downloads').then(ns => { downloadsNS = ns; }).catch(() => {});
+$('saveBtn').onclick = async () => {
+  if (typeof html2canvas !== 'function') { alert('이미지 도구를 불러오지 못했어요. 페이지를 새로 고친 뒤 다시 눌러 주세요.'); return; }
+  const btn = $('saveBtn'); btn.textContent = '이미지 만드는 중…'; btn.disabled = true;
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    swapTA(true);
+    const canvas = await html2canvas($('recCard'), { scale: 2, backgroundColor: '#FFFFFF', useCORS: true });
+    swapTA(false);
+    $('shot').src = canvas.toDataURL('image/png');
+    shotBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    shotName = `friction_race_${S.ban}ban_${S.num}_${Date.now().toString().slice(-6)}.png`;
+    ovMsg.innerHTML = '미리 보기예요. <b>갤러리에 저장</b>을 누른 뒤 <b>패들렛 바로가기</b>로 올려 주세요.<br>저장이 안 되면 그림을 길게 눌러 이미지 저장을 고르거나 화면을 캡처하세요.';
+    overlay.style.display = 'flex';
+    if (!S.cardDone) {
+      S.cardDone = true;
+      if (S.locked) initNet().then(x => x && x.collection(COL).doc(pid()).set({ cardDone: true, where: '카드 저장' }, { merge: true }).catch(() => {}));
+      else saveNow();
+    }
+  } catch (err) { swapTA(false); alert('이미지를 만들지 못했어요. 잠시 뒤 다시 눌러 주세요.'); }
+  btn.textContent = '이미지로 저장하기'; btn.disabled = false;
+};
+function anchorDownload() {
+  const u = URL.createObjectURL(shotBlob), a = document.createElement('a');
+  a.href = u; a.download = shotName; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 60000);
+}
+$('galleryBtn').onclick = async () => {
+  if (!shotBlob) return;
+  if (downloadsNS) {
+    try { await downloadsNS.save({ filename: shotName, data: shotBlob }); ovMsg.textContent = '저장했어요. 패들렛 바로가기를 눌러 올려 주세요.'; return; }
+    catch (e) {
+      if (e && e.code === 'declined') { ovMsg.textContent = '저장을 취소했어요. 다시 누르면 저장할 수 있어요.'; return; }
+      if (e && e.code === 'rate_limited') { ovMsg.textContent = '저장 창이 이미 열려 있어요. 잠시 뒤 다시 눌러 주세요.'; return; }
+    }
+  }
+  try { anchorDownload(); ovMsg.textContent = '저장했어요! 갤러리에서 확인한 뒤 패들렛 바로가기로 올려 주세요.'; }
+  catch (e) { ovMsg.textContent = '바로 저장할 수 없어요. 위 그림을 길게 눌러 이미지 저장을 고르거나 화면을 캡처하세요.'; }
+};
+
+/* ================= 교사용 ================= */
+const TEACHER_PW = '202601';
+let pwVal = '';
+function pwPaint() { const s = $('pwShow'); s.textContent = pwVal ? '*'.repeat(pwVal.length) : '아래 숫자판으로 입력'; s.classList.toggle('empty', !pwVal); }
+function pwKey(k) { if (k === 'del') pwVal = pwVal.slice(0, -1); else if (k === 'clr') pwVal = ''; else if (pwVal.length < 10) pwVal += k; $('pwMsg').textContent = ''; pwPaint(); }
+$('pwPad').innerHTML = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'clr', '0', 'del'].map(k => `<button type="button" tabindex="-1" data-k="${k}">${k === 'del' ? '⌫' : k === 'clr' ? '지움' : k}</button>`).join('');
+$('pwPad').addEventListener('pointerdown', e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); pwKey(b.dataset.k); });
+document.addEventListener('keydown', e => {
+  if ($('pwModal').hidden) return;
+  if (/^[0-9]$/.test(e.key)) { e.preventDefault(); pwKey(e.key); }
+  else if (e.key === 'Backspace') { e.preventDefault(); pwKey('del'); }
+  else if (e.key === 'Enter') { e.preventDefault(); tryPw(); }
+});
+let prevScreen = 'sStart';
+$('teacherBtn').onclick = () => {
+  let ok = false; try { ok = sessionStorage.getItem('frace_teacher') === 'ok'; } catch (e) {}
+  if (ok) return openBoard();
+  pwVal = ''; pwPaint(); $('pwMsg').textContent = ''; $('pwModal').hidden = false;
+};
+function tryPw() {
+  if (pwVal === TEACHER_PW) { try { sessionStorage.setItem('frace_teacher', 'ok'); } catch (e) {} pwVal = ''; pwPaint(); $('pwModal').hidden = true; openBoard(); }
+  else { $('pwMsg').textContent = '비밀번호가 달라요.'; pwVal = ''; pwPaint(); }
+}
+$('pwOk').onclick = tryPw;
+pwPaint();
+
+let bUnsubP = null, bUnsubC = null, bPlayers = [], bEnded = false, bLast = {}, bTimer = 0;
+STAGES.forEach((st, i) => $('bh' + i).textContent = `${i + 1}. ${st.name}`);
+async function openBoard() {
+  const cur = [...document.querySelectorAll('.screen')].find(s => !s.hidden);
+  prevScreen = cur && cur.id !== 'sBoard' ? cur.id : prevScreen;
+  if (S.ban) $('bBan').value = S.ban;
+  show('sBoard');
+  const x = await initNet();
+  if (!x) { $('bTeams').innerHTML = '<div class="empty">순위판에 연결하지 못했어요.<br>깃허브 game 폴더(firebase-config.js가 있는 곳)에 올린 파일로 열어 주세요.</div>'; return; }
+  bWatch(); clearInterval(bTimer); bTimer = setInterval(bRender, 30000);
+}
+$('bBack').onclick = () => { if (bUnsubP) bUnsubP(); if (bUnsubC) bUnsubC(); clearInterval(bTimer); show(prevScreen === 'sRace' ? 'sMap' : prevScreen); };
+function bTeamsOf(list) {
+  const map = {};
+  list.forEach(p => { const t = p.team || '?'; (map[t] = map[t] || []).push(p); });
+  const teams = Object.entries(map).map(([t, ms]) => {
+    const avg = Math.round(ms.reduce((a, p) => a + (p.score || 0), 0) / ms.length);
+    const cards = ms.filter(p => p.cardDone).length, fin = ms.filter(p => p.best && p.best[3]).length, bonus = cards === ms.length ? 20 : 0;
+    return { t, ms, avg, bonus, total: avg + bonus, cards, fin };
+  });
+  teams.sort((a, b) => b.total - a.total || a.t - b.t);
+  let rank = 0, prev = null;
+  teams.forEach((tm, i) => { if (!prev || tm.total !== prev.total) rank = i + 1; tm.rank = rank; prev = tm; });
+  return teams;
+}
+function bRender() {
+  const teams = bTeamsOf(bPlayers);
+  $('bTeams').innerHTML = teams.length ? teams.map(tm => {
+    const n = tm.ms.length, bar = (lab, v) => `<div class="bar"><span>${lab}</span><i><b style="width:${n ? v / n * 100 : 0}%"></b></i><em>${v}/${n}</em></div>`;
+    return `<div class="team ${tm.rank === 1 ? 'first' : ''} ${bEnded ? 'final' : ''}"><div class="rank">${tm.rank}위</div><h2>${esc(tm.t)}모둠</h2>
+      <div class="tot">${tm.total}<small>점</small></div><div class="calc">평균 ${tm.avg}점${tm.bonus ? ' + 카드 보너스 20' : ''}, ${n}명</div>
+      <div class="bars">${bar('결승 완주', tm.fin)}${bar('카드 저장', tm.cards)}</div></div>`;
+  }).join('') : '<div class="empty">아직 이 반에서 경기에 들어온 학생이 없어요.<br>학생들이 반·번호·모둠을 정하고 출발하면 여기에 나타나요.</div>';
+  const now = Date.now();
+  $('bBody').innerHTML = [...bPlayers].sort((a, b) => a.num - b.num).map(p => {
+    const key = p.ban + '_' + p.num, w = p.where || '';
+    if (!bLast[key] || bLast[key].w !== w) bLast[key] = { w, since: p.ts || now };
+    const stuck = !p.cardDone && now - bLast[key].since > 5 * 60e3, mins = p.ts ? Math.max(0, Math.round((now - p.ts) / 60e3)) : '-';
+    const cell = i => p.best && p.best[i] ? `${p.best[i].toFixed(1)}초<br><span style="font-size:13px">${TIRES[p.bestTire[i]] ? TIRES[p.bestTire[i]].n : ''}</span>` : '-';
+    return `<tr><td>${esc(p.num)}</td><td>${esc(p.team)}</td><td class="${stuck ? 'stuck' : ''}">${esc(w)}</td><td>${cell(0)}</td><td>${cell(1)}</td><td>${cell(2)}</td><td>${cell(3)}</td>
+      <td>${(p.quiz || []).filter(v => v === true).length}/4</td><td>${p.runs || 0}번</td><td><b>${p.score || 0}</b></td><td>${p.cardDone ? '✔' : ''}</td><td>${mins === '-' ? '-' : mins + '분 전'}</td></tr>`;
+  }).join('');
+  $('bState').textContent = bEnded ? '경기 종료' : '경기 중'; $('bState').classList.toggle('end', bEnded);
+  $('bEnd').textContent = bEnded ? '경기 다시 열기' : '경기 종료'; $('bBanner').hidden = !bEnded;
+}
+function bWatch() {
+  const ban = $('bBan').value;
+  if (bUnsubP) bUnsubP(); if (bUnsubC) bUnsubC();
+  bPlayers = []; bEnded = false; bLast = {}; bRender();
+  bUnsubP = db.collection(COL).where('ban', '==', ban).onSnapshot(snap => { bPlayers = snap.docs.map(d => d.data()); bRender(); },
+    e => { $('bTeams').innerHTML = `<div class="empty">기록을 불러오지 못했어요. (${esc(e.code || e.message)})</div>`; });
+  bUnsubC = db.collection(CTRL).doc('b' + ban).onSnapshot(doc => { bEnded = doc.exists && !!doc.data().ended; bRender(); });
+}
+$('bBan').onchange = () => db && bWatch();
+$('bEnd').onclick = async () => {
+  if (!db) return; const ban = $('bBan').value;
+  if (!bEnded && !confirm(`${ban}반 경기를 끝낼까요? 지금 기록으로 순위가 확정되고, 학생들은 더 이상 기록을 올릴 수 없어요.`)) return;
+  await db.collection(CTRL).doc('b' + ban).set({ ended: !bEnded, at: Date.now() }, { merge: true });
+};
+$('bSolo').onclick = () => { const s = $('bSoloBox'); s.hidden = !s.hidden; $('bSolo').textContent = s.hidden ? '개인 기록 보기' : '개인 기록 숨기기'; };
+$('bClear').onclick = async () => {
+  if (!db) return; const ban = $('bBan').value;
+  if (!confirm(`${ban}반의 마찰력 그랑프리 기록을 모두 지울까요? 지운 기록은 되살릴 수 없어요.`)) return;
+  const snap = await db.collection(COL).where('ban', '==', ban).get(), docs = snap.docs;
+  for (let i = 0; i < docs.length; i += 400) { const b = db.batch(); docs.slice(i, i + 400).forEach(d => b.delete(d.ref)); await b.commit(); }
+  await db.collection(CTRL).doc('b' + ban).set({ ended: false, at: Date.now() });
+  alert(`${ban}반 기록 ${docs.length}개를 지웠어요.`);
+};
+updateHud();
+</script>
+</body>
+</html>
