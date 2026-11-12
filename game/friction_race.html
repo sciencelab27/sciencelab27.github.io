@@ -502,7 +502,7 @@ const fanfare = () => [523, 659, 784, 1047].forEach((f, i) => beep(f, 0.18, 'tri
 $('sndBtn').onclick = () => { snd = !snd; $('sndBtn').textContent = snd ? '🔊' : '🔇'; };
 
 /* ================= 바닥과 타이어 ================= */
-const G = 600, ENGINE = 360, BRAKE = 900, DRAG = 0.6, STEER = 2.7, HW = 46;
+const G = 600, ENGINE = 280, BRAKE = 900, DRAG = 1.1, STEER = 2.7, HW = 46;
 const SURF = {
   asphalt: { n: '아스팔트', c: '#4A4F57', roll: 28,  tag: '보통' },
   ice:     { n: '얼음',     c: '#BFE6F7', roll: 10,  tag: '아주 작음' },
@@ -513,11 +513,11 @@ const SURF = {
 };
 const TIRES = {
   slick: { n: '매끈한 레이싱 타이어', d: '표면에 홈이 거의 없이 매끈해요. 딱딱한 길에서 가볍게 굴러가서 빨라요.',
-           mu: { asphalt: 1.0, ice: 0.08, snow: 0.2, sand: 0.6, grass: 0.5, bank: 0.3 }, roll: { asphalt: -15 }, col: '#17324D' },
+           mu: { asphalt: 1.0, ice: 0.12, snow: 0.22, sand: 0.6, grass: 0.5, bank: 0.3 }, roll: { asphalt: -15 }, col: '#17324D' },
   snowt: { n: '스노타이어', d: '홈이 깊고 고무가 말랑해서 눈이나 얼음을 꽉 붙잡아요.',
-           mu: { asphalt: 0.82, ice: 0.4, snow: 0.6, sand: 0.65, grass: 0.55, bank: 0.4 }, roll: { asphalt: 18 }, col: '#2B6CB0' },
+           mu: { asphalt: 0.82, ice: 0.36, snow: 0.6, sand: 0.65, grass: 0.55, bank: 0.4 }, roll: { asphalt: 18 }, col: '#2B6CB0' },
   chain: { n: '체인', d: '바퀴에 쇠사슬을 감았어요. 얼음과 눈을 아주 세게 붙잡지만, 딱딱한 길에서는 덜컹거려요.',
-           mu: { asphalt: 0.65, ice: 0.62, snow: 0.78, sand: 0.7, grass: 0.6, bank: 0.5 }, roll: { asphalt: 240 }, col: '#6B7582' },
+           mu: { asphalt: 0.65, ice: 0.62, snow: 0.78, sand: 0.7, grass: 0.6, bank: 0.5 }, roll: { asphalt: 120 }, col: '#6B7582' },
 };
 function tireSVG(k) {
   const ring = { slick: '', snowt: '<path d="M32 6v10M32 48v10M6 32h10M48 32h10M14 14l7 7M43 43l7 7M14 50l7-7M43 21l7-7" stroke="#55708A" stroke-width="5"/>',
@@ -535,14 +535,14 @@ const STAGES = [
     segs: [[0, 1, 'ice']], slopes: [], intro: '꽁꽁 언 호수 위를 달려요. 커브가 많으니 조심! 미끄러지면 눈 더미에 빠져요.' },
   { name: '눈길 언덕', off: 'bank', bg: '#FFFFFF', laps: 2,
     pts: [[180,140],[560,105],[900,125],[1090,250],[980,450],[700,500],[480,420],[300,520],[120,380]],
-    segs: [[0, 1, 'snow'], [0.08, 0.22, 'ice']], slopes: [[0.08, 0.22, 260], [0.55, 0.66, -160]],
+    segs: [[0, 1, 'snow'], [0.08, 0.22, 'ice']], slopes: [[0.08, 0.22, 225], [0.55, 0.66, -160]],
     intro: '눈 덮인 산길이에요. 얼어붙은 오르막을 올라가야 해요. 바퀴가 헛돌지 않으려면?' },
   { name: '혼합 그랑프리', off: 'grass', bg: '#E3C98E', laps: 2,
     pts: [[170,110],[620,95],[1060,120],[1100,330],[930,420],[1040,520],[700,560],[520,440],[300,540],[110,400],[120,230]],
     segs: [[0, 1, 'asphalt'], [0.33, 0.55, 'ice'], [0.86, 0.99, 'snow']], slopes: [],
     intro: '마지막 결승전! 아스팔트 직선, 얼음 구간, 눈길이 모두 섞여 있어요. 한 가지 타이어로 다 달려야 해요.' },
 ];
-const PAR = [24, 36, 34, 42];
+const PAR = [28, 30, 42, 50];
 const QUIZ = [
   { q: '아스팔트 서킷 바깥에는 모래밭이 있어요. 길을 벗어난 차가 모래밭에서 금방 느려지는 까닭은?',
     o: ['모래밭은 거칠어서 마찰력이 크기 때문', '모래밭은 매끄러워서 마찰력이 작기 때문', '모래가 차를 위로 밀어 올리기 때문'], a: 0,
@@ -900,7 +900,7 @@ function physics(dt) {
   if (Math.abs(vf) <= dec) vf = 0; else vf -= Math.sign(vf) * dec;
   vf -= vf * (R.boostT > 0 ? DRAG * 0.55 : DRAG) * dt;
   const steerNow = steerInput();
-  const drifting = ctl.drift && Math.abs(vf) > 120 && Math.abs(steerNow) > 0.15;
+  const drifting = ctl.drift && Math.abs(vf) > 90 && Math.abs(steerNow) > 0.1;
   if (R.boostT > 0) { vf += Math.min(320, grip) * dt; R.boostT -= dt; }
   const lat = grip * (drifting ? 0.35 : 1) * dt, latBefore = Math.abs(vl);
   if (Math.abs(vl) <= lat) vl = 0; else vl -= Math.sign(vl) * lat;
