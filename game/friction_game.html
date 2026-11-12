@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>마찰력 리그 — 미끄러져라, 멈춰라!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gothic+A1:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  color-scheme: light dark;
+  --bg:#DCEAF4; --scratch:rgba(255,255,255,.38); --panel:#FFFFFF; --panel2:#EEF4FA; --ink:#17324D; --soft:#55708A; --line:#B9CCDD;
+  --note:#FFF8DC; --okc:#13875F; --noc:#D02F2F; --okbg:#E3F6EE; --nobg:#FDECEC;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E2133; --scratch:rgba(255,255,255,.04); --panel:#18324A; --panel2:#1F3D58; --ink:#E6F0F8; --soft:#9FB6CA; --line:#36536E;
+    --note:#38331F; --okc:#4FD1A0; --noc:#FF8080; --okbg:#123D30; --nobg:#4A1E22;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E2133; --scratch:rgba(255,255,255,.04); --panel:#18324A; --panel2:#1F3D58; --ink:#E6F0F8; --soft:#9FB6CA; --line:#36536E;
+  --note:#38331F; --okc:#4FD1A0; --noc:#FF8080; --okbg:#123D30; --nobg:#4A1E22;
+}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; color:var(--ink); font-family:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",sans-serif; line-height:1.55;
+  background-color:var(--bg);
+  background-image:repeating-linear-gradient(115deg,var(--scratch) 0 2px,transparent 2px 46px),repeating-linear-gradient(28deg,var(--scratch) 0 1px,transparent 1px 73px);
+  min-height:100vh;
+}
+body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:21; background:#17324D}
+h1,h2,h3{font-family:"Do Hyeon","Gothic A1",sans-serif; font-weight:400; margin:0}
+:focus-visible{outline:3px solid #FFC93C; outline-offset:2px}
+.soft{color:var(--soft)}
+.ok{color:var(--okc)} .no{color:var(--noc)}
+
+/* 상단 상태바 */
+.hud{position:sticky; top:env(safe-area-inset-top,0px); z-index:20; background:#17324D; color:#fff; display:flex; align-items:center; gap:10px; padding:8px 16px; border-bottom:4px solid #E23D3D; flex-wrap:wrap}
+.hud-title{font-family:"Do Hyeon",sans-serif; font-size:24px; flex:1; min-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.pill{display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.35); color:#fff; border-radius:999px; padding:4px 12px; font:inherit; font-weight:800; font-size:15px}
+button.pill{cursor:pointer}
+.pill b{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:21px; color:#FFC93C}
+
+/* 버튼 */
+.btn{font:inherit; font-weight:800; font-size:18px; color:#17324D; background:#FFC93C; border:2.5px solid #17324D; border-radius:12px; padding:10px 20px; cursor:pointer; box-shadow:0 4px 0 #17324D; transition:transform .06s, box-shadow .06s; touch-action:manipulation; text-decoration:none; display:inline-flex; align-items:center; gap:6px}
+.btn:active:not(:disabled){transform:translateY(3px); box-shadow:0 1px 0 #17324D}
+.btn.red{background:#E23D3D; color:#fff}
+.btn.blue{background:#2B6CB0; color:#fff}
+.btn.mint{background:#159A6E; color:#fff}
+.btn.ghost{background:#fff; color:#17324D}
+.btn.mini{font-size:16px; padding:6px 14px; box-shadow:0 3px 0 #17324D}
+.btn:disabled{opacity:.45; cursor:default}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:12px 0}
+
+/* 공통 화면 */
+.screen{max-width:1180px; margin:0 auto; padding:16px 20px 70px}
+.coach{display:flex; gap:12px; align-items:flex-start; margin:4px 0 14px}
+.coach .av{flex:none; width:62px; height:62px}
+.coach .av svg{width:100%; height:100%}
+.bubble{position:relative; flex:1; background:var(--panel); border:2.5px solid var(--ink); border-radius:16px; padding:10px 16px; font-size:19px; font-weight:600; line-height:1.6}
+.bubble::before{content:""; position:absolute; left:-13px; top:20px; border-style:solid; border-width:10px 13px 10px 0; border-color:transparent var(--ink) transparent transparent}
+.bubble::after{content:""; position:absolute; left:-9px; top:22px; border-style:solid; border-width:8px 10px 8px 0; border-color:transparent var(--panel) transparent transparent}
+.tgt{display:inline-block; background:#E23D3D; color:#fff; border-radius:8px; padding:0 10px; font-size:17px; margin-left:4px}
+.hintline{margin-top:6px; color:#B98A00; font-weight:800}
+.panel{background:var(--panel); border:2.5px solid var(--ink); border-radius:16px; padding:14px 16px}
+.fline{font-size:19px; font-weight:700; line-height:1.9; margin:8px 0}
+.msg{font-size:18px; font-weight:700; margin-top:10px; min-height:1.6em; line-height:1.6}
+input[type=number],input[type=text],input[type=password],textarea{font:inherit; font-weight:800; font-size:19px; color:var(--ink); background:var(--panel); border:2px solid var(--line); border-radius:10px; padding:5px 10px}
+input[type=number]{width:86px; text-align:center}
+textarea{width:100%; resize:vertical; min-height:72px; font-weight:600; font-size:17px; line-height:1.55}
+.chips{display:inline-flex; flex-wrap:wrap; gap:4px; vertical-align:middle}
+.chip{font:inherit; font-size:18px; font-weight:700; border:2px solid var(--line); background:var(--panel); color:var(--ink); border-radius:999px; padding:5px 16px; cursor:pointer; line-height:1.4}
+.chip.on{background:#FFC93C; color:#17324D; border-color:#17324D}
+.chip:disabled{cursor:default}
+.chips.good .chip.on{background:#159A6E; color:#fff; border-color:#159A6E}
+.chips.bad .chip.on{background:#E23D3D; color:#fff; border-color:#E23D3D}
+.stage{border:3px solid var(--ink); border-radius:14px; overflow:hidden; background:#fff}
+canvas{display:block; width:100%; height:auto; touch-action:none}
+.gauge{display:inline-block; vertical-align:middle; width:140px; height:14px; border:1.5px solid var(--ink); border-radius:7px; overflow:hidden; background:var(--panel); margin:0 6px}
+.gauge b{display:block; height:100%; background:#2B6CB0}
+.status{margin-top:12px; background:var(--panel); border:2.5px dashed var(--line); border-radius:14px; padding:10px 16px; font-size:19px; line-height:1.6; min-height:3.3em}
+.status .btn{margin:6px 6px 0 0}
+
+/* 시작 화면 */
+#sStart{max-width:none; padding:3vh 0 5vh; min-height:100vh; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(180deg,#0A2A66 0%,#1A4FAF 22%,#3D7ED6 33%,#A7CDF2 41%,#EEF5FD 45%,#F7FBFF 62%,#DCE9F6 100%)}
+#sStart .sc{position:absolute; pointer-events:none}
+.sc.lights{inset:0 0 auto 0; height:46%; background:
+  radial-gradient(circle at 6% 7%,#fff 0 .9%,rgba(190,225,255,.6) 2%,transparent 7%),
+  radial-gradient(circle at 12% 10%,#fff 0 .7%,rgba(190,225,255,.5) 1.6%,transparent 6%),
+  radial-gradient(circle at 17% 12%,#fff 0 .5%,rgba(190,225,255,.4) 1.2%,transparent 5%),
+  radial-gradient(circle at 94% 7%,#fff 0 .9%,rgba(190,225,255,.6) 2%,transparent 7%),
+  radial-gradient(circle at 88% 10%,#fff 0 .7%,rgba(190,225,255,.5) 1.6%,transparent 6%),
+  radial-gradient(circle at 83% 12%,#fff 0 .5%,rgba(190,225,255,.4) 1.2%,transparent 5%),
+  linear-gradient(118deg,transparent 18%,rgba(255,255,255,.13) 26%,transparent 34%),
+  linear-gradient(62deg,transparent 66%,rgba(255,255,255,.13) 74%,transparent 82%)}
+.sc.crowd{left:0; right:0; top:19%; height:15%; background:radial-gradient(circle,rgba(8,26,70,.6) 34%,transparent 40%) 0 0/13px 13px, radial-gradient(circle,rgba(140,180,240,.35) 30%,transparent 38%) 6px 5px/13px 13px, linear-gradient(#1A3B80,#2A5BAE); filter:blur(1.2px)}
+.sc.boards{left:0; right:0; top:33.5%; height:8.5%; display:flex; border-bottom:.8vh solid #F08A3C; box-shadow:0 .6vh 1vh rgba(0,40,100,.15)}
+.sc.boards span{flex:1; display:grid; place-items:center; color:#fff; font-size:4vh; background:#2457C5}
+.sc.boards span:nth-child(3n+2){background:#EEF3FA; color:#2457C5}
+.sc.boards span:nth-child(3n){background:#D7263D}
+.sc.rink{left:50%; bottom:0; transform:translateX(-50%); width:max(130vw, 210vh); height:auto; opacity:.95}
+.sc.scratch{left:0; right:0; bottom:0; top:44%; background:repeating-linear-gradient(170deg,rgba(255,255,255,.35) 0 2px,transparent 2px 60px),repeating-linear-gradient(12deg,rgba(255,255,255,.25) 0 1px,transparent 1px 83px)}
+.sc.curler{left:1.5vw; top:35vh; width:min(21vw,34vh)}
+.sc.stones{right:-2.5vw; top:38vh; width:min(28vw,46vh)}
+.startbox{position:relative; z-index:3; display:flex; flex-direction:column; align-items:center; width:100%}
+.titlewrap{position:relative; display:flex; flex-direction:column; align-items:center; margin-top:min(15vh,17vw)}
+.crest{position:absolute; left:50%; bottom:calc(100% - 7vh); transform:translateX(-50%); width:min(46vw,54vh); height:auto; z-index:0}
+.plate{position:relative; z-index:1; transform:rotate(-1.5deg); background:linear-gradient(180deg,rgba(236,247,255,.95),rgba(165,207,245,.92)); border:.45vh solid #fff; border-radius:3vh; padding:1.4vh 3vw 4.6vh;
+  box-shadow:0 0 0 .7vh #2C6FD1, 0 0 3vh rgba(140,200,255,.9), 0 1.4vh 2.4vh rgba(0,40,110,.35)}
+.ttl{font-family:"Black Han Sans","Do Hyeon",sans-serif; font-size:min(7.4vw,10.5vh); line-height:1.1; letter-spacing:-.02em; white-space:nowrap; margin:0}
+.ttl span{--o:#0E3A8A; text-shadow:-.04em -.04em 0 var(--o),.04em -.04em 0 var(--o),-.04em .04em 0 var(--o),.04em .04em 0 var(--o),0 -.05em 0 var(--o),0 .05em 0 var(--o),-.05em 0 0 var(--o),.05em 0 0 var(--o),0 .11em 0 #0A2A66,0 .16em .2em rgba(0,20,70,.35)}
+.t1{color:#fff} .t2{color:#FFD43B}
+.ribbon{position:relative; z-index:2; margin-top:-3.8vh; font-family:"Black Han Sans","Do Hyeon",sans-serif; font-size:min(4.6vw,6.4vh); color:#fff; padding:.3vh 4.5vw; border:.45vh solid #fff; border-radius:1vh;
+  background:linear-gradient(#F44D4D,#C81E2B); box-shadow:0 .7vh 0 #8E1420, 0 1.4vh 2.2vh rgba(120,0,10,.3); text-shadow:0 .08em 0 #8E1420; word-spacing:.2em}
+.ribbon::before,.ribbon::after{content:""; position:absolute; top:1.4vh; width:4vw; height:100%; background:#A3141E; z-index:-1}
+.ribbon::before{left:-3.5vw; clip-path:polygon(0 0,100% 0,100% 100%,0 100%,35% 50%)}
+.ribbon::after{right:-3.5vw; clip-path:polygon(0 0,100% 0,65% 50%,100% 100%,0 100%)}
+.reg2{position:relative; margin-top:5.4vh; width:min(68vw,1000px); background:linear-gradient(#FFFFFF,#E8F1FB); border:.5vh solid #2C6FD1; border-radius:2.4vh; padding:5vh 2.6vw 2.6vh;
+  box-shadow:0 0 0 .4vh #fff, 0 0 2.4vh rgba(90,160,255,.7), 0 1.2vh 2vh rgba(0,40,110,.25)}
+.regtab{position:absolute; left:50%; top:0; transform:translate(-50%,-55%); display:flex; align-items:center; gap:.8vw; white-space:nowrap; font-family:"Black Han Sans","Do Hyeon",sans-serif; font-size:min(3.4vw,4.8vh); color:#fff;
+  background:linear-gradient(#2F6FE0,#123E9C); border:.45vh solid #8DB4FF; border-radius:999px; padding:.3vh 3vw; box-shadow:0 .5vh 0 #0B2A66}
+.regtab svg{width:1.2em; height:1.2em; fill:#fff}
+.fields3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:2vw}
+.fields3 label{display:flex; flex-direction:column; gap:.8vh; font-weight:800; font-size:clamp(15px,2.9vh,26px); color:#17324D}
+.fields3 label span{display:flex; align-items:center; gap:.5vw}
+.fields3 label svg{width:1.05em; height:1.05em; fill:#1F4E9C}
+.fields3 select{width:100%; height:clamp(42px,7.2vh,64px); font:inherit; font-size:clamp(17px,3.2vh,28px); font-weight:800; color:#17324D; background:#fff; border:2px solid #B9CCDD; border-radius:1.4vh; padding:0 1vw; box-shadow:inset 0 2px 4px rgba(23,50,77,.08)}
+.fields3 select:focus{border-color:#2B6CB0; outline:3px solid #FFC93C}
+.go{margin-top:3vh; display:inline-flex; align-items:center; gap:1.4vw; font-family:"Black Han Sans","Do Hyeon",sans-serif; font-size:min(4.4vw,6.4vh); color:#fff; padding:1vh 5vw; border-radius:999px; border:.5vh solid #fff; cursor:pointer;
+  background:linear-gradient(#FF6262 0%,#E3242B 55%,#B5141C 100%); box-shadow:0 .9vh 0 #8A0F15, 0 0 0 .5vh rgba(255,140,140,.45), 0 1.6vh 3vh rgba(150,0,0,.35); text-shadow:0 .07em 0 #8A0F15; transition:transform .06s, box-shadow .06s; touch-action:manipulation}
+.go b{font-weight:400; font-size:1.1em; line-height:1}
+.go:active:not(:disabled){transform:translateY(.7vh); box-shadow:0 .2vh 0 #8A0F15, 0 0 0 .5vh rgba(255,140,140,.45)}
+.go:disabled{filter:saturate(.6); cursor:wait}
+.goicon{width:1.35em; height:auto; filter:drop-shadow(0 .06em 0 #8A0F15)}
+.startmsg{margin-top:2.4vh; text-align:center; font-weight:800; font-size:clamp(14px,2.3vh,21px); color:#1F3E8C; background:rgba(255,255,255,.75); border-radius:999px; padding:.3vh 1.4vw}
+.startmsg.err{color:#fff; background:#D7263D}
+@media (max-width:700px){ .fields3{grid-template-columns:1fr} .sc.curler,.sc.stones{opacity:.35} .reg2{width:88vw} }
+/* 지도 */
+.mapwrap{width:min(100%, calc(66vh * 2)); margin:0 auto}
+.map{position:relative; aspect-ratio:2/1; width:100%; border:3px solid var(--ink); border-radius:22px; overflow:hidden; background:var(--panel2)}
+.map > svg{position:absolute; inset:0; width:100%; height:100%}
+.node{--d:clamp(66px,9.5vw,108px); position:absolute; transform:translate(-50%, calc(var(--d) / -2)); display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:0; cursor:pointer; font:inherit; color:var(--ink); padding:0}
+.node .disc{position:relative; width:var(--d); aspect-ratio:1; border-radius:50%; display:grid; place-items:center; font-size:clamp(30px,4.2vw,48px); background:var(--panel); border:4px solid var(--ink); box-shadow:0 5px 0 var(--ink)}
+.node .lab{font-family:"Do Hyeon",sans-serif; font-size:clamp(16px,1.9vw,22px); background:var(--panel); border:2px solid var(--ink); border-radius:999px; padding:0 12px; white-space:nowrap}
+.node .stt{font-size:14px; font-weight:800; color:var(--soft); background:var(--panel); border-radius:6px; padding:0 6px}
+.node.lock{cursor:not-allowed}
+.node.lock .disc{filter:grayscale(1); opacity:.45}
+.node.done .disc{border-color:#159A6E; box-shadow:0 5px 0 #159A6E}
+.node.done .disc::after{content:"✔"; position:absolute; right:-6px; top:-6px; width:30px; height:30px; border-radius:50%; background:#159A6E; color:#fff; font-size:17px; display:grid; place-items:center; border:2px solid #fff}
+.node.now .disc{border-color:#E23D3D; box-shadow:0 5px 0 #E23D3D}
+.node.now .disc::before{content:""; position:absolute; inset:-12px; border-radius:50%; border:4px solid #E23D3D; animation:pulse 1.6s ease-out infinite}
+.node.now .stt{color:#E23D3D}
+@keyframes pulse{0%{transform:scale(.85); opacity:1}100%{transform:scale(1.25); opacity:0}}
+
+/* 컬링 */
+.lvtabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+.lv{font:inherit; font-family:"Do Hyeon",sans-serif; font-size:20px; background:var(--panel); color:var(--ink); border:2.5px solid var(--ink); border-radius:12px; padding:4px 14px; cursor:pointer}
+.lv.on{background:#17324D; color:#fff; border-color:#17324D}
+.lv .st{color:#E0A800; margin-left:6px}
+.lv:disabled{opacity:.4; cursor:not-allowed}
+.toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px}
+.palette{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.palette .end{font-size:14px; font-weight:800; color:var(--soft)}
+.mat{font:inherit; font-weight:800; font-size:17px; border:2.5px solid var(--line); border-radius:10px; padding:6px 12px; cursor:pointer; display:flex; align-items:center; gap:6px; background:var(--panel); color:var(--ink)}
+.mat i{display:inline-block; width:22px; height:22px; border-radius:4px; border:1.5px solid #17324D}
+.mat.on{border-color:#E23D3D; box-shadow:0 0 0 2px #E23D3D}
+.toolbar .btn{margin-left:auto}
+.playbar{display:grid; grid-template-columns:minmax(0,470px) minmax(0,1fr); gap:14px; align-items:start; margin-top:14px}
+.playbar .status{margin-top:0}
+@media (max-width:820px){ .playbar{grid-template-columns:1fr} }
+.ctrl{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+#sweepBtn{user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; touch-action:none}
+#sweepBtn.on{background:#E23D3D}
+#gaugeBox{font-weight:800; font-size:16px}
+
+/* 창고 */
+.phases{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap}
+.ph{font-family:"Do Hyeon",sans-serif; font-size:20px; padding:2px 16px; border-radius:999px; border:2.5px solid var(--line); color:var(--soft); background:var(--panel)}
+.ph.on{border-color:var(--ink); color:var(--ink)}
+.ph.ok{border-color:#159A6E; color:var(--okc)}
+.arena{display:grid; grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr); gap:16px; align-items:start}
+@media (max-width:900px){ .arena{grid-template-columns:1fr} }
+.floorpick{display:flex; gap:10px; align-items:center; font-weight:800; font-size:18px; margin-bottom:10px}
+.push{display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap}
+.push input[type=range]{flex:1; min-width:180px; accent-color:#2B6CB0; height:30px}
+.note{background:var(--note); border:2.5px solid var(--ink); border-radius:6px 16px 16px 6px; padding:12px 16px 12px 26px; position:relative}
+.note::before{content:""; position:absolute; left:12px; top:0; bottom:0; border-left:2px solid #E23D3D; opacity:.6}
+.note h3{font-size:24px; margin-bottom:4px}
+.clue{display:flex; align-items:center; justify-content:space-between; font-size:20px; font-weight:800; padding:8px 0; border-bottom:2px dashed var(--line)}
+.clue .v{font-family:"Do Hyeon",sans-serif; font-weight:400; font-size:28px}
+.stamp{display:inline-block; transform:rotate(-8deg); border:3px solid #E23D3D; color:#E23D3D; border-radius:8px; padding:0 8px; font-family:"Do Hyeon",sans-serif; font-size:18px; margin-left:8px; font-weight:400}
+.rule{font-size:17px; font-weight:700; margin-top:10px}
+.ask{margin-top:12px; min-height:3em}
+.dots{display:flex; gap:6px; flex-wrap:wrap}
+.dot{width:28px; height:28px; border-radius:50%; border:2.5px solid var(--ink); display:grid; place-items:center; font-size:14px; font-weight:800; background:var(--panel)}
+.dot.now{background:#FFC93C; color:#17324D; border-color:#17324D}
+.dot.ok{background:#159A6E; color:#fff; border-color:#159A6E}
+.dot.no{background:#E23D3D; color:#fff; border-color:#E23D3D}
+.rhead{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap}
+.rhead h3{font-size:24px}
+.cond{display:flex; gap:8px; margin:12px 0 6px}
+.cond div{flex:1; text-align:center; border:2px solid var(--line); border-radius:10px; padding:2px 6px; background:var(--panel2); font-family:"Do Hyeon",sans-serif; font-size:28px; line-height:1.25}
+.cond small{display:block; font-family:"Gothic A1",sans-serif; font-weight:800; color:var(--soft); font-size:13px}
+.bet .chip{min-width:62px}
+
+/* 관문 */
+.door{position:relative; height:210px; border:4px solid var(--ink); border-radius:24px 24px 6px 6px; overflow:hidden; background:var(--panel2); margin-bottom:16px}
+.door .in{position:absolute; inset:0; display:grid; place-items:center; text-align:center; font-family:"Do Hyeon",sans-serif; font-size:30px; color:var(--ink); padding:10px}
+.leaf{position:absolute; top:0; bottom:0; width:50%; transition:transform .9s cubic-bezier(.6,0,.2,1);
+  background:#8DB7D6; background-image:repeating-linear-gradient(120deg,rgba(255,255,255,.55) 0 3px,transparent 3px 34px)}
+.door.wood .leaf{background:#C98A4B; background-image:repeating-linear-gradient(0deg,rgba(90,52,20,.35) 0 2px,transparent 2px 30px)}
+.leaf.l{left:0; border-right:3px solid #17324D}
+.leaf.r{right:0; border-left:3px solid #17324D}
+.door.open .leaf.l{transform:translateX(-102%)}
+.door.open .leaf.r{transform:translateX(102%)}
+.lamps{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); display:flex; flex-direction:column; gap:10px; z-index:2; transition:opacity .3s}
+.door.open .lamps{opacity:0}
+.lamp{width:46px; height:46px; border-radius:50%; background:#55708A; border:3px solid #17324D; display:grid; place-items:center; font-size:20px}
+.lamp.on{background:#FFC93C; box-shadow:0 0 18px #FFC93C}
+.qcard{background:var(--panel); border:2.5px solid var(--ink); border-radius:16px; padding:16px 20px}
+.qcard h3{font-size:22px; color:var(--soft)}
+.qtext{font-size:22px; font-weight:700; line-height:2.2; margin:6px 0}
+.dexgrid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px}
+@media (max-width:700px){ .dexgrid{grid-template-columns:1fr 1fr} }
+.dcard{border:3px solid #17324D; border-radius:14px; padding:12px 14px; background:var(--panel); min-height:130px; position:relative; overflow:hidden}
+.dcard .n{font-size:13px; font-weight:800; color:var(--soft)}
+.dcard .t{font-family:"Do Hyeon",sans-serif; font-size:23px; line-height:1.2; margin:2px 0 6px}
+.dcard .d{font-size:16px; font-weight:600; line-height:1.5}
+.dcard::before{content:""; position:absolute; left:0; right:0; top:0; height:8px; background:#8DB7D6}
+.dcard.wood::before{background:#C98A4B}
+.dcard.locked{display:grid; place-items:center; color:var(--soft); background:var(--panel2); font-family:"Do Hyeon",sans-serif; font-size:42px}
+.reveal h2{font-size:30px; margin:4px 0 12px}
+
+/* 보스 */
+.bossarena{display:grid; grid-template-columns:minmax(250px,.9fr) minmax(0,1.3fr); gap:18px; align-items:start}
+@media (max-width:820px){ .bossarena{grid-template-columns:1fr} }
+.bossbox{background:var(--panel); border:3px solid var(--ink); border-radius:18px; padding:12px; text-align:center}
+.bossbox h2{font-size:30px}
+.bossbox svg{width:min(240px,100%); height:auto; transition:transform 1s, filter 1s, opacity 1s}
+.taunt{display:inline-block; font-family:"Do Hyeon",sans-serif; font-size:22px; background:#17324D; color:#fff; border-radius:12px; padding:2px 14px; min-height:1.5em}
+.hp{display:flex; gap:6px; justify-content:center; margin-top:6px}
+.hp i{width:62px; height:18px; border:2.5px solid #17324D; border-radius:6px; background:#E23D3D}
+.hp i.gone{background:var(--panel2)}
+.hit svg{animation:shake .5s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-14px) rotate(-4deg)}40%{transform:translateX(12px) rotate(3deg)}60%{transform:translateX(-8px)}80%{transform:translateX(6px)}}
+.down svg{transform:rotate(-75deg) translateY(40px); filter:grayscale(1); opacity:.55}
+
+/* 기록 카드 */
+#recCard{--panel:#fff; --panel2:#EEF4FA; --ink:#17324D; --soft:#55708A; --line:#B9CCDD; --okc:#13875F;
+  color:var(--ink); background:#fff; border:4px solid #17324D; border-radius:22px; overflow:hidden; max-width:980px; margin:0 auto}
+.rc-head{background:#17324D; color:#fff; padding:16px 22px; display:flex; justify-content:space-between; align-items:center; gap:16px; position:relative; overflow:hidden; border-bottom:6px solid #E23D3D}
+.rc-head .k{font-size:15px; font-weight:800; color:#FFC93C}
+.rc-head .nm{font-family:"Do Hyeon",sans-serif; font-size:42px; line-height:1.1}
+.rc-head .meta{font-size:17px; font-weight:700; opacity:.9}
+.rc-head svg{width:120px; height:120px; flex:none; margin:-20px -10px -20px 0}
+.rc-body{padding:16px 22px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px}
+@media (max-width:700px){ .rc-body{grid-template-columns:1fr} }
+.rc-stat{border:2px solid var(--line); border-radius:12px; padding:10px 12px; background:var(--panel2)}
+.rc-stat h3{font-size:21px; margin-bottom:2px}
+.rc-big{font-family:"Do Hyeon",sans-serif; font-size:30px; line-height:1.25}
+.rc-sub{font-size:15px; font-weight:700; color:var(--soft)}
+.rc-stars{font-size:16px; font-weight:800; line-height:1.7}
+.rc-stars b{color:#E0A800; font-size:18px}
+.rc-wide{grid-column:1/-1}
+.rc-score{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; background:#FFF6D6; border-color:#E0A800}
+.rc-score .rc-big{font-size:38px}
+.rc-dex{display:flex; flex-wrap:wrap; gap:6px; margin-top:4px}
+.rc-dex span{border:2px solid var(--line); border-radius:999px; padding:1px 12px; font-weight:800; font-size:15px; background:#fff}
+.rc-dex span.got{border-color:#159A6E; color:var(--okc)}
+.rc-write label{display:block; font-weight:800; font-size:17px; margin-bottom:4px}
+.rc-write textarea{background:#fff; color:#17324D; border-color:#B9CCDD}
+.ta-print{border:2px solid #B9CCDD; border-radius:10px; padding:6px 10px; min-height:72px; font-weight:600; font-size:17px; line-height:1.55; white-space:pre-wrap; background:#fff}
+.rc-foot{padding:0 22px 12px; font-size:13px; color:var(--soft); text-align:right}
+.save{display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:22px}
+.save .btn{font-size:20px; padding:12px 26px}
+
+/* 창, 알림 */
+.modal{position:fixed; inset:0; background:rgba(10,22,36,.72); display:grid; place-items:center; padding:20px; z-index:40}
+.modal .box{background:var(--panel); border:3px solid var(--ink); border-radius:20px; padding:18px 20px; max-width:900px; width:100%; max-height:88vh; overflow:auto}
+.modal .box h2{font-size:28px; margin-bottom:10px}
+#overlay{position:fixed; inset:0; background:rgba(20,28,45,.88); display:none; flex-direction:column; align-items:center; justify-content:center; padding:20px; z-index:60; gap:12px; color:#fff; text-align:center; font-size:17px}
+#overlay img{max-width:100%; max-height:72vh; background:#fff; border-radius:6px}
+.toast{position:fixed; left:50%; bottom:46px; transform:translate(-50%,20px); background:#17324D; color:#fff; border:2.5px solid #FFC93C; border-radius:14px; padding:10px 18px; font-size:18px; font-weight:800; opacity:0; transition:.25s; z-index:50; pointer-events:none; max-width:90vw; text-align:center}
+.toast.show{opacity:1; transform:translate(-50%,0)}
+.tlink{font:inherit; font-size:12px; font-weight:800; color:var(--soft); background:transparent; border:1.5px solid var(--line); border-radius:999px; padding:0 10px; margin-left:8px; cursor:pointer}
+.copy{position:fixed; left:0; right:0; bottom:0; text-align:center; font-size:12.5px; color:var(--soft); padding:3px 0 calc(3px + env(safe-area-inset-bottom,0px)); background:var(--bg); z-index:5}
+
+.pwshow{font-family:"Do Hyeon",sans-serif; font-size:36px; line-height:1.4; letter-spacing:8px; min-height:56px; border-bottom:3px solid var(--ink); width:230px; margin:0 auto; text-align:center; color:var(--ink)}
+.pwshow.empty{color:var(--soft); font-size:20px; letter-spacing:0; line-height:2.6}
+.pad{display:grid; grid-template-columns:repeat(3,68px); gap:8px; justify-content:center; margin:14px 0 4px}
+.pad button{height:56px; font:inherit; font-family:"Do Hyeon",sans-serif; font-size:26px; border:2px solid var(--line); border-radius:12px; background:var(--panel2); color:var(--ink); cursor:pointer; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:manipulation}
+.pad button:active,.pad button:focus,.pad button:hover{background:var(--panel2); outline:none; transform:none; box-shadow:none}
+@media (prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important} }
+</style>
+</head>
+<body>
+
+<header class="hud" id="hud" hidden>
+  <button class="pill" data-go="map">🗺 지도</button>
+  <div class="hud-title" id="hudTitle"></div>
+  <span class="pill" id="hudName"></span>
+  <span class="pill">리그 점수 <b id="hScore">0</b></span>
+  <span class="pill">별 <b id="hStars">0</b></span>
+  <span class="pill">코인 <b id="hCoins">100</b></span>
+  <button class="pill" id="noteBtn">📒 단서 수첩</button>
+  <button class="pill" id="dexBtn">도감 <b id="hDex">0</b>/6</button>
+</header>
+
+<!-- 시작 -->
+<section class="screen" id="sStart">
+  <div class="sc lights"></div>
+  <div class="sc crowd"></div>
+  <div class="sc boards"><span>❄</span><span>❄</span><span></span><span>❄</span><span>❄</span><span></span><span>❄</span><span>❄</span><span></span><span>❄</span></div>
+  <svg class="sc rink" viewBox="0 0 1600 700" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+    <ellipse cx="800" cy="700" rx="790" ry="330" fill="#1F56C9"/><ellipse cx="800" cy="700" rx="650" ry="272" fill="#F4F9FF"/>
+    <ellipse cx="800" cy="700" rx="490" ry="205" fill="#E33A44"/><ellipse cx="800" cy="700" rx="330" ry="138" fill="#F4F9FF"/>
+  </svg>
+  <div class="sc scratch"></div>
+  <svg class="sc curler" viewBox="0 0 320 170" aria-hidden="true">
+  <ellipse cx="160" cy="150" rx="150" ry="10" fill="rgba(31,62,140,.18)"/>
+  <g stroke="#1F3E8C" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M128 100 L20 138" stroke-width="20"/><path d="M128 100 L176 112 L168 142" stroke-width="20"/>
+    <path d="M126 98 L196 62" stroke-width="36"/><path d="M196 64 L258 100" stroke-width="13"/>
+  </g>
+  <path d="M140 84 L190 58" stroke="#fff" stroke-width="9" stroke-linecap="round"/><path d="M146 96 L194 71" stroke="#D7263D" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="216" cy="46" r="15" fill="#1F3E8C"/>
+  <g transform="translate(250 104) scale(.32)"><path d="M12 30 Q12 80 110 84 Q208 80 208 30 Z" fill="#6B7582"/><ellipse cx="110" cy="30" rx="98" ry="28" fill="#A9B2BD"/><ellipse cx="110" cy="22" rx="62" ry="16" fill="#2B63D9"/></g>
+</svg>
+  <svg class="sc stones" viewBox="0 0 420 330" aria-hidden="true">
+  <defs><linearGradient id="gran" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9B2BD"/><stop offset=".55" stop-color="#6B7582"/><stop offset="1" stop-color="#3E4652"/></linearGradient>
+  <linearGradient id="gran2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C7CED6"/><stop offset="1" stop-color="#8C96A2"/></linearGradient>
+  <pattern id="spk" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="2" cy="3" r="1.2" fill="rgba(255,255,255,.45)"/><circle cx="6.5" cy="7" r="1" fill="rgba(0,0,0,.35)"/><circle cx="7" cy="2" r=".7" fill="rgba(255,255,255,.3)"/></pattern></defs>
+  <g transform="translate(60 0) scale(1.05)">
+    <ellipse cx="110" cy="150" rx="100" ry="14" fill="rgba(20,60,120,.28)"/>
+    <path d="M12 82 Q12 142 110 146 Q208 142 208 82 Z" fill="url(#gran)"/><path d="M12 82 Q12 142 110 146 Q208 142 208 82 Z" fill="url(#spk)"/>
+    <ellipse cx="110" cy="82" rx="98" ry="31" fill="url(#gran2)"/><ellipse cx="110" cy="82" rx="98" ry="31" fill="url(#spk)"/>
+    <path d="M14 100 Q110 134 206 100" stroke="rgba(255,255,255,.45)" stroke-width="5" fill="none"/>
+    <ellipse cx="110" cy="72" rx="72" ry="23" fill="#123E9C"/><ellipse cx="110" cy="66" rx="66" ry="18" fill="#2B63D9"/><ellipse cx="96" cy="61" rx="34" ry="7" fill="#8DB4FF" opacity=".7"/>
+    <path d="M84 66 Q82 28 122 28 L176 28 Q192 30 188 45 Q184 53 172 51 L130 51 Q110 51 110 66 Z" fill="#2B63D9" stroke="#123E9C" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M100 52 Q102 36 122 36 L170 36" stroke="#8DB4FF" stroke-width="5" fill="none" stroke-linecap="round" opacity=".8"/>
+  </g>
+  <path d="M190 300 q60 -6 120 -22 q40 -12 110 -6" stroke="#fff" stroke-width="10" fill="none" opacity=".7" stroke-linecap="round"/>
+  <g transform="translate(150 110) scale(1.25)">
+    <ellipse cx="110" cy="150" rx="100" ry="14" fill="rgba(20,60,120,.28)"/>
+    <path d="M12 82 Q12 142 110 146 Q208 142 208 82 Z" fill="url(#gran)"/><path d="M12 82 Q12 142 110 146 Q208 142 208 82 Z" fill="url(#spk)"/>
+    <ellipse cx="110" cy="82" rx="98" ry="31" fill="url(#gran2)"/><ellipse cx="110" cy="82" rx="98" ry="31" fill="url(#spk)"/>
+    <path d="M14 100 Q110 134 206 100" stroke="rgba(255,255,255,.45)" stroke-width="5" fill="none"/>
+    <ellipse cx="110" cy="72" rx="72" ry="23" fill="#8E1018"/><ellipse cx="110" cy="66" rx="66" ry="18" fill="#E3242B"/><ellipse cx="96" cy="61" rx="34" ry="7" fill="#FF9C9C" opacity=".7"/>
+    <path d="M84 66 Q82 28 122 28 L176 28 Q192 30 188 45 Q184 53 172 51 L130 51 Q110 51 110 66 Z" fill="#E3242B" stroke="#8E1018" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M100 52 Q102 36 122 36 L170 36" stroke="#FF9C9C" stroke-width="5" fill="none" stroke-linecap="round" opacity=".8"/>
+  </g>
+</svg>
+  <div class="startbox">
+    <div class="titlewrap">
+      <svg class="crest" viewBox="0 0 600 260" aria-hidden="true">
+  <g fill="#F2B632" stroke="#B57E10" stroke-width="2"><ellipse cx="77.2" cy="236.3" rx="8" ry="21" transform="rotate(147.0 77.2 236.3)"/><ellipse cx="75.2" cy="195.2" rx="8" ry="21" transform="rotate(157.5 75.2 195.2)"/><ellipse cx="80.8" cy="154.4" rx="8" ry="21" transform="rotate(168.0 80.8 154.4)"/><ellipse cx="93.7" cy="115.3" rx="8" ry="21" transform="rotate(178.5 93.7 115.3)"/><ellipse cx="113.5" cy="79.2" rx="8" ry="21" transform="rotate(189.0 113.5 79.2)"/><ellipse cx="139.5" cy="47.3" rx="8" ry="21" transform="rotate(199.5 139.5 47.3)"/><ellipse cx="170.9" cy="20.7" rx="8" ry="21" transform="rotate(210.0 170.9 20.7)"/><ellipse cx="522.8" cy="236.3" rx="8" ry="21" transform="rotate(-147.0 522.8 236.3)"/><ellipse cx="524.8" cy="195.2" rx="8" ry="21" transform="rotate(-157.5 524.8 195.2)"/><ellipse cx="519.2" cy="154.4" rx="8" ry="21" transform="rotate(-168.0 519.2 154.4)"/><ellipse cx="506.3" cy="115.3" rx="8" ry="21" transform="rotate(-178.5 506.3 115.3)"/><ellipse cx="486.5" cy="79.2" rx="8" ry="21" transform="rotate(-189.0 486.5 79.2)"/><ellipse cx="460.5" cy="47.3" rx="8" ry="21" transform="rotate(-199.5 460.5 47.3)"/><ellipse cx="429.1" cy="20.7" rx="8" ry="21" transform="rotate(-210.0 429.1 20.7)"/></g>
+  <circle cx="300" cy="250" r="172" fill="#1E4FB8" stroke="#fff" stroke-width="6"/><circle cx="300" cy="250" r="128" fill="#fff"/><circle cx="300" cy="250" r="86" fill="#E3242B"/><circle cx="300" cy="250" r="46" fill="#fff"/>
+  <line x1="300" y1="78" x2="300" y2="260" stroke="rgba(30,79,184,.35)" stroke-width="3"/>
+  <g transform="translate(330 250) rotate(-40)"><g><line x1="0" y1="0" x2="0" y2="-170" stroke="#7A4A22" stroke-width="16" stroke-linecap="round"/><line x1="0" y1="0" x2="0" y2="-170" stroke="#B9783F" stroke-width="8" stroke-linecap="round"/><rect x="-26" y="-186" width="52" height="22" rx="6" fill="#3B4A63"/><rect x="-58" y="-250" width="116" height="70" rx="18" fill="#FFC93C" stroke="#9C6400" stroke-width="5"/><path d="M-40 -238v46M-24 -238v46M-8 -238v46M8 -238v46M24 -238v46M40 -238v46" stroke="#E0A000" stroke-width="5" stroke-linecap="round"/></g></g>
+  <g transform="translate(270 250) rotate(40)"><g><line x1="0" y1="0" x2="0" y2="-170" stroke="#7A4A22" stroke-width="16" stroke-linecap="round"/><line x1="0" y1="0" x2="0" y2="-170" stroke="#B9783F" stroke-width="8" stroke-linecap="round"/><rect x="-26" y="-186" width="52" height="22" rx="6" fill="#3B4A63"/><rect x="-58" y="-250" width="116" height="70" rx="18" fill="#FFC93C" stroke="#9C6400" stroke-width="5"/><path d="M-40 -238v46M-24 -238v46M-8 -238v46M8 -238v46M24 -238v46M40 -238v46" stroke="#E0A000" stroke-width="5" stroke-linecap="round"/></g></g>
+</svg>
+      <div class="plate"><h1 class="ttl"><span class="t1">미끄러져라,</span> <span class="t2">멈춰라!</span></h1></div>
+      <div class="ribbon">❄ 마찰력 리그 ❄</div>
+    </div>
+    <div class="reg2">
+      <div class="regtab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zm8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 13c-3.3 0-6 1.8-6 4v2h12v-2c0-2.2-2.7-4-6-4zm8 0c-.6 0-1.2.1-1.8.2 1.1.9 1.8 2.1 1.8 3.8v2h6v-2c0-2.2-2.7-4-6-4z"/></svg>선수 등록</div>
+      <div class="fields3">
+      <label><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 1 9l11 6 9-4.9V17h2V9L12 3zM5 13.2v4L12 21l7-3.8v-4L12 17l-7-3.8z"/></svg>반</span>
+        <select id="ban"><option value="">선택</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+      <label><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4.4 0-8 2.2-8 5v2h16v-2c0-2.8-3.6-5-8-5z"/></svg>번호</span>
+        <select id="num"><option value="">선택</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option><option>24</option><option>25</option><option>26</option><option>27</option><option>28</option><option>29</option><option>30</option></select></label>
+      <label><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zm8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 13c-3.3 0-6 1.8-6 4v2h12v-2c0-2.2-2.7-4-6-4zm8 0c-.6 0-1.2.1-1.8.2 1.1.9 1.8 2.1 1.8 3.8v2h6v-2c0-2.2-2.7-4-6-4z"/></svg>모둠</span>
+        <select id="team"><option value="">선택</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select></label>
+      </div>
+    </div>
+    <button class="go" id="startBtn"><svg class="goicon" viewBox="0 0 64 44" aria-hidden="true"><path d="M4 26 Q4 41 32 42 Q60 41 60 26 Z" fill="#fff"/><path d="M4 26 Q32 34 60 26" stroke="#E3242B" stroke-width="4" fill="none"/><ellipse cx="32" cy="22" rx="24" ry="8" fill="#fff"/><path d="M20 21 Q19 8 32 8 L46 8 Q51 9 50 13 Q49 15 46 15 L34 15 Q28 15 28 21 Z" fill="#fff"/></svg><span id="goTxt">경기 시작</span><b>»</b></button>
+    <div class="startmsg" id="startMsg">1학년 고정이에요. 튕겨도 같은 반·번호로 들어오면 하던 곳부터 이어져요.</div>
+  </div>
+</section>
+
+<!-- 지도 -->
+<section class="screen" id="sMap" hidden>
+  <div class="coach"><div class="av"></div><div class="bubble" id="mapMsg"></div></div>
+  <div class="mapwrap"><div class="map" id="map">
+    <svg viewBox="0 0 1000 500" aria-hidden="true">
+      <path d="M85 330 C170 330 170 150 255 150 S340 330 420 330 S500 150 585 150 S670 330 750 330 S830 170 915 170" fill="none" stroke="#8DB7D6" stroke-width="34" stroke-linecap="round"/>
+      <path d="M85 330 C170 330 170 150 255 150 S340 330 420 330 S500 150 585 150 S670 330 750 330 S830 170 915 170" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="14 14" stroke-linecap="round" opacity=".9"/>
+      <circle cx="80" cy="80" r="46" fill="none" stroke="#E23D3D" stroke-width="5" opacity=".25"/><circle cx="80" cy="80" r="20" fill="none" stroke="#2B6CB0" stroke-width="5" opacity=".25"/>
+      <circle cx="930" cy="430" r="56" fill="none" stroke="#E23D3D" stroke-width="5" opacity=".25"/><circle cx="930" cy="430" r="24" fill="none" stroke="#2B6CB0" stroke-width="5" opacity=".25"/>
+    </svg>
+    <button class="node" data-node="curl"  style="left:8.5%; top:66%"><span class="disc">🥌</span><span class="lab">컬링 경기장</span><span class="stt"></span></button>
+    <button class="node" data-node="gate0" style="left:25.5%; top:30%"><span class="disc">🚪</span><span class="lab">얼음 관문</span><span class="stt"></span></button>
+    <button class="node" data-node="box"   style="left:42%; top:66%"><span class="disc">📦</span><span class="lab">상자 창고</span><span class="stt"></span></button>
+    <button class="node" data-node="gate1" style="left:58.5%; top:30%"><span class="disc">🚪</span><span class="lab">상자 관문</span><span class="stt"></span></button>
+    <button class="node" data-node="boss"  style="left:75%; top:66%"><span class="disc">👑</span><span class="lab">보스 방</span><span class="stt"></span></button>
+    <button class="node" data-node="end"   style="left:91.5%; top:34%"><span class="disc">🏆</span><span class="lab">기록 카드</span><span class="stt"></span></button>
+  </div></div>
+</section>
+
+<!-- 컬링 경기장 -->
+<section class="screen" id="sCurl" hidden>
+  <div class="lvtabs" id="levels"></div>
+  <div class="coach"><div class="av"></div><div class="bubble"><span id="goal"></span><div class="hintline" id="cHint"></div></div></div>
+  <div class="toolbar">
+    <div class="palette" id="palette"><span class="end">매끄러움</span></div>
+    <button class="btn ghost mini" id="hintBtn">💡 힌트</button>
+  </div>
+  <div class="stage"><canvas id="lane" width="1000" height="300"></canvas></div>
+  <div class="playbar">
+  <div class="ctrl">
+    <button class="btn red" id="pushBtn">밀기 ▶</button>
+    <button class="btn blue" id="sweepBtn">꾹 눌러 스위핑 🧹</button>
+    <span id="gaugeBox">스위핑 힘 <span class="gauge"><b id="gauge"></b></span></span>
+    <button class="btn ghost" id="againBtn">스톤 다시 놓기</button>
+    <button class="btn ghost" id="tileReset">바닥 처음대로</button>
+  </div>
+  <div class="status" id="cStatus"></div>
+  </div>
+</section>
+
+<!-- 관문 -->
+<section class="screen" id="sGate" hidden>
+  <div class="door" id="door">
+    <div class="in" id="doorIn"></div>
+    <div class="leaf l"></div><div class="leaf r"></div>
+    <div class="lamps" id="lamps"><span class="lamp">🔒</span><span class="lamp">🔒</span><span class="lamp">🔒</span></div>
+  </div>
+  <div class="qcard" id="gQ">
+    <h3 id="gNum"></h3>
+    <div class="qtext" id="gText"></div>
+    <div class="row">
+      <button class="btn red" id="gCheck">자물쇠 풀기</button>
+      <button class="btn" id="gNext" hidden></button>
+    </div>
+    <div class="msg" id="gMsg"></div>
+  </div>
+  <div class="reveal" id="gReveal" hidden>
+    <h2>도감 카드 3장 획득!</h2>
+    <div class="dexgrid" id="gCards"></div>
+    <div class="row"><button class="btn red" id="gGo"></button><button class="btn ghost" data-go="map">지도로</button></div>
+  </div>
+</section>
+
+<!-- 상자 창고 -->
+<section class="screen" id="sBox" hidden>
+  <div class="phases"><span class="ph on" id="phTabA">① 단서 찾기</span><span class="ph" id="phTabB">② 예측 대결</span></div>
+  <div class="coach"><div class="av"></div><div class="bubble" id="boxMsg"></div></div>
+
+  <div class="arena" id="phA">
+    <div>
+      <div class="floorpick">바닥 <span class="chips" id="aFloor"><button class="chip on" data-k="wood">나무</button><button class="chip" data-k="ice">얼음</button></span></div>
+      <div class="stage"><canvas id="labCv" width="1000" height="320"></canvas></div>
+      <div class="push">
+        <button class="btn ghost mini" id="aMinus">◀ 0.5 N</button>
+        <input type="range" id="aPush" min="0" max="5" step="0.5" value="0" aria-label="미는 힘">
+        <button class="btn ghost mini" id="aPlus">0.5 N ▶</button>
+        <button class="btn ghost mini" id="aReset">처음으로</button>
+      </div>
+      <div class="status" id="aMsg"></div>
+    </div>
+    <div class="note">
+      <h3>📒 단서 수첩</h3>
+      <div class="clue"><span>나무 바닥 상자 1개</span><span><span class="v clueval" data-f="wood">? N</span></span></div>
+      <div class="clue"><span>얼음 바닥 상자 1개</span><span><span class="v clueval" data-f="ice">? N</span></span></div>
+      <div class="ask" id="ask"></div>
+      <button class="btn red" id="toDuel" hidden>예측 대결 시작 ▶</button>
+    </div>
+  </div>
+
+  <div class="arena" id="phB" hidden>
+    <div>
+      <div class="stage"><canvas id="boxCv" width="1000" height="320"></canvas></div>
+      <div class="status" id="rMsg"></div>
+    </div>
+    <div class="panel">
+      <div class="rhead"><h3 id="rTitle"></h3><div class="dots" id="dots"></div></div>
+      <div class="cond" id="rCond"></div>
+      <div class="fline">추리: 움직이려면 <input type="number" id="need" step="any" inputmode="decimal"> N보다 큰 힘이 필요해요. <span class="soft" style="font-size:15px">(맞히면 +5)</span></div>
+      <div class="fline">예측: <span class="chips" id="pred"><button class="chip" data-k="y">움직인다</button><button class="chip" data-k="n">안 움직인다</button></span></div>
+      <div class="fline">코인 걸기: <span class="chips bet" id="bet"><button class="chip" data-k="10">10</button><button class="chip" data-k="20">20</button><button class="chip" data-k="30">30</button></span></div>
+      <div class="row">
+        <button class="btn red" id="revealBtn">결과 보기</button>
+        <button class="btn" id="nextBtn" disabled>다음 라운드 ▶</button>
+      </div>
+      <div class="row"><button class="btn ghost mini" id="noteBtn2">📒 단서 수첩 보기</button><button class="btn ghost mini" id="practiceBtn" hidden>연습 대결 (점수 안 바뀜)</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 보스 -->
+<section class="screen" id="sBoss" hidden>
+  <div class="bossarena">
+    <div class="bossbox" id="bossBox">
+      <h2>꿈쩍왕</h2>
+      <div class="taunt" id="taunt">내 상자들은 꿈쩍도 안 한다!</div>
+      <svg viewBox="0 0 240 230" aria-hidden="true">
+        <ellipse cx="120" cy="214" rx="86" ry="10" fill="rgba(0,0,0,.15)"/>
+        <path d="M70 60 L82 22 L104 46 L120 12 L136 46 L158 22 L170 60 Z" fill="#FFC93C" stroke="#17324D" stroke-width="4" stroke-linejoin="round"/>
+        <rect x="40" y="58" width="160" height="148" rx="10" fill="#E9C48F" stroke="#17324D" stroke-width="5"/>
+        <path d="M58 64 V200 M182 64 V200" stroke="#B9803F" stroke-width="5"/>
+        <path d="M74 98 L108 110 M166 98 L132 110" stroke="#17324D" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="94" cy="124" r="9" fill="#17324D"/><circle cx="146" cy="124" r="9" fill="#17324D"/>
+        <path d="M94 170 Q120 152 146 170" stroke="#17324D" stroke-width="6" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="hp" id="hp"><i></i><i></i><i></i></div>
+    </div>
+    <div>
+      <div class="coach"><div class="av"></div><div class="bubble">단서 수첩의 규칙으로 추리해서 공격하세요. 한 문제 맞힐 때마다 꿈쩍왕의 체력이 깎여요!</div></div>
+      <div class="qcard" id="bQ">
+        <h3 id="bNum"></h3>
+        <div class="qtext" id="bText"></div>
+        <div class="row">
+          <button class="btn red" id="bAtk">공격!</button>
+          <button class="btn" id="bNext" hidden>다음 공격 ▶</button>
+          <button class="btn ghost mini" id="noteBtn3">📒 단서 수첩 보기</button>
+        </div>
+        <div class="msg" id="bMsg"></div>
+      </div>
+      <div class="qcard" id="bWin" hidden>
+        <h2 style="font-size:32px">꿈쩍왕을 무찔렀어요!</h2>
+        <p class="fline">상자 1개의 힘에서 규칙을 찾아 여러 개일 때를 추리해 냈어요. 이제 기록 카드를 만들어 패들렛에 올려 주세요.</p>
+        <div class="row"><button class="btn red" data-go="end">기록 카드 만들기 ▶</button><button class="btn ghost" data-go="map">지도로</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 기록 카드 -->
+<section class="screen" id="sEnd" hidden>
+  <div class="coach"><div class="av"></div><div class="bubble">마지막으로 카드 아래 두 칸을 채우고 <b>이미지로 저장하기</b>를 눌러요. 저장한 그림을 패들렛에 올리면 끝!</div></div>
+  <div id="recCard">
+    <div class="rc-head">
+      <div>
+        <div class="k">마찰력 리그 선수 기록 카드</div>
+        <div class="nm" id="rcName"></div>
+        <div class="meta" id="rcMeta"></div>
+      </div>
+      <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56" fill="none" stroke="#E23D3D" stroke-width="8"/><circle cx="60" cy="60" r="36" fill="none" stroke="#fff" stroke-width="8"/><circle cx="60" cy="60" r="16" fill="none" stroke="#2B6CB0" stroke-width="8"/></svg>
+    </div>
+    <div class="rc-body">
+      <div class="rc-stat"><h3>🥌 컬링 경기장</h3><div class="rc-big" id="rcCurl"></div><div class="rc-stars" id="rcCurlLv"></div></div>
+      <div class="rc-stat"><h3>📦 상자 창고</h3><div class="rc-big" id="rcCoin"></div><div class="rc-sub" id="rcBox"></div></div>
+      <div class="rc-stat"><h3>👑 보스 꿈쩍왕</h3><div class="rc-big" id="rcBoss"></div><div class="rc-sub" id="rcBossSub"></div></div>
+      <div class="rc-stat rc-wide rc-score"><h3>리그 점수</h3><div class="rc-big" id="rcScore"></div><div class="rc-sub" id="rcScoreSub"></div></div>
+      <div class="rc-stat rc-wide"><h3>모은 도감 카드</h3><div class="rc-dex" id="rcDex"></div></div>
+      <div class="rc-write rc-wide"><label for="why">보스 문제 하나를 골라, 어떻게 추리했는지 써 보세요.</label><textarea id="why" placeholder="예: 나무 바닥은 상자 1개당 3 N이니까 …"></textarea></div>
+      <div class="rc-write rc-wide"><label for="life">게임에서 알게 된 점을 생활 속 예(컬링, 미끄럼 방지 띠, 스키 왁스 등)와 연결해 써 보세요.</label><textarea id="life" placeholder="컬링 선수가 얼음을 문지르는 것처럼 …"></textarea></div>
+    </div>
+    <div class="rc-foot">Copyright 2026 sapphire</div>
+  </div>
+  <div class="save"><button class="btn red" id="saveBtn">이미지로 저장하기</button><a class="btn mint" href="https://padlet.com/pad228_2/padlet-s024c1id8pk3k1lkvwqn" target="_blank" rel="noopener">패들렛 바로가기</a><button class="btn ghost" data-go="map">지도로</button></div>
+</section>
+
+<!-- 단서 수첩 창 -->
+<div class="modal" id="noteModal" hidden>
+  <div class="box" style="max-width:560px">
+    <div class="note">
+      <h3>📒 단서 수첩</h3>
+      <div class="clue"><span>나무 바닥 상자 1개</span><span class="v clueval" data-f="wood">? N</span></div>
+      <div class="clue"><span>얼음 바닥 상자 1개</span><span class="v clueval" data-f="ice">? N</span></div>
+      <div class="rule" id="noteRule"></div>
+    </div>
+    <div class="row" style="justify-content:flex-end"><button class="btn" data-close>닫기</button></div>
+  </div>
+</div>
+
+<!-- 도감 창 -->
+<div class="modal" id="dexModal" hidden>
+  <div class="box">
+    <h2>마찰력 도감</h2>
+    <div class="dexgrid" id="dexGrid"></div>
+    <div class="row" style="justify-content:flex-end"><button class="btn" data-close>닫기</button></div>
+  </div>
+</div>
+
+<div id="overlay">
+  <img id="shot" alt="저장된 기록 카드">
+  <div class="row" style="justify-content:center">
+    <button class="btn red" id="galleryBtn">갤러리에 저장</button>
+    <a class="btn mint" href="https://padlet.com/pad228_2/padlet-s024c1id8pk3k1lkvwqn" target="_blank" rel="noopener">패들렛 바로가기</a>
+    <button class="btn ghost" id="closeShot">닫기</button>
+  </div>
+  <div id="ovMsg">저장 창이 뜨면 <b>'이미지 저장'</b>을 누르세요. 저장이 안 되면 그림을 길게 눌러 저장할 수 있어요.</div>
+</div>
+
+<div class="modal" id="endModal" hidden>
+  <div class="box" style="max-width:560px; text-align:center">
+    <h2>경기 종료!</h2>
+    <p class="fline">선생님이 경기를 끝냈어요. 지금까지의 점수로 확정됐어요.<br>기록 카드를 만들어 저장해 주세요.</p>
+    <div class="row" style="justify-content:center"><button class="btn red" id="endGo">기록 카드 만들기 ▶</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<footer class="copy">Copyright 2026 sapphire <button class="tlink" id="teacherBtn">교사용</button></footer>
+<div class="modal" id="pwModal" hidden>
+  <div class="box" style="max-width:420px; text-align:center">
+    <h2>교사용 순위판</h2>
+    <p class="fline" style="margin-top:0">비밀번호를 입력하세요.</p>
+    <div class="pwshow empty" id="pwShow" aria-label="입력한 비밀번호 자리 수"></div>
+    <div class="pad" id="pwPad"></div>
+    <div class="msg no" id="pwMsg"></div>
+    <div class="row" style="justify-content:center"><button class="btn red" id="pwOk">들어가기</button><button class="btn ghost" data-close>닫기</button></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const INK = '#1E2A44', RED = '#E5383B', BLUE = '#2563C9';
+const S = { ban: '', num: 0, team: '', locked: false, cardDone: false, practice: false, phase: 'A', curlClear: false, gate: [false, false], boxDone: false, bossDone: false,
+  dex: [false, false, false, false, false, false], bossMiss: 0, needOk: 0, right: 0, clue: { wood: false, ice: false } };
+let coins = 100;
+
+/* ================= 저장, 파이어베이스 ================= */
+// game 폴더의 firebase-config.js를 자동으로 읽어요. 못 읽으면 아래 null 자리에 설정을 붙여 넣으세요. 예: { apiKey: '...', projectId: '...' }
+const PASTE_CONFIG = null;
+const COL = 'friction_league', CTRL = 'friction_league_ctrl';
+let db = null, netReady = null, saveT = null, ctrlWatching = false;
+async function readConfig() {
+  if (PASTE_CONFIG) return PASTE_CONFIG;
+  try {
+    const txt = await (await fetch('firebase-config.js', { cache: 'no-store' })).text();
+    const cfg = {}, re = /["']?(apiKey|authDomain|projectId|storageBucket|messagingSenderId|appId|measurementId|databaseURL)["']?\s*:\s*["'`]([^"'`]+)["'`]/g; let m;
+    while ((m = re.exec(txt))) cfg[m[1]] = m[2];
+    return cfg.apiKey && cfg.projectId ? cfg : null;
+  } catch (e) { return null; }
+}
+function initNet() {
+  if (netReady) return netReady;
+  netReady = (async () => {
+    if (typeof firebase === 'undefined') return null;
+    const cfg = await readConfig(); if (!cfg) return null;
+    try { const app = firebase.apps.find(a => a.name === 'friction') || firebase.initializeApp(cfg, 'friction'); db = app.firestore(); return db; }
+    catch (e) { return null; }
+  })();
+  return netReady;
+}
+initNet();
+const pid = () => `b${S.ban}_${S.num}`;
+function scoreParts() {
+  const stars = best.reduce((a, b) => a + b, 0);
+  const curl = stars * 10, box = (S.needOk + S.right) * 10, boss = S.bossDone ? 30 + (S.bossMiss === 0 ? 20 : 0) : 0;
+  return { stars, curl, box, boss, total: curl + box + boss };
+}
+function whereLabel() {
+  if (S.cardDone) return '카드 저장';
+  if (S.bossDone) return '기록 카드';
+  if (S.gate[1]) return '보스 방';
+  if (S.boxDone) return '상자 관문';
+  if (S.gate[0]) return results.length ? `예측 대결 ${results.length}/6` : '단서 찾기';
+  if (S.curlClear) return '얼음 관문';
+  const lv = best.findIndex(b => b === 0); return `컬링 ${lv + 1}단계`;
+}
+function snapshot() {
+  const sp = scoreParts();
+  return { ban: S.ban, num: S.num, team: S.team, best: [...best], tries: [...tries], curlClear: S.curlClear, gate: [...S.gate], dex: [...S.dex],
+    clue: { ...S.clue }, phase: S.phase, results: [...results], coins, needOk: S.needOk, right: S.right, bq, bossHp, bossMiss: S.bossMiss,
+    bossDone: S.bossDone, boxDone: S.boxDone, cardDone: S.cardDone, where: whereLabel(), score: sp.total, curlStars: sp.stars,
+    triesTotal: tries.reduce((a, b) => a + b, 0), ts: Date.now() };
+}
+function save() { if (!S.ban || S.locked) return; clearTimeout(saveT); saveT = setTimeout(saveNow, 600); }
+async function saveNow() {
+  clearTimeout(saveT);
+  const d = snapshot();
+  try { localStorage.setItem('friction_' + pid(), JSON.stringify(d)); } catch (e) {}
+  const x = await initNet();
+  if (x) { try { await x.collection(COL).doc(pid()).set(d); } catch (e) {} }
+}
+function restore(d) {
+  (d.best || []).forEach((v, i) => best[i] = v); (d.tries || []).forEach((v, i) => tries[i] = v);
+  Object.assign(S, { curlClear: !!d.curlClear, gate: d.gate || [false, false], dex: d.dex || S.dex, clue: d.clue || S.clue, phase: d.phase || 'A',
+    needOk: d.needOk || 0, right: d.right || 0, bossMiss: d.bossMiss || 0, bossDone: !!d.bossDone, boxDone: !!d.boxDone, cardDone: !!d.cardDone });
+  results.length = 0; (d.results || []).forEach(v => results.push(v));
+  coins = d.coins ?? 100; bq = d.bq || 0; bossHp = d.bossHp ?? 3;
+  r = Math.min(results.length, ROUNDS.length - 1);
+  const lv = best.findIndex(b => b === 0); loadLevel(lv < 0 ? 3 : lv);
+  renderNote(); resetA();
+  if (S.phase === 'B') { setPhase('B'); loadRound(); if (results.length >= ROUNDS.length) showDuelDone(); } else setPhase('A');
+  updateHud();
+}
+function lockGame() { S.locked = true; $('endModal').hidden = false; }
+function guardLocked() { if (S.locked) { $('endModal').hidden = false; return true; } return false; }
+function watchCtrl(x) {
+  if (ctrlWatching) return; ctrlWatching = true;
+  x.collection(CTRL).doc('b' + S.ban).onSnapshot(doc => {
+    const ended = doc.exists && doc.data().ended;
+    if (ended && !S.locked) { saveNow().finally(lockGame); }
+    else if (!ended && S.locked) { S.locked = false; $('endModal').hidden = true; toast('경기가 다시 시작됐어요!'); }
+  }, () => {});
+}
+const TEACHER_PW = '202601';
+$('teacherBtn').onclick = () => { pwVal = ''; pwPaint(); $('pwMsg').textContent = ''; $('pwModal').hidden = false; };
+function tryPw() {
+  if (pwVal === TEACHER_PW) { try { sessionStorage.setItem('friction_teacher', 'ok'); } catch (e) {} pwVal = ''; pwPaint(); location.href = 'friction_board.html'; }
+  else { $('pwMsg').textContent = '비밀번호가 달라요.'; pwVal = ''; pwPaint(); }
+}
+$('pwOk').onclick = tryPw;
+const PW_OPEN = () => !$('pwModal').hidden;
+let pwVal = '';
+function pwPaint() { const s = $('pwShow'); s.textContent = pwVal ? '*'.repeat(pwVal.length) : '아래 숫자판으로 입력'; s.classList.toggle('empty', !pwVal); }
+function pwKey(k) { if (k === 'del') pwVal = pwVal.slice(0, -1); else if (k === 'clr') pwVal = ''; else if (pwVal.length < 10) pwVal += k; $('pwMsg').textContent = ''; pwPaint(); }
+$('pwPad').innerHTML = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'clr', '0', 'del'].map(k => `<button type="button" tabindex="-1" data-k="${k}">${k === 'del' ? '⌫' : k === 'clr' ? '지움' : k}</button>`).join('');
+$('pwPad').addEventListener('pointerdown', e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); pwKey(b.dataset.k); });
+document.addEventListener('keydown', e => {
+  if (!PW_OPEN()) return;
+  if (/^[0-9]$/.test(e.key)) { e.preventDefault(); pwKey(e.key); }
+  else if (e.key === 'Backspace') { e.preventDefault(); pwKey('del'); }
+  else if (e.key === 'Enter') { e.preventDefault(); tryPw(); }
+});
+pwPaint();
+
+$('endGo').onclick = () => { $('endModal').hidden = true; show('sEnd'); };
+
+const COACH = '<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="45" rx="27" ry="13" fill="#9AA6BC" stroke="#17324D" stroke-width="3"/><ellipse cx="32" cy="39" rx="27" ry="13" fill="#C9D3E3" stroke="#17324D" stroke-width="3"/><rect x="22" y="13" width="20" height="15" rx="5" fill="#E23D3D" stroke="#17324D" stroke-width="3"/><circle cx="23" cy="38" r="3.4" fill="#17324D"/><circle cx="41" cy="38" r="3.4" fill="#17324D"/><path d="M27 44 q5 4 10 0" stroke="#17324D" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>';
+document.querySelectorAll('.coach .av').forEach(a => a.innerHTML = COACH);
+
+function toast(html) { const t = $('toast'); t.innerHTML = html; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2800); }
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.chips .chip');
+  if (!chip || chip.disabled) return;
+  chip.parentElement.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', b === chip));
+});
+function arrow(c, x1, y, x2, color, label, ly) {
+  const dir = Math.sign(x2 - x1) || 1, len = Math.abs(x2 - x1);
+  if (len < 4) return;
+  const head = Math.min(16, len * 0.5);
+  c.save(); c.strokeStyle = color; c.fillStyle = color; c.lineWidth = 6; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x1, y); c.lineTo(x2 - dir * head * 0.8, y); c.stroke();
+  c.beginPath(); c.moveTo(x2, y); c.lineTo(x2 - dir * head, y - 9); c.lineTo(x2 - dir * head, y + 9); c.closePath(); c.fill();
+  if (label) { c.font = 'bold 16px "Gothic A1", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(label, (x1 + x2) / 2, ly); }
+  c.restore();
+}
+
+/* ================= 화면 이동 ================= */
+const TITLES = { sMap: '마찰력 리그 지도', sCurl: '🥌 컬링 경기장', sGate: '🚪 관문', sBox: '📦 상자 창고', sBoss: '👑 보스 방', sEnd: '🏆 선수 기록 카드' };
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.hidden = s.id !== id);
+  $('hud').hidden = id === 'sStart';
+  $('hudTitle').textContent = TITLES[id] || '';
+  if (id === 'sMap') renderMap();
+  if (id === 'sEnd') renderEnd();
+  if (id === 'sBoss') renderBoss();
+  window.scrollTo(0, 0); updateHud();
+}
+function updateHud() {
+  $('hStars').textContent = best.reduce((a, b) => a + b, 0);
+  $('hScore').textContent = scoreParts().total;
+  $('hCoins').textContent = coins;
+  $('hDex').textContent = S.dex.filter(Boolean).length;
+}
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (!g) return;
+  const v = g.dataset.go;
+  if (v === 'map') show('sMap');
+  else if (v === 'nextLevel') loadLevel(L + 1);
+  else if (v === 'box') show('sBox');
+  else if (v === 'boss') show('sBoss');
+  else if (v === 'end') show('sEnd');
+  else if (v === 'gate0') openGate(0);
+  else if (v === 'gate1') openGate(1);
+});
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('.modal').hidden = true);
+document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.hidden = true; }));
+
+$('startBtn').onclick = async () => {
+  const ban = $('ban').value, num = parseInt($('num').value, 10), team = $('team').value;
+  if (!ban || !num || !team) { $('startMsg').textContent = '반, 번호, 모둠을 모두 정해야 경기에 나갈 수 있어요.'; $('startMsg').className = 'startmsg err'; return; }
+  S.ban = ban; S.num = num; S.team = team;
+  const btn = $('startBtn'); btn.disabled = true; $('startMsg').className = 'startmsg'; $('startMsg').textContent = '기록 불러오는 중…'; $('goTxt').textContent = '불러오는 중';
+  const x = await Promise.race([initNet(), new Promise(res => setTimeout(() => res(null), 5000))]);
+  let d = null;
+  if (x) { try { const snap = await x.collection(COL).doc(pid()).get(); if (snap.exists) d = snap.data(); } catch (e) {} }
+  if (!d && !x) { try { const l = JSON.parse(localStorage.getItem('friction_' + pid()) || 'null'); if (l && Date.now() - l.ts < 3 * 3600e3) d = l; } catch (e) {} }
+  if (d) { restore(d); toast('하던 곳부터 이어서 해요!'); }
+  S.team = team;
+  $('hudName').textContent = `${ban}반 ${num}번`;
+  btn.disabled = false; $('startMsg').textContent = ''; $('goTxt').textContent = '경기 시작';
+  show('sMap');
+  if (x) { watchCtrl(x); saveNow(); }
+  else setTimeout(() => toast('순위판에 연결되지 않았어요. 게임은 그대로 할 수 있어요.'), 400);
+};
+
+/* ================= 지도 ================= */
+const NODES = {
+  curl:  { u: () => true,                    d: () => S.curlClear, go: () => { show('sCurl'); drawLane(); } },
+  gate0: { u: () => S.curlClear,             d: () => S.gate[0],   go: () => openGate(0) },
+  box:   { u: () => S.gate[0],               d: () => S.boxDone,   go: () => show('sBox') },
+  gate1: { u: () => S.boxDone,               d: () => S.gate[1],   go: () => openGate(1) },
+  boss:  { u: () => S.gate[1],               d: () => S.bossDone,  go: () => show('sBoss') },
+  end:   { u: () => S.bossDone || S.locked,              d: () => false,       go: () => show('sEnd') },
+};
+const ORDER = ['curl', 'gate0', 'box', 'gate1', 'boss', 'end'];
+const MAPMSG = {
+  curl: '첫 경기는 <b>컬링 경기장</b>이에요. 바닥을 미리 설계해서 스톤을 과녁에 멈춰 보세요. 4단계를 모두 깨면 다음 길이 열려요.',
+  gate0: '컬링 경기장 클리어! <b>얼음 관문</b>의 자물쇠 3개를 풀어야 창고로 갈 수 있어요.',
+  box: '<b>상자 창고</b>에서 상자 옮기기 추리 대결이 기다려요. 단서부터 찾아야 해요!',
+  gate1: '창고 클리어! <b>상자 관문</b>을 열면 보스 방이에요.',
+  boss: '드디어 보스 <b>꿈쩍왕</b>! 단서 수첩의 규칙으로 무찔러 보세요.',
+  end: '모든 스테이지 클리어! <b>기록 카드</b>를 만들어 패들렛에 올려 주세요.',
+};
+function renderMap() {
+  const now = ORDER.find(k => NODES[k].u() && !NODES[k].d()) || 'end';
+  document.querySelectorAll('.node').forEach(b => {
+    const k = b.dataset.node, n = NODES[k], u = n.u(), d = n.d();
+    b.classList.toggle('lock', !u); b.classList.toggle('done', d); b.classList.toggle('now', k === now);
+    let stt = !u ? '🔒 잠김' : d ? '클리어' : '도전!';
+    if (k === 'curl' && u) stt = `★ ${best.reduce((a, c) => a + c, 0)} / 12`;
+    b.querySelector('.stt').textContent = stt;
+  });
+  $('mapMsg').innerHTML = MAPMSG[now];
+}
+document.querySelectorAll('.node').forEach(b => b.onclick = () => {
+  const n = NODES[b.dataset.node];
+  if (S.locked && b.dataset.node !== 'end') { $('endModal').hidden = false; return; }
+  if (!n.u()) { toast('🔒 앞 스테이지를 먼저 깨야 열려요.'); return; }
+  n.go();
+});
+
+/* ================= 컬링 경기장 ================= */
+const MAT = {
+  ice:    { n: '얼음', a: 15,  c: '#DDF2FB' },
+  wood:   { n: '나무', a: 40,  c: '#DDA867' },
+  carpet: { n: '카펫', a: 90,  c: '#4FA77A' },
+  sand:   { n: '사포', a: 160, c: '#6B5640' },
+};
+const fill = m => Array(10).fill(m);
+const LEVELS = [
+  { v2: 22500, target: 7, tiles: fill('wood'), lock: [], sweep: 0, title: '1단계 매끄러운 길 만들기',
+    goal: '나무 바닥에서는 스톤이 금방 멈춰요. 노란 점선 칸을 눌러 바닥을 매끄럽게 바꾸고 스톤을 과녁까지 보내 보세요.',
+    hint: '모든 칸을 얼음으로 바꿔 보세요. 얼음은 마찰력이 작아서 스톤이 멀리 가요.' },
+  { v2: 27000, target: 6, tiles: fill('ice'), lock: [0, 1, 2, 3, 4, 5], sweep: 0, title: '2단계 거친 바닥으로 멈추기',
+    goal: '얼음뿐이면 스톤이 과녁을 지나쳐요. 멈추는 버튼은 없어요! 거친 바닥을 깔아서 마찰력으로 멈추게 하세요.',
+    hint: '과녁이 있는 7번 칸에 카펫을 깔아 보세요. 거친 바닥은 마찰력이 커서 스톤이 빨리 멈춰요.' },
+  { v2: 22500, target: 9, tiles: fill('ice'), lock: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], sweep: 400, title: '3단계 스위핑 기술',
+    goal: '이번엔 바닥을 못 바꿔요. 스톤이 미끄러지는 동안 스위핑 버튼을 꾹 눌러 얼음을 문지르면 마찰력이 작아져 더 멀리 가요.',
+    hint: '밀기를 누르자마자 스위핑 버튼을 꾹 누르고, 스톤이 멈출 때까지 손을 떼지 마세요.' },
+  { v2: 25500, target: 6, tiles: ['ice', 'ice', 'carpet', 'carpet', 'ice', 'ice', 'ice', 'ice', 'sand', 'sand'], lock: [0, 1, 8, 9], sweep: 0, title: '4단계 종합 챌린지',
+    goal: '가는 길의 카펫 때문에 금방 멈추고, 모두 얼음으로 바꾸면 과녁을 지나쳐요. 두 가지를 함께 생각해 보세요.',
+    hint: '가는 길(3번, 4번 칸)은 얼음으로 매끄럽게, 과녁 칸(7번)은 카펫으로 거칠게!' },
+];
+const best = [0, 0, 0, 0], tries = [0, 0, 0, 0];
+let L = 0, tiles = [], sel = 'ice', sweepLeft = 0, sweeping = false;
+let st = { x: 0, v: 0, run: false, done: false, swept: [] };
+const lane = $('lane'), lc = lane.getContext('2d');
+const LX0 = 50, LS = 0.86, LY0 = 105, LY1 = 215, LYC = 160;
+const px = x => LX0 + x * LS;
+
+LEVELS.forEach((lv, i) => {
+  const b = document.createElement('button'); b.className = 'lv'; b.dataset.i = i;
+  b.onclick = () => loadLevel(i); $('levels').appendChild(b);
+});
+Object.entries(MAT).forEach(([k, m]) => {
+  const b = document.createElement('button'); b.className = 'mat' + (k === sel ? ' on' : ''); b.dataset.k = k;
+  b.innerHTML = `<i style="background:${m.c}"></i>${m.n}`;
+  b.onclick = () => { sel = k; document.querySelectorAll('.mat').forEach(x => x.classList.toggle('on', x === b)); };
+  $('palette').appendChild(b);
+});
+$('palette').insertAdjacentHTML('beforeend', '<span class="end">거칢</span>');
+const unlockedLv = i => i === 0 || best[i - 1] > 0;
+function refreshLevelBtns() {
+  document.querySelectorAll('.lv').forEach((b, i) => {
+    b.classList.toggle('on', i === L);
+    b.disabled = !unlockedLv(i);
+    b.innerHTML = unlockedLv(i) ? `${i + 1}단계<span class="st">${'★'.repeat(best[i])}${'☆'.repeat(3 - best[i])}</span>` : `🔒 ${i + 1}단계`;
+  });
+  updateHud();
+}
+function loadLevel(i) {
+  if (!unlockedLv(i)) return;
+  L = i; tiles = LEVELS[i].tiles.slice(); resetStone();
+  $('goal').innerHTML = `<b>${LEVELS[i].title}</b><br>${LEVELS[i].goal}<span class="tgt">과녁 ${LEVELS[i].target + 1}번 칸</span>`;
+  $('cHint').textContent = ''; $('hintBtn').textContent = '💡 힌트';
+  $('palette').style.visibility = canEditLv() ? 'visible' : 'hidden';
+  $('gaugeBox').style.display = $('sweepBtn').style.display = LEVELS[i].sweep ? '' : 'none';
+  refreshLevelBtns();
+}
+function resetStone() {
+  st = { x: 0, v: 0, run: false, done: false, swept: [] };
+  sweepLeft = LEVELS[L].sweep; sweeping = false; $('sweepBtn').classList.remove('on');
+  $('pushBtn').disabled = false; updateGauge();
+  $('cStatus').innerHTML = canEditLv() ? '<span class="soft">① 바닥 재료 고르기 → ② 노란 점선 칸 누르기 → ③ <b>밀기</b></span>' : '<span class="soft">① <b>밀기</b> → ② 스톤이 미끄러지는 동안 <b>스위핑</b> 버튼을 꾹 누르기</span>';
+  drawLane();
+}
+function updateGauge() { const t = LEVELS[L].sweep; $('gauge').style.width = (t ? sweepLeft / t * 100 : 0) + '%'; }
+const cellOf = x => Math.max(0, Math.min(9, Math.floor(x / 100)));
+
+function texture(c, m, x, y, w, h) {
+  c.fillStyle = MAT[m].c; c.fillRect(x, y, w, h);
+  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+  if (m === 'ice') { c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = 3; for (let k = -2; k < w / 30 + 2; k++) { c.beginPath(); c.moveTo(x + k * 30, y + h); c.lineTo(x + k * 30 + 50, y); c.stroke(); } }
+  if (m === 'wood') { c.strokeStyle = '#B9803F'; c.lineWidth = 2; for (let k = 1; k < 5; k++) { c.beginPath(); c.moveTo(x, y + k * h / 5); c.lineTo(x + w, y + k * h / 5); c.stroke(); } }
+  if (m === 'carpet') { c.fillStyle = '#3B8A61'; for (let i = 0; i < 6; i++) for (let j = 0; j < 8; j++) c.fillRect(x + 6 + i * 14, y + 6 + j * 14, 4, 4); }
+  if (m === 'sand') { c.fillStyle = '#A48C6E'; for (let k = 0; k < 160; k++) { const r = Math.sin(k * 12.9898 + x) * 43758.5453; const f = r - Math.floor(r); const g = Math.sin(k * 78.233 + y) * 12543.12; c.fillRect(x + f * w, y + (g - Math.floor(g)) * h, 2, 2); } }
+  c.restore();
+}
+function drawLane() {
+  const c = lc, lv = LEVELS[L];
+  c.fillStyle = '#fff'; c.fillRect(0, 0, 1000, 300);
+  for (let i = 0; i < 10; i++) {
+    const x = px(i * 100), w = 100 * LS;
+    texture(c, tiles[i], x, LY0, w, LY1 - LY0);
+    c.strokeStyle = 'rgba(30,42,68,.35)'; c.lineWidth = 1; c.strokeRect(x + .5, LY0 + .5, w, LY1 - LY0);
+    c.font = 'bold 14px "Gothic A1", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = i === lv.target ? RED : '#5B6782'; c.fillText(`${i + 1}번`, x + w / 2, LY0 - 12);
+    if (lv.lock.includes(i)) { c.font = '15px sans-serif'; c.fillText('🔒', x + 13, LY0 + 14); }
+    else if (!st.run) { c.save(); c.setLineDash([6, 4]); c.strokeStyle = '#E0A800'; c.lineWidth = 3; c.strokeRect(x + 3, LY0 + 3, w - 6, LY1 - LY0 - 6); c.restore(); }
+  }
+  c.strokeStyle = INK; c.lineWidth = 2; c.strokeRect(px(0), LY0, 1000 * LS, LY1 - LY0);
+  c.fillStyle = '#FDEDED'; c.fillRect(px(1000) + 2, LY0, 80, LY1 - LY0);
+  c.fillStyle = RED; c.font = 'bold 15px "Gothic A1", sans-serif'; c.fillText('아웃', px(1000) + 42, LYC);
+  c.strokeStyle = BLUE; c.lineWidth = 3; c.beginPath(); c.moveTo(px(0), LY0 - 4); c.lineTo(px(0), LY1 + 4); c.stroke();
+  const tc = px(lv.target * 100 + 50);
+  [[50, 'rgba(229,56,59,.30)'], [30, 'rgba(255,255,255,.75)'], [15, 'rgba(37,99,201,.45)']].forEach(([r, col]) => {
+    c.beginPath(); c.arc(tc, LYC, r * LS, 0, Math.PI * 2); c.fillStyle = col; c.fill();
+  });
+  c.beginPath(); c.arc(tc, LYC, 50 * LS, 0, Math.PI * 2); c.strokeStyle = RED; c.lineWidth = 2; c.stroke();
+  c.beginPath(); c.arc(tc, LYC, 4, 0, Math.PI * 2); c.fillStyle = INK; c.fill();
+  c.fillStyle = 'rgba(255,255,255,.85)';
+  st.swept.forEach(x => c.fillRect(px(x), LYC - 26, 2.5, 52));
+  const sx = px(Math.min(st.x, 1080)), sy = LYC;
+  c.beginPath(); c.arc(sx, sy + 3, 21, 0, Math.PI * 2); c.fillStyle = 'rgba(0,0,0,.15)'; c.fill();
+  c.beginPath(); c.arc(sx, sy, 21, 0, Math.PI * 2); c.fillStyle = '#9AA6BC'; c.fill(); c.lineWidth = 2.5; c.strokeStyle = INK; c.stroke();
+  c.beginPath(); c.arc(sx, sy, 13, 0, Math.PI * 2); c.fillStyle = '#C9D3E3'; c.fill();
+  c.fillStyle = RED; c.fillRect(sx - 9, sy - 5, 18, 10); c.strokeStyle = INK; c.lineWidth = 1.5; c.strokeRect(sx - 9, sy - 5, 18, 10);
+  if (st.run && sweeping && sweepLeft > 0 && tiles[cellOf(st.x)] === 'ice') {
+    c.strokeStyle = '#8A5A32'; c.lineWidth = 4;
+    const bx = sx + 38 + Math.sin(Date.now() / 50) * 8;
+    c.beginPath(); c.moveTo(bx, sy + 8); c.lineTo(bx + 22, sy - 44); c.stroke();
+    c.fillStyle = '#FFC93C'; c.fillRect(bx - 14, sy + 6, 28, 12); c.strokeStyle = INK; c.lineWidth = 1.5; c.strokeRect(bx - 14, sy + 6, 28, 12);
+  }
+  if (st.run && st.v > 0) {
+    let a = MAT[tiles[cellOf(st.x)]].a; if (sweeping && sweepLeft > 0 && tiles[cellOf(st.x)] === 'ice') a /= 2;
+    const fl = 20 + a;
+    arrow(c, sx, 238, sx - fl, RED, '', 0);
+    c.fillStyle = RED; c.font = 'bold 15px "Gothic A1", sans-serif'; c.textAlign = 'center'; c.fillText('마찰력', sx - fl / 2, 262);
+    arrow(c, sx, 62, sx + 55, BLUE, '', 0);
+    c.fillStyle = BLUE; c.fillText('운동 방향', sx + 28, 40);
+  }
+}
+function loop() {
+  if (!st.run) return;
+  for (let k = 0; k < 6; k++) {
+    const dt = 1 / 180, i = cellOf(st.x);
+    let a = MAT[tiles[i]].a;
+    const sw = sweeping && sweepLeft > 0 && tiles[i] === 'ice';
+    if (sw) a /= 2;
+    const v2 = st.v * st.v; let dx = st.v * dt;
+    if (v2 - 2 * a * dx <= 0) { dx = v2 / (2 * a); st.v = 0; } else st.v = Math.sqrt(v2 - 2 * a * dx);
+    st.x += dx;
+    if (sw) { sweepLeft = Math.max(0, sweepLeft - dx); if (Math.round(st.x) % 3 === 0) st.swept.push(st.x); }
+    if (st.x >= 1000) { st.x = 1000 + 40; st.v = 0; }
+    if (st.v === 0) break;
+  }
+  updateGauge();
+  const cur = MAT[tiles[cellOf(st.x)]].n;
+  $('cStatus').innerHTML = `지금 스톤 아래 바닥: <b>${cur}</b>, 빠르기 <span class="gauge"><b style="width:${Math.min(100, st.v / 2.2)}%;background:#1BA97A"></b></span>` +
+    (sweeping && LEVELS[L].sweep ? (tiles[cellOf(st.x)] === 'ice' ? (sweepLeft > 0 ? ' 🧹 스위핑 중! 마찰력이 작아졌어요' : ' 스위핑 힘을 다 썼어요') : ' 스위핑은 얼음에서만 효과가 있어요') : '');
+  drawLane();
+  if (st.v === 0) return finish();
+  requestAnimationFrame(loop);
+}
+const canEditLv = () => LEVELS[L].lock.length < 10;
+function overHint() {
+  if (L === 3) return '길은 매끄럽게 두고, <b>과녁 칸</b>을 거친 바닥(카펫)으로 바꿔 보세요.';
+  return canEditLv() ? '마찰력을 <b>크게</b> 해야 해요. <b>카펫</b>이나 <b>사포</b>를 고른 뒤 과녁 앞쪽 노란 점선 칸을 눌러 거친 바닥을 깔아 보세요.'
+                     : '스위핑을 조금 <b>짧게</b> 해 보세요. 스위핑을 덜 하면 마찰력이 덜 줄어요.';
+}
+function shortHint() {
+  if (L === 2) return '스톤이 미끄러지는 동안 스위핑 버튼을 더 <b>오래</b> 눌러 마찰력을 줄여 보세요.';
+  return canEditLv() ? '마찰력을 <b>작게</b> 해야 해요. <b>얼음</b>을 고른 뒤 노란 점선 칸을 눌러 매끄러운 바닥으로 바꿔 보세요.' + (LEVELS[L].sweep ? ' 스위핑도 함께 써 보세요.' : '')
+                     : '스위핑을 더 오래 해 보세요.';
+}
+function finish() {
+  st.run = false; st.done = true; sweeping = false; $('sweepBtn').classList.remove('on');
+  tries[L]++;
+  const lv = LEVELS[L];
+  let msg, stars = 0;
+  if (st.x >= 1000) msg = '<b class="no">아웃!</b> 과녁을 지나쳐 나가 버렸어요. ' + overHint();
+  else {
+    const d = Math.abs(st.x - (lv.target * 100 + 50));
+    stars = d <= 20 ? 3 : d <= 35 ? 2 : d <= 50 ? 1 : 0;
+    if (stars) msg = `<b class="ok">${'★'.repeat(stars)}${'☆'.repeat(3 - stars)} 과녁 안에 멈췄어요!</b> ` + (stars < 3 ? '한가운데에 더 가깝게 세워 볼까요?' : '완벽해요!');
+    else if (st.x < lv.target * 100) msg = `<b class="no">${cellOf(st.x) + 1}번 칸에서 멈췄어요.</b> 과녁까지 못 갔어요. ` + shortHint();
+    else msg = `<b class="no">${cellOf(st.x) + 1}번 칸에서 멈췄어요.</b> 과녁을 지나쳤어요. ` + overHint();
+  }
+  best[L] = Math.max(best[L], stars);
+  const allClear = best.every(b => b > 0);
+  let act = '';
+  if (allClear) {
+    if (!S.curlClear) { S.curlClear = true; toast('🥌 컬링 경기장 클리어! 얼음 관문이 열렸어요.'); }
+    act = '<button class="btn red mini" data-go="gate0">얼음 관문으로 ▶</button>';
+  }
+  if (stars && L < 3) act = '<button class="btn mini" data-go="nextLevel">다음 단계 ▶</button>' + act;
+  save();
+  $('cStatus').innerHTML = msg + '<br>' + act + '<span class="soft" style="font-size:15px">별을 더 받고 싶으면 스톤 다시 놓기를 눌러 다시 도전해요.</span>';
+  refreshLevelBtns();
+}
+$('pushBtn').onclick = () => {
+  if (st.run || guardLocked()) return;
+  if (st.done) resetStone();
+  st.v = Math.sqrt(LEVELS[L].v2); st.run = true; $('pushBtn').disabled = true;
+  requestAnimationFrame(loop);
+};
+$('againBtn').onclick = () => { if (!st.run) resetStone(); };
+$('tileReset').onclick = () => { if (!st.run) { tiles = LEVELS[L].tiles.slice(); resetStone(); } };
+const swb = $('sweepBtn');
+swb.addEventListener('contextmenu', e => e.preventDefault());
+swb.addEventListener('pointerdown', e => { e.preventDefault(); sweeping = true; swb.classList.add('on'); });
+['pointerup', 'pointerleave', 'pointercancel'].forEach(t => swb.addEventListener(t, () => { sweeping = false; swb.classList.remove('on'); }));
+lane.addEventListener('pointerdown', e => {
+  if (st.run) return;
+  const r = lane.getBoundingClientRect(), X = (e.clientX - r.left) * 1000 / r.width, Y = (e.clientY - r.top) * 300 / r.height;
+  if (Y < LY0 - 20 || Y > LY1 + 10) return;
+  const ux = (X - LX0) / LS; if (ux < 0 || ux >= 1000) return;
+  const i = Math.floor(ux / 100), lv = LEVELS[L];
+  if (lv.lock.includes(i)) { $('cStatus').innerHTML = `<b>${i + 1}번 칸</b>은 🔒 잠겨 있어서 바꿀 수 없어요.`; return; }
+  tiles[i] = sel; if (st.done) resetStone(); else drawLane();
+  $('cStatus').innerHTML = `<b>${i + 1}번 칸</b>을 <b>${MAT[sel].n}</b> 바닥으로 바꿨어요. 다 바꿨으면 <b>밀기</b>를 눌러요.`;
+});
+$('hintBtn').onclick = () => {
+  const h = $('cHint'); const on = !h.textContent;
+  h.textContent = on ? '💡 ' + LEVELS[L].hint : ''; $('hintBtn').textContent = on ? '힌트 숨기기' : '💡 힌트';
+};
+loadLevel(0);
+
+/* ================= 관문 ================= */
+const DEX = [
+  { t: '매끄러우면 마찰력이 작다', d: '얼음처럼 표면이 매끄러우면 마찰력이 작아서 물체가 멀리 미끄러져요.' },
+  { t: '스위핑의 비밀', d: '얼음을 문지르면 마찰력이 작아져서 스톤이 더 멀리 가요.' },
+  { t: '마찰력은 반대 방향', d: '마찰력은 물체가 움직이는 방향과 반대 방향으로 작용해요.' },
+  { t: '거칠수록, 무거울수록', d: '접촉면이 거칠수록, 물체가 무거울수록 마찰력이 커요.' },
+  { t: '무게 2배, 필요한 힘 2배', d: '똑같은 상자가 2배가 되면 움직이는 데 필요한 힘도 2배가 돼요.' },
+  { t: '버티는 마찰력', d: '밀어도 안 움직일 때 마찰력은 미는 힘과 크기가 같고 방향이 반대예요.' },
+];
+const GATES = [
+  { name: '얼음 관문', inside: '창고로 가는 길이 열렸어요!', go: 'box', goLabel: '상자 창고로 ▶', qs: [
+    { parts: ['스톤이 얼음 위에서 더 멀리 간 까닭은 얼음 표면이 ', { o: ['매끄러워', '거칠어'], a: 0 }, ' 마찰력이 ', { o: ['작기', '크기'], a: 0 }, ' 때문이다.'],
+      hint: '1단계에서 나무를 얼음으로 바꿨을 때 스톤이 어떻게 됐는지 떠올려 봐요.', card: 0 },
+    { parts: ['스위핑으로 얼음을 문지르면 마찰력이 ', { o: ['작아져', '커져'], a: 0 }, ' 스톤이 더 멀리 간다.'],
+      hint: '3단계에서 스위핑 버튼을 오래 누를수록 스톤이 어디까지 갔나요?', card: 1 },
+    { parts: ['미끄러지는 스톤에 작용하는 마찰력의 방향은 스톤의 운동 방향과 ', { o: ['같다', '반대이다'], a: 1 }, '.'],
+      hint: '스톤이 미끄러질 때 빨간 마찰력 화살표가 어느 쪽을 가리켰나요?', card: 2 },
+  ] },
+  { name: '상자 관문', inside: '보스 방으로 가는 길이 열렸어요!', go: 'boss', goLabel: '보스 방으로 ▶', qs: [
+    { parts: ['바닥이 거칠수록, 상자가 무거울수록 마찰력이 ', { o: ['커서', '작아서'], a: 0 }, ' 상자를 움직이기 ', { o: ['어렵다', '쉽다'], a: 0 }, '.'],
+      hint: '나무와 얼음, 상자 1개와 여러 개일 때 필요한 힘을 비교해 봐요.', card: 3 },
+    { parts: ['똑같은 상자의 개수가 2배가 되면, 상자를 움직이는 데 필요한 힘은 ', { o: ['2배가 된다', '그대로이다', '절반이 된다'], a: 0 }, '.'],
+      hint: '나무 바닥에서 상자 1개는 3 N이었어요. 상자 2개일 때는 몇 N이 필요했나요?', card: 4 },
+    { parts: ['밀어도 상자가 움직이지 않을 때 미는 힘과 마찰력은 ', { o: ['크기가 같고 방향이 반대이다', '마찰력이 더 크다'], a: 0 }, '.'],
+      hint: '상자가 꿈쩍하지 않을 때 파란 화살표와 빨간 화살표의 숫자를 비교해 봐요.', card: 5 },
+  ] },
+];
+let gi = 0, qi = 0;
+const dexCardHTML = i => S.dex[i]
+  ? `<div class="dcard${i >= 3 ? ' wood' : ''}"><div class="n">도감 ${i + 1}</div><div class="t">${DEX[i].t}</div><div class="d">${DEX[i].d}</div></div>`
+  : `<div class="dcard locked">?</div>`;
+function paintLamps() {
+  const G = GATES[gi];
+  $('lamps').querySelectorAll('.lamp').forEach((l, k) => { const on = S.dex[G.qs[k].card]; l.classList.toggle('on', on); l.textContent = on ? '🔓' : '🔒'; });
+}
+function openGate(i) {
+  gi = i; const G = GATES[i];
+  TITLES.sGate = '🚪 ' + G.name;
+  $('door').classList.toggle('wood', i === 1);
+  $('doorIn').textContent = G.inside;
+  $('gGo').textContent = G.goLabel; $('gGo').dataset.go = G.go;
+  $('gCards').innerHTML = G.qs.map(q => dexCardHTML(q.card)).join('');
+  paintLamps();
+  if (S.gate[i]) { $('door').classList.add('open'); $('gQ').hidden = true; $('gReveal').hidden = false; }
+  else {
+    $('door').classList.remove('open'); $('gQ').hidden = false; $('gReveal').hidden = true;
+    qi = Math.max(0, G.qs.findIndex(q => !S.dex[q.card])); renderGateQ();
+  }
+  show('sGate');
+}
+function renderGateQ() {
+  const q = GATES[gi].qs[qi];
+  $('gNum').textContent = `자물쇠 ${qi + 1} / 3`;
+  $('gText').innerHTML = q.parts.map(p => typeof p === 'string' ? p
+    : `<span class="chips blank" data-a="${p.a}">${p.o.map((t, k) => `<button class="chip" data-k="${k}">${t}</button>`).join('')}</span>`).join('');
+  $('gMsg').innerHTML = '<span class="soft">빈칸에 알맞은 말을 골라 자물쇠를 풀어요.</span>';
+  $('gCheck').hidden = false; $('gNext').hidden = true;
+}
+$('gText').addEventListener('click', e => { const g = e.target.closest('.chips.blank'); if (g) g.classList.remove('good', 'bad'); });
+$('gCheck').onclick = () => {
+  if (guardLocked()) return;
+  const q = GATES[gi].qs[qi], blanks = [...$('gText').querySelectorAll('.chips.blank')];
+  if (blanks.some(b => !b.querySelector('.chip.on'))) { $('gMsg').innerHTML = '<span class="no">빈칸을 모두 골라 주세요.</span>'; return; }
+  let all = true;
+  blanks.forEach(b => { const good = b.querySelector('.chip.on').dataset.k === b.dataset.a; b.classList.toggle('good', good); b.classList.toggle('bad', !good); if (!good) all = false; });
+  if (!all) { $('gMsg').innerHTML = `<span class="no">자물쇠가 꿈쩍하지 않아요.</span> 💡 ${q.hint}`; return; }
+  S.dex[q.card] = true; paintLamps(); updateHud(); save();
+  blanks.forEach(b => b.querySelectorAll('.chip').forEach(c => c.disabled = true));
+  $('gMsg').innerHTML = `<span class="ok">🔓 철컥! 자물쇠가 풀렸어요.</span> 도감 카드 획득: <b>${DEX[q.card].t}</b>`;
+  $('gCheck').hidden = true; $('gNext').hidden = false;
+  $('gNext').textContent = qi < 2 ? '다음 자물쇠 ▶' : '문 열기!';
+  $('gNext').className = qi < 2 ? 'btn' : 'btn red';
+};
+$('gNext').onclick = () => {
+  if (qi < 2) { qi++; renderGateQ(); return; }
+  S.gate[gi] = true; save();
+  $('gCards').innerHTML = GATES[gi].qs.map(q => dexCardHTML(q.card)).join('');
+  $('door').classList.add('open'); $('gQ').hidden = true;
+  setTimeout(() => { $('gReveal').hidden = false; }, 700);
+};
+
+/* ================= 상자 창고 ================= */
+const FL = { wood: { n: '나무', one: 3 }, ice: { n: '얼음', one: 1 } };
+const fmt = v => (Math.round(v * 10) / 10).toString();
+function scene(c, o) {
+  c.fillStyle = '#fff'; c.fillRect(0, 0, 1000, 320);
+  texture(c, o.floor, 0, 230, 1000, 90);
+  c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(0, 230); c.lineTo(1000, 230); c.stroke();
+  c.font = 'bold 21px "Gothic A1", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillStyle = 'rgba(255,255,255,.9)'; c.fillRect(850, 234, 140, 32); c.fillStyle = INK; c.fillText(`바닥: ${FL[o.floor].n}`, 920, 250);
+  const bw = 110, bh = o.n > 4 ? 25 : 40, bx = 380 + o.off;
+  for (let i = 0; i < o.n; i++) {
+    const y = 230 - bh * (i + 1);
+    c.fillStyle = '#E9C48F'; c.fillRect(bx, y, bw, bh); c.strokeStyle = INK; c.lineWidth = 2; c.strokeRect(bx, y, bw, bh);
+    c.fillStyle = '#8A5A32'; c.font = 'bold 14px "Gothic A1", sans-serif'; c.fillText('1개', bx + bw / 2, y + bh / 2);
+  }
+  c.fillStyle = INK; c.font = 'bold 23px "Gothic A1", sans-serif'; c.fillText(`상자 ${o.n}개`, bx + bw / 2, 230 - bh * o.n - 16);
+  const hx = bx - 6, lean = o.push > 0 ? 1 : 0.5;
+  c.strokeStyle = BLUE; c.lineWidth = 9; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(hx - 70, 228); c.lineTo(hx - 50, 180); c.lineTo(hx - 92, 228); c.stroke();
+  c.beginPath(); c.moveTo(hx - 50, 180); c.lineTo(hx - 50 + 22 * lean, 130); c.stroke();
+  c.lineWidth = 7; c.beginPath(); c.moveTo(hx - 48 + 20 * lean, 140); c.lineTo(hx, 175); c.moveTo(hx - 46 + 20 * lean, 150); c.lineTo(hx, 195); c.stroke();
+  c.beginPath(); c.arc(hx - 50 + 26 * lean, 112, 16, 0, Math.PI * 2); c.fillStyle = '#F4C9A0'; c.fill(); c.lineWidth = 2; c.strokeStyle = INK; c.stroke();
+  const SC = 26, mid = bx + bw / 2;
+  if (o.push > 0) arrow(c, mid, 278, mid + o.push * SC, BLUE, '', 0);
+  if (o.push > 0) { c.fillStyle = BLUE; c.font = 'bold 21px "Gothic A1", sans-serif'; c.textAlign = 'center'; c.fillText(`미는 힘 ${fmt(o.push)} N`, mid + o.push * SC / 2, 303); }
+  if (o.fr) {
+    arrow(c, mid, 254, mid - o.fr * SC, RED, '', 0);
+    c.font = 'bold 21px "Gothic A1", sans-serif'; const lab = o.frLabel, w = c.measureText(lab).width + 10, lx = Math.max(4, mid - o.fr * SC - 12 - w);
+    c.fillStyle = 'rgba(255,255,255,.92)'; c.fillRect(lx, 240, w, 28); c.fillStyle = RED; c.textAlign = 'left'; c.fillText(lab, lx + 5, 255);
+  }
+}
+function setPhase(p) {
+  if (S.phase !== p) { S.phase = p; save(); }
+  $('phA').hidden = p !== 'A'; $('phB').hidden = p !== 'B';
+  $('phTabA').className = 'ph ' + (p === 'A' ? 'on' : 'ok'); $('phTabB').className = 'ph' + (p === 'B' ? ' on' : '');
+  $('boxMsg').innerHTML = p === 'A'
+    ? '똑같은 상자를 여러 개 쌓으면 무게가 2배, 3배가 돼요. 먼저 <b>상자 1개</b>를 움직이는 데 필요한 힘을 찾아 단서 수첩에 적으세요. 미는 힘을 0.5 N씩 천천히 키워 봐요!'
+    : '이제 단서로 추리할 차례! 상자가 몇 개일 때 몇 N이 필요한지 추리하고, 움직일지 예측해서 코인을 걸어요.';
+}
+
+/* ① 단서 찾기 */
+const ac = $('labCv').getContext('2d');
+let aFloor = 'wood', aPush = 0, aMoved = false, aOff = 0, aT = null;
+function drawA() {
+  const still = !aMoved;
+  scene(ac, { floor: aFloor, n: 1, off: aOff, push: aPush,
+    fr: aPush > 0 ? (still ? aPush : FL[aFloor].one) : 0, frLabel: still ? `마찰력 ${fmt(aPush)} N` : '마찰력' });
+  $('aMsg').innerHTML = aMoved
+    ? `상자가 <b class="no">움직이기 시작했어요!</b> 오른쪽 단서 수첩에 움직이기 <b>바로 전</b>의 힘을 적어요.`
+    : aPush > 0 ? `미는 힘 <b>${fmt(aPush)} N</b>, 상자가 버티고 있어요. 이때 마찰력은 미는 힘과 크기가 같고 방향이 반대예요. 조금 더 세게!`
+                : `<span class="soft">◀ ▶ 버튼이나 막대로 미는 힘을 0.5 N씩 키워 보세요.</span>`;
+}
+function renderAsk() {
+  const box = $('ask'), f = FL[aFloor];
+  if (S.clue[aFloor]) { box.innerHTML = `<span class="ok"><b>${f.n}</b> 바닥 단서는 이미 확보했어요.</span>` + (S.clue.wood && S.clue.ice ? '' : ' 다른 바닥도 해 보세요.'); return; }
+  if (!aMoved) { box.innerHTML = '<span class="soft">상자가 움직이면 여기에 단서를 적을 수 있어요.</span>'; return; }
+  const opts = [f.one - 0.5, f.one, f.one + 0.5];
+  box.innerHTML = `<div class="fline" style="margin-top:0"><b>${f.n}</b> 바닥에서 상자가 움직였어요!<br>움직이기 <b>바로 전</b>의 힘은?</div>` +
+    `<div class="chips">${opts.map(v => `<button class="chip" data-v="${v}">${fmt(v)} N</button>`).join('')}</div><div class="msg" id="askMsg"></div>`;
+}
+$('ask').addEventListener('click', e => {
+  const c = e.target.closest('.chip[data-v]'); if (!c) return;
+  const v = +c.dataset.v, f = FL[aFloor];
+  if (Math.abs(v - f.one) < 0.01) {
+    S.clue[aFloor] = true; renderNote(); renderAsk(); save();
+    toast(`📒 단서 확보! ${f.n} 바닥은 상자 1개당 ${f.one} N`);
+  } else $('askMsg').innerHTML = v > f.one
+    ? '<span class="no">그 힘에서 상자가 움직이기 시작했어요. 그 바로 전 힘을 골라요.</span>'
+    : '<span class="no">그 힘보다 조금 더 세게 밀어도 상자는 버텼어요. 다시 떠올려 봐요.</span>';
+});
+function renderNote() {
+  document.querySelectorAll('.clueval').forEach(el => {
+    const f = el.dataset.f;
+    el.innerHTML = S.clue[f] ? `${FL[f].one} N<span class="stamp">확보</span>` : '? N';
+  });
+  const both = S.clue.wood && S.clue.ice;
+  $('toDuel').hidden = !both;
+  $('noteRule').innerHTML = both
+    ? '규칙: 상자가 n개면 <b>(상자 1개의 힘) × n</b>보다 큰 힘이 있어야 움직여요.'
+    : '<span class="soft">상자 창고의 단서 찾기에서 단서를 모아요.</span>';
+}
+function setPush(v) {
+  aPush = Math.max(0, Math.min(5, Math.round(v * 2) / 2)); $('aPush').value = aPush;
+  if (!aMoved && aPush > FL[aFloor].one) {
+    aMoved = true; clearInterval(aT); renderAsk();
+    aT = setInterval(() => { aOff = Math.min(220, aOff + 6); drawA(); if (aOff >= 220) clearInterval(aT); }, 20);
+  }
+  drawA();
+}
+function resetA() { clearInterval(aT); aPush = 0; aMoved = false; aOff = 0; $('aPush').value = 0; drawA(); renderAsk(); }
+$('aPush').addEventListener('input', e => setPush(+e.target.value));
+$('aPlus').onclick = () => setPush(aPush + 0.5);
+$('aMinus').onclick = () => { if (!aMoved) setPush(aPush - 0.5); };
+$('aReset').onclick = resetA;
+document.querySelectorAll('#aFloor .chip').forEach(b => b.addEventListener('click', () => { aFloor = b.dataset.k; resetA(); }));
+$('toDuel').onclick = () => { setPhase('B'); loadRound(); };
+resetA(); renderNote(); setPhase('A');
+
+/* ② 예측 대결 — 점수는 첫 번째 대결만, 다 끝나면 연습 대결 가능 */
+const ROUNDS = [['wood', 2, 5], ['ice', 3, 5], ['wood', 3, 10], ['ice', 6, 5], ['wood', 4, 11], ['ice', 8, 9]];
+const results = [], presults = [];
+let r = 0, animT = null, pcoins = 100;
+const bc = $('boxCv').getContext('2d');
+const limitOf = R => FL[R[0]].one * R[1];
+const curRes = () => S.practice ? presults : results;
+function drawRound(t, revealed) {
+  const R = ROUNDS[r], lim = limitOf(R), moves = R[2] > lim;
+  let off = 0, fr = 0, lab = '';
+  if (revealed) {
+    off = moves ? Math.min(1, t) * 220 : (t < 0.6 ? Math.sin(t * 60) * 2 : 0);
+    if (t >= 0.6) { fr = moves ? lim : R[2]; lab = moves ? '마찰력' : `마찰력 ${R[2]} N`; }
+  }
+  scene(bc, { floor: R[0], n: R[1], off, push: R[2], fr, frLabel: lab });
+}
+function renderDots() {
+  const rs = curRes();
+  $('dots').innerHTML = ROUNDS.map((_, k) => {
+    const res = rs[k];
+    return `<span class="dot ${res === undefined ? (k === r ? 'now' : '') : res ? 'ok' : 'no'}">${res === undefined ? k + 1 : res ? '✔' : '✘'}</span>`;
+  }).join('');
+}
+function loadRound() {
+  clearInterval(animT);
+  const R = ROUNDS[r];
+  $('rTitle').textContent = `${S.practice ? '연습 ' : ''}라운드 ${r + 1} / ${ROUNDS.length}`;
+  $('rCond').innerHTML = `<div><small>바닥</small>${FL[R[0]].n}</div><div><small>상자</small>${R[1]}개</div><div><small>미는 힘</small>${R[2]} N</div>`;
+  document.querySelectorAll('#pred .chip, #bet .chip').forEach(b => { b.classList.remove('on'); b.disabled = false; });
+  $('need').value = ''; $('need').disabled = false; $('need').style.borderColor = ''; $('need').style.background = '';
+  $('revealBtn').disabled = false; $('nextBtn').disabled = true;
+  $('rMsg').innerHTML = S.practice
+    ? `<span class="soft">연습 대결이에요. 점수와 코인은 바뀌지 않아요. 연습 코인 ${pcoins}</span>`
+    : '<span class="soft">필요한 힘을 추리하고, 예측과 코인을 고른 뒤 결과 보기를 눌러요. <b>대결 결과는 한 번만 점수로 인정돼요!</b></span>';
+  renderDots(); drawRound(0, false);
+}
+function doneHTML() {
+  return `<br><b style="font-size:21px">대결 끝! 최종 코인 ${coins}</b> ${coins >= 220 ? '🏆 마찰력 추리 달인!' : coins >= 150 ? '👍 잘했어요!' : ''}` +
+    '<br><button class="btn red mini" data-go="gate1">상자 관문으로 ▶</button>';
+}
+function showDuelDone() {
+  r = ROUNDS.length - 1; renderDots();
+  $('revealBtn').disabled = true; $('nextBtn').disabled = true;
+  document.querySelectorAll('#pred .chip, #bet .chip').forEach(x => x.disabled = true); $('need').disabled = true;
+  $('rMsg').innerHTML = `점수로 인정되는 대결은 끝났어요. 예측 성공 ${S.right}번, 추리 정답 ${S.needOk}번.` + doneHTML();
+  $('practiceBtn').hidden = false;
+}
+$('revealBtn').onclick = () => {
+  if (!S.practice && guardLocked()) return;
+  const p = document.querySelector('#pred .chip.on'), b = document.querySelector('#bet .chip.on'), nv = $('need').value;
+  if (nv === '' || !p || !b) { $('rMsg').innerHTML = '<span class="no">추리한 힘, 예측, 코인을 모두 정해 주세요.</span>'; return; }
+  const R = ROUNDS[r], one = FL[R[0]].one, lim = limitOf(R), moves = R[2] > lim, bet = +b.dataset.k;
+  const right = (p.dataset.k === 'y') === moves, needOk = Math.abs(+nv - lim) < 0.01;
+  const gain = (right ? bet : -bet) + (needOk ? 5 : 0);
+  if (S.practice) { pcoins += gain; presults[r] = right; }
+  else { coins += gain; if (needOk) S.needOk++; if (right) S.right++; results[r] = right; updateHud(); }
+  renderDots();
+  $('revealBtn').disabled = true; $('need').disabled = true;
+  $('need').style.borderColor = needOk ? '#159A6E' : '#E23D3D'; $('need').style.background = needOk ? 'var(--okbg)' : 'var(--nobg)';
+  document.querySelectorAll('#pred .chip, #bet .chip').forEach(x => x.disabled = true);
+  let t = 0; animT = setInterval(() => { t += 1 / 50; drawRound(t, true); if (t >= 1.2) clearInterval(animT); }, 20);
+  let html = (right ? `<b class="ok">✔ 예측 성공! +${bet} 코인</b>` : `<b class="no">✘ 예측 실패… −${bet} 코인</b>`) +
+    (needOk ? ' <span class="ok">추리 정답 보너스 +5</span>' : ' <span class="no">추리한 힘이 달라요</span>') + '<br>' +
+    `풀이: ${FL[R[0]].n} 바닥은 상자 1개당 ${one} N → 상자 ${R[1]}개는 <b>${one} N × ${R[1]} = ${lim} N</b>보다 큰 힘이 필요해요. ` +
+    (moves ? `미는 힘 ${R[2]} N이 ${lim} N보다 크니까 <b>움직여요.</b>` : `미는 힘 ${R[2]} N이 ${lim} N보다 작으니까 <b>움직이지 않아요.</b> 이때 마찰력은 미는 힘과 같은 ${R[2]} N이에요.`);
+  if (r < ROUNDS.length - 1) $('nextBtn').disabled = false;
+  else if (S.practice) { html += `<br><b style="font-size:20px">연습 끝! 연습 코인 ${pcoins}</b> (점수는 그대로예요)`; }
+  else {
+    if (!S.boxDone) { S.boxDone = true; toast('📦 상자 창고 클리어! 상자 관문이 열렸어요.'); }
+    html += doneHTML(); $('practiceBtn').hidden = false;
+  }
+  if (!S.practice) save();
+  $('rMsg').innerHTML = html;
+};
+$('nextBtn').onclick = () => { if (r < ROUNDS.length - 1) { r++; loadRound(); } };
+$('practiceBtn').onclick = () => { S.practice = true; presults.length = 0; pcoins = 100; r = 0; loadRound(); };
+
+/* ================= 보스 ================= */
+const BOSSQ = [
+  { t: 'num', q: '나무 바닥에서 <b>10 N</b>의 힘으로 밀 때, 상자를 최대 몇 개까지 움직일 수 있을까?', a: 3,
+    ok: '3개는 9 N이라 10 N으로 움직이지만, 4개는 12 N이 필요해요.',
+    bad: v => v === 4 ? '4개면 3 N × 4 = 12 N이 필요해요. 10 N으로 될까요?' : '나무 바닥은 상자 1개당 3 N이에요. 10 N보다 작은 3의 배수를 찾아보세요.' },
+  { t: 'num', q: '얼음 바닥에서 <b>7.5 N</b>의 힘으로 밀 때, 상자를 최대 몇 개까지 움직일 수 있을까?', a: 7,
+    ok: '7개는 7 N이라 7.5 N으로 움직이지만, 8개는 8 N이 필요해요.',
+    bad: v => v === 8 ? '8개면 8 N이 필요해요. 7.5 N으로는 부족해요.' : '얼음 바닥은 상자 1개당 1 N이에요. 7.5 N보다 작으려면 몇 개까지일까요?' },
+  { t: 'pick', q: '어떤 바닥에서 상자 2개를 <b>4 N</b>으로 밀었더니 움직였다. 이 바닥은?', o: ['나무', '얼음'], a: 1,
+    ok: '나무라면 2개에 6 N보다 큰 힘이 필요해요. 4 N으로 움직였으니 얼음(2 N)이에요.',
+    bad: () => '나무 바닥이면 상자 2개를 움직이는 데 몇 N이 필요할까요?' },
+];
+const TAUNTS = ['흥! 그 정도로는 꿈쩍도 안 한다!', '틀렸다! 단서 수첩을 다시 봐라!', '하하, 내 상자는 무겁다고!'];
+let bq = 0, bossHp = 3;
+function renderBoss() {
+  $('hp').querySelectorAll('i').forEach((h, k) => h.classList.toggle('gone', k >= bossHp));
+  if (S.bossDone) { $('bossBox').classList.add('down'); $('taunt').textContent = '으으… 내가 지다니…'; $('bQ').hidden = true; $('bWin').hidden = false; return; }
+  const Q = BOSSQ[bq];
+  $('bNum').textContent = `공격 ${bq + 1} / 3`;
+  $('bText').innerHTML = Q.q + '<br>' + (Q.t === 'num'
+    ? '<input type="number" id="bIn" step="1" inputmode="numeric"> 개'
+    : `<span class="chips" id="bPick">${Q.o.map((t, k) => `<button class="chip" data-k="${k}">${t}</button>`).join('')}</span>`);
+  $('bMsg').innerHTML = ''; $('bAtk').hidden = false; $('bNext').hidden = true;
+}
+$('bAtk').onclick = () => {
+  if (guardLocked()) return;
+  const Q = BOSSQ[bq]; let v, good;
+  if (Q.t === 'num') { const s = $('bIn').value; if (s === '') { $('bMsg').innerHTML = '<span class="no">답을 적어 주세요.</span>'; return; } v = +s; good = v === Q.a; }
+  else { const c = document.querySelector('#bPick .chip.on'); if (!c) { $('bMsg').innerHTML = '<span class="no">바닥을 골라 주세요.</span>'; return; } v = +c.dataset.k; good = v === Q.a; }
+  const box = $('bossBox');
+  if (good) {
+    bossHp--; renderHpOnly();
+    box.classList.remove('hit'); void box.offsetWidth; box.classList.add('hit');
+    $('taunt').textContent = bossHp ? '으악! 아프다!' : '으아아악!';
+    $('bMsg').innerHTML = `<span class="ok">💥 명중!</span> ${Q.ok}`;
+    $('bAtk').hidden = true;
+    $('bText').querySelectorAll('input,.chip').forEach(x => x.disabled = true);
+    if (bossHp === 0) { S.bossDone = true; setTimeout(() => { toast('👑 꿈쩍왕을 무찔렀어요!'); renderBoss(); }, 900); }
+    else { $('bNext').hidden = false; }
+  } else {
+    S.bossMiss++;
+    $('taunt').textContent = TAUNTS[S.bossMiss % TAUNTS.length];
+    $('bMsg').innerHTML = `<span class="no">빗나갔어요.</span> 💡 ${Q.bad(v)}`;
+  }
+  save();
+};
+function renderHpOnly() { $('hp').querySelectorAll('i').forEach((h, k) => h.classList.toggle('gone', k >= bossHp)); }
+$('bNext').onclick = () => { bq = 3 - bossHp; $('taunt').textContent = '이번엔 안 당한다!'; renderBoss(); };
+
+/* ================= 수첩, 도감 ================= */
+const openNote = () => { renderNote(); $('noteModal').hidden = false; };
+$('noteBtn').onclick = openNote; $('noteBtn2').onclick = openNote; $('noteBtn3').onclick = openNote;
+$('dexBtn').onclick = () => { $('dexGrid').innerHTML = DEX.map((_, i) => dexCardHTML(i)).join(''); $('dexModal').hidden = false; };
+
+/* ================= 기록 카드 ================= */
+function renderEnd() {
+  $('rcName').textContent = `1학년 ${S.ban}반 ${S.num}번`;
+  $('rcMeta').textContent = `${S.team}모둠` + (S.locked ? ', 경기 종료 후 확정 기록' : '');
+  const sp = scoreParts();
+  $('rcScore').textContent = `${sp.total}점`;
+  $('rcScoreSub').textContent = `컬링 ${sp.curl} + 상자 창고 ${sp.box} + 보스 ${sp.boss} (최대 290점)`;
+  const total = best.reduce((a, b) => a + b, 0);
+  $('rcCurl').textContent = `별 ${total} / 12`;
+  $('rcCurlLv').innerHTML = best.map((b, i) => `${i + 1}단계 <b>${'★'.repeat(b)}${'☆'.repeat(3 - b)}</b>`).join('<br>');
+  $('rcCoin').textContent = `코인 ${coins}`;
+  const done = results.length;
+  $('rcBox').innerHTML = `예측 성공 ${S.right} / ${done || 6}<br>추리 정답 ${S.needOk} / ${done || 6}`;
+  $('rcBoss').textContent = S.bossDone ? '처치 성공' : '도전 중';
+  $('rcBossSub').textContent = S.bossDone ? (S.bossMiss ? `빗나간 공격 ${S.bossMiss}번` : '한 번도 안 빗나감!') : '';
+  $('rcDex').innerHTML = DEX.map((d, i) => `<span class="${S.dex[i] ? 'got' : ''}">${S.dex[i] ? '✔ ' + d.t : '? ' + (i + 1)}</span>`).join('');
+}
+function swapTA(on) {
+  document.querySelectorAll('#recCard textarea').forEach(ta => {
+    if (on) { const d = document.createElement('div'); d.className = 'ta-print'; d.textContent = ta.value || ' '; ta.after(d); ta.style.display = 'none'; }
+    else { ta.style.display = ''; const d = ta.nextElementSibling; if (d && d.classList.contains('ta-print')) d.remove(); }
+  });
+}
+const overlay = $('overlay');
+$('closeShot').onclick = () => overlay.style.display = 'none';
+let shotBlob = null, shotName = 'report.png', downloadsNS = null;
+if (window.claude && typeof window.claude.use === 'function') {
+  window.claude.use('downloads').then(ns => { downloadsNS = ns; }).catch(() => {});
+}
+const ovMsg = $('ovMsg');
+$('saveBtn').onclick = async () => {
+  if (typeof html2canvas !== 'function') { alert('이미지 도구를 불러오지 못했어요. 페이지를 새로 고친 뒤 다시 눌러 주세요.'); return; }
+  const btn = $('saveBtn'); btn.textContent = '이미지 만드는 중…'; btn.disabled = true;
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    swapTA(true);
+    const canvas = await html2canvas($('recCard'), { scale: 2, backgroundColor: '#FFFFFF', useCORS: true });
+    swapTA(false);
+    const url = canvas.toDataURL('image/png');
+    shotBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    shotName = `friction_game_${S.ban}ban_${S.num}_${Date.now().toString().slice(-6)}.png`;
+    $('shot').src = url;
+    $('galleryBtn').textContent = '갤러리에 저장';
+    ovMsg.innerHTML = "미리 보기예요. <b>갤러리에 저장</b>을 누른 뒤 <b>패들렛 바로가기</b>로 올려 주세요.<br>저장이 안 되면 그림을 길게 눌러 이미지 저장(사진에 추가)을 고르거나 화면을 캡처하세요.";
+    overlay.style.display = 'flex';
+    if (!S.cardDone) {
+      S.cardDone = true;
+      if (S.locked) { initNet().then(x => x && x.collection(COL).doc(pid()).set({ cardDone: true, where: '카드 저장' }, { merge: true }).catch(() => {})); }
+      else saveNow();
+    }
+  } catch (err) { swapTA(false); alert('이미지를 만들지 못했어요. 잠시 뒤 다시 눌러 주세요.'); }
+  btn.textContent = '이미지로 저장하기'; btn.disabled = false;
+};
+function anchorDownload() {
+  const u = URL.createObjectURL(shotBlob);
+  const a = document.createElement('a'); a.href = u; a.download = shotName; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 60000);
+}
+$('galleryBtn').onclick = async () => {
+  if (!shotBlob) return;
+  if (downloadsNS) {
+    try { await downloadsNS.save({ filename: shotName, data: shotBlob }); ovMsg.textContent = '저장했어요. 패들렛 바로가기를 눌러 올려 주세요.'; return; }
+    catch (e) {
+      if (e && e.code === 'declined') { ovMsg.textContent = '저장을 취소했어요. 다시 누르면 저장할 수 있어요.'; return; }
+      if (e && e.code === 'rate_limited') { ovMsg.textContent = '저장 창이 이미 열려 있어요. 잠시 뒤 다시 눌러 주세요.'; return; }
+    }
+  }
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS) {
+    try {
+      const file = new File([shotBlob], shotName, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: '마찰력 리그 기록 카드' });
+        ovMsg.textContent = "공유 창에서 '이미지 저장'을 골랐다면 사진에 저장됐어요. 패들렛 바로가기로 올려 주세요.";
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') { ovMsg.textContent = '저장을 취소했어요. 다시 누르면 저장할 수 있어요.'; return; }
+    }
+  }
+  try { anchorDownload(); ovMsg.textContent = '저장했어요! 갤러리에서 확인한 뒤 패들렛 바로가기로 올려 주세요.'; }
+  catch (e) { ovMsg.textContent = '바로 저장할 수 없어요. 위 그림을 길게 눌러 이미지 저장을 고르거나 화면을 캡처하세요.'; }
+};
+updateHud();
+</script>
+</body>
+</html>
