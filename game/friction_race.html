@@ -160,8 +160,18 @@ textarea{font:inherit; width:100%; resize:vertical; min-height:72px; font-weight
 .cb.on{background:rgba(255,201,60,.85); color:#17324D}
 .cb.gas{background:rgba(21,154,110,.6)} .cb.gas.on{background:rgba(21,154,110,.95); color:#fff}
 .cb.brk{background:rgba(226,61,61,.6); font-size:clamp(16px,1.9vw,23px)} .cb.brk.on{background:rgba(226,61,61,.95); color:#fff}
+.cb.drift{background:rgba(124,77,214,.65); font-size:clamp(15px,1.7vw,21px)} .cb.drift.on{background:rgba(124,77,214,.97); color:#fff}
+.boostbtn{position:absolute; right:12px; bottom:calc(clamp(70px,8.4vw,104px) + 24px); background:linear-gradient(#FF8A3D,#E23D3D); color:#fff; border:3px solid #fff; border-radius:999px; font-family:"Do Hyeon",sans-serif; font-size:clamp(20px,2.3vw,28px); padding:4px 18px; touch-action:none; cursor:pointer; box-shadow:0 0 16px rgba(255,120,40,.8)}
+.boostbtn:disabled{opacity:.35; box-shadow:none}
+.gaugebox{position:absolute; right:12px; bottom:calc(clamp(70px,8.4vw,104px) + 82px); background:rgba(23,50,77,.85); color:#fff; border-radius:10px; padding:4px 10px; font-weight:800; font-size:14px; display:flex; align-items:center; gap:8px; pointer-events:none}
+.gaugebox i{display:block; width:120px; height:12px; border-radius:6px; background:rgba(255,255,255,.25); overflow:hidden}
+.gaugebox b{display:block; height:100%; width:0; background:linear-gradient(90deg,#FFC93C,#FF6A3D)}
+.ghostlist{position:absolute; left:10px; top:52px; display:grid; gap:4px; pointer-events:none}
+.ghostlist span{background:rgba(255,255,255,.88); color:#17324D; border-radius:8px; padding:1px 10px; font-weight:800; font-size:14px; border-left:8px solid var(--gc)}
+.ghosts{margin-top:10px; font-size:16px; font-weight:700}
+.ghosts span{display:inline-block; margin:2px 6px 2px 0; padding:1px 10px; border-radius:999px; background:var(--panel2); border-left:8px solid var(--gc)}
 .cb small{display:block; font-size:.5em; font-family:"Gothic A1",sans-serif; font-weight:800}
-.sandbtn{position:absolute; right:12px; bottom:calc(clamp(70px,8.4vw,104px) + 24px); background:rgba(226,192,122,.92); color:#17324D; border:3px solid #fff; border-radius:999px; font:inherit; font-weight:800; font-size:17px; padding:6px 14px; touch-action:none; cursor:pointer}
+.sandbtn{position:absolute; left:12px; bottom:calc(clamp(70px,8.4vw,104px) + 24px); background:rgba(226,192,122,.92); color:#17324D; border:3px solid #fff; border-radius:999px; font:inherit; font-weight:800; font-size:17px; padding:6px 14px; touch-action:none; cursor:pointer}
 .sandbtn:disabled{opacity:.4}
 .count{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; font-family:"Black Han Sans","Do Hyeon",sans-serif; font-size:clamp(70px,12vw,150px); color:#fff; text-shadow:0 6px 0 #17324D, 0 0 30px rgba(0,0,0,.4)}
 .result{position:absolute; inset:0; display:grid; place-items:center; background:rgba(10,22,36,.6); padding:16px}
@@ -359,7 +369,9 @@ td.stuck{background:rgba(226,61,61,.15); font-weight:800}
       <div id="tireArea">
         <h3 style="font-size:24px; margin-bottom:8px">이 코스에 맞는 타이어를 골라요</h3>
         <div class="tires" id="tires"></div>
-        <div class="fline" style="font-size:17px">🎒 모래 주머니 2개: 달리다가 <b>모래 뿌리기</b>를 누르면 차 아래에 모래가 깔려요.</div>
+        <div class="fline" style="font-size:17px">🎒 모래 주머니 2개: 달리다가 <b>모래</b>를 누르면 차 아래에 모래가 깔려요.<br>🌀 커브에서 <b>드리프트</b>를 누르고 있으면 뒷바퀴 마찰력이 줄어 미끄러지며 돌아요. 미끄러지는 동안 게이지가 차면 <b>🔥 부스터</b>를 쓸 수 있어요!</div>
+        <div class="ghosts" id="pitGhosts"></div>
+        <div class="fline" style="font-size:16px; color:var(--soft)">🕹️ 태블릿은 화면 버튼, 컴퓨터는 키보드(← → 핸들, ↓ 브레이크, ↑ 가속, Shift 드리프트, Ctrl 부스터, 스페이스바 모래)로 운전해요. 처음에는 <b>자동 가속</b>과 <b>핸들 도우미</b>가 켜져 있어서, 커브 앞에서 <b>브레이크</b>만 잘 밟으면 돼요. 익숙해지면 레이스 화면 오른쪽 위에서 끄고 직접 운전해 보세요.</div>
         <div class="row"><button class="btn red" id="goRace" disabled>출발! ▶</button><button class="btn ghost" data-go="map">지도로</button></div>
       </div>
     </div>
@@ -374,10 +386,15 @@ td.stuck{background:rgba(226,61,61,.15); font-weight:800}
     <div class="surf" id="hSurf"></div>
     <div class="wrongway" id="wrong" hidden>반대 방향!</div>
     <button class="pitbtn" id="pitBtn">🔧 정비소</button>
+    <button class="pitbtn" id="autoBtn" style="top:88px">자동 가속 켜짐</button>
+    <button class="pitbtn" id="assistBtn" style="top:124px">핸들 도우미 켜짐</button>
     <div class="stuck" id="stuck" hidden>바퀴가 헛돌고 있어요! 이 타이어로는 마찰력이 부족한가 봐요.<br><button class="btn red mini" id="stuckGo">🔧 정비소에서 타이어 바꾸기</button> <button class="btn ghost mini" id="stuckX">조금 더 해 볼게요</button></div>
     <div class="ctl l"><div class="cb" data-k="left">◀</div><div class="cb" data-k="right">▶</div></div>
-    <div class="ctl r"><div class="cb brk" data-k="brake">브레이크<small>후진</small></div><div class="cb gas" data-k="gas">가속</div></div>
-    <button class="sandbtn" id="sandBtn">🎒 모래 뿌리기 <span id="sandN">2</span></button>
+    <div class="ctl r"><div class="cb drift" data-k="drift">드리프트</div><div class="cb brk" data-k="brake">브레이크<small>후진</small></div><div class="cb gas" data-k="gas">가속</div></div>
+    <button class="sandbtn" id="sandBtn">🎒 모래 <span id="sandN">2</span></button>
+    <div class="gaugebox"><span>부스터 게이지</span><i><b id="gaugeBar"></b></i></div>
+    <button class="boostbtn" id="boostBtn" disabled>🔥 부스터 <span id="boostN">0</span></button>
+    <div class="ghostlist" id="ghostList"></div>
     <div class="count" id="count" hidden></div>
     <div class="result" id="result" hidden><div class="rbox" id="rbox"></div></div>
   </div>
@@ -496,11 +513,11 @@ const SURF = {
 };
 const TIRES = {
   slick: { n: '매끈한 레이싱 타이어', d: '표면에 홈이 거의 없이 매끈해요. 딱딱한 길에서 가볍게 굴러가서 빨라요.',
-           mu: { asphalt: 1.0, ice: 0.08, snow: 0.2, sand: 0.6, grass: 0.5, bank: 0.3 }, roll: { asphalt: -12 }, col: '#17324D' },
+           mu: { asphalt: 1.0, ice: 0.08, snow: 0.2, sand: 0.6, grass: 0.5, bank: 0.3 }, roll: { asphalt: -15 }, col: '#17324D' },
   snowt: { n: '스노타이어', d: '홈이 깊고 고무가 말랑해서 눈이나 얼음을 꽉 붙잡아요.',
-           mu: { asphalt: 0.82, ice: 0.3, snow: 0.6, sand: 0.65, grass: 0.55, bank: 0.4 }, roll: { asphalt: 8 }, col: '#2B6CB0' },
+           mu: { asphalt: 0.82, ice: 0.4, snow: 0.6, sand: 0.65, grass: 0.55, bank: 0.4 }, roll: { asphalt: 18 }, col: '#2B6CB0' },
   chain: { n: '체인', d: '바퀴에 쇠사슬을 감았어요. 얼음과 눈을 아주 세게 붙잡지만, 딱딱한 길에서는 덜컹거려요.',
-           mu: { asphalt: 0.65, ice: 0.62, snow: 0.78, sand: 0.7, grass: 0.6, bank: 0.5 }, roll: { asphalt: 190 }, col: '#6B7582' },
+           mu: { asphalt: 0.65, ice: 0.62, snow: 0.78, sand: 0.7, grass: 0.6, bank: 0.5 }, roll: { asphalt: 240 }, col: '#6B7582' },
 };
 function tireSVG(k) {
   const ring = { slick: '', snowt: '<path d="M32 6v10M32 48v10M6 32h10M48 32h10M14 14l7 7M43 43l7 7M14 50l7-7M43 21l7-7" stroke="#55708A" stroke-width="5"/>',
@@ -518,14 +535,14 @@ const STAGES = [
     segs: [[0, 1, 'ice']], slopes: [], intro: '꽁꽁 언 호수 위를 달려요. 커브가 많으니 조심! 미끄러지면 눈 더미에 빠져요.' },
   { name: '눈길 언덕', off: 'bank', bg: '#FFFFFF', laps: 2,
     pts: [[180,140],[560,105],[900,125],[1090,250],[980,450],[700,500],[480,420],[300,520],[120,380]],
-    segs: [[0, 1, 'snow'], [0.08, 0.22, 'ice']], slopes: [[0.08, 0.22, 230], [0.55, 0.66, -160]],
+    segs: [[0, 1, 'snow'], [0.08, 0.22, 'ice']], slopes: [[0.08, 0.22, 260], [0.55, 0.66, -160]],
     intro: '눈 덮인 산길이에요. 얼어붙은 오르막을 올라가야 해요. 바퀴가 헛돌지 않으려면?' },
   { name: '혼합 그랑프리', off: 'grass', bg: '#E3C98E', laps: 2,
     pts: [[170,110],[620,95],[1060,120],[1100,330],[930,420],[1040,520],[700,560],[520,440],[300,540],[110,400],[120,230]],
     segs: [[0, 1, 'asphalt'], [0.33, 0.55, 'ice'], [0.86, 0.99, 'snow']], slopes: [],
     intro: '마지막 결승전! 아스팔트 직선, 얼음 구간, 눈길이 모두 섞여 있어요. 한 가지 타이어로 다 달려야 해요.' },
 ];
-const PAR = [24, 30, 26, 40];
+const PAR = [24, 36, 34, 42];
 const QUIZ = [
   { q: '아스팔트 서킷 바깥에는 모래밭이 있어요. 길을 벗어난 차가 모래밭에서 금방 느려지는 까닭은?',
     o: ['모래밭은 거칠어서 마찰력이 크기 때문', '모래밭은 매끄러워서 마찰력이 작기 때문', '모래가 차를 위로 밀어 올리기 때문'], a: 0,
@@ -787,6 +804,8 @@ function openPit(i) {
   });
   $('goRace').disabled = true;
   renderQuiz();
+  $('pitGhosts').innerHTML = '<span class="soft">👻 친구 고스트 불러오는 중…</span>';
+  loadGhosts(i).then(list => { if (SI === i) $('pitGhosts').innerHTML = ghostHTML(list); });
   show('sPit');
 }
 function renderQuiz() {
@@ -818,20 +837,31 @@ $('goRace').onclick = () => { if (guardLocked() || !tireSel) return; startRace(S
 /* ================= 레이스 ================= */
 const rc = $('rc'), cx = rc.getContext('2d');
 const bgCv = document.createElement('canvas'); bgCv.width = 1200; bgCv.height = 675;
-const ctl = { left: false, right: false, gas: false, brake: false };
-let R = null, raf = 0;
+const ctl = { left: false, right: false, gas: false, brake: false, drift: false };
+let R = null, raf = 0, autoGas = true, assist = true;
+function steerInput() {
+  if (ctl.left || ctl.right) return (ctl.right ? 1 : 0) - (ctl.left ? 1 : 0);
+  if (!assist || !R) return 0;
+  const st = R.st, spd = Math.hypot(R.vx, R.vy), tp = st.S[(R.idx + Math.round(14 + spd / 30)) % st.N];
+  let d = Math.atan2(tp.y - R.y, tp.x - R.x) - R.h;
+  while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+  return Math.max(-1, Math.min(1, d * 3));
+}
+const gasOn = () => ctl.gas || (autoGas && !ctl.brake);
 function startRace(i, tire) {
   const st = STAGES[i], p = st.S[0];
   drawTrack(bgCv.getContext('2d'), st);
   R = { i, st, tire, x: p.x - p.tx * 30, y: p.y - p.ty * 30, h: Math.atan2(p.ty, p.tx), vx: 0, vy: 0, idx: N0(st, p.x - p.tx * 30, p.y - p.ty * 30), prog: 0,
     t: 0, phase: 'count', cnt: 3.4, sand: 2, patches: [], marks: [], stat: { slide: 0, off: 0, slopeFail: 0, chainAsph: 0, iceT: 0 },
-    fric: 0, surf: 'asphalt', last: performance.now(), done: false, lapShown: 1 };
+    fric: 0, surf: 'asphalt', last: performance.now(), done: false, lapShown: 1, gauge: 0, boosts: 0, boostT: 0, rt: 0, nextRec: 0, rec: [], ghosts: [] };
+  R.ghosts = (GHOSTS[i] || []).map(g => ({ ...g })); renderGhostList();
   R.prog = 0;
   $('hTire').innerHTML = `${TIRES[tire].n}`;
   $('result').hidden = true; $('wrong').hidden = true; $('stuck').hidden = true; $('count').hidden = false; $('count').textContent = '3';
-  $('sandN').textContent = 2; $('sandBtn').disabled = false;
+  $('sandN').textContent = 2; $('sandBtn').disabled = false; $('boostN').textContent = 0; $('boostBtn').disabled = true; $('gaugeBar').style.width = '0%';
   Object.keys(ctl).forEach(k => ctl[k] = false); document.querySelectorAll('.cb').forEach(b => b.classList.remove('on'));
   show('sRace'); $('hudTitle').textContent = `🏁 ${st.name}`;
+  if (document.activeElement) document.activeElement.blur();
   beep(440, 0.15);
   cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
 }
@@ -860,7 +890,7 @@ function physics(dt) {
   let roll = (SURF[key].roll + (T.roll[key] || 0));
   if (key === 'grass' || key === 'bank' || key === 'sand') roll *= Math.min(1, Math.abs(vf) / 60);
   let fr = 0;
-  if (ctl.gas) vf += Math.min(ENGINE, grip) * dt;
+  if (gasOn()) vf += Math.min(ENGINE, grip) * dt;
   if (ctl.brake) {
     if (vf > 8) fr += Math.min(BRAKE, grip);
     else { vf -= Math.min(160, grip) * dt; if (vf < -110) vf = -110; }
@@ -868,13 +898,20 @@ function physics(dt) {
   fr += Math.max(0, roll);
   const dec = fr * dt;
   if (Math.abs(vf) <= dec) vf = 0; else vf -= Math.sign(vf) * dec;
-  vf -= vf * DRAG * dt;
-  const lat = grip * dt, latBefore = Math.abs(vl);
+  vf -= vf * (R.boostT > 0 ? DRAG * 0.55 : DRAG) * dt;
+  const steerNow = steerInput();
+  const drifting = ctl.drift && Math.abs(vf) > 120 && Math.abs(steerNow) > 0.15;
+  if (R.boostT > 0) { vf += Math.min(320, grip) * dt; R.boostT -= dt; }
+  const lat = grip * (drifting ? 0.35 : 1) * dt, latBefore = Math.abs(vl);
   if (Math.abs(vl) <= lat) vl = 0; else vl -= Math.sign(vl) * lat;
   const slip = latBefore > lat + 2;
   R.fric = fr + (latBefore - Math.abs(vl)) / dt;
-  const steer = (ctl.right ? 1 : 0) - (ctl.left ? 1 : 0);
-  R.h += steer * Math.min(STEER, Math.abs(vf) / 80) * Math.sign(vf || 1) * dt;
+  R.h += steerNow * Math.min(STEER * (drifting ? 1.45 : 1), Math.abs(vf) / 80) * Math.sign(vf || 1) * dt;
+  R.drifting = drifting;
+  if (drifting) {
+    R.gauge += Math.min(1, Math.abs(vl) / 120) * dt * 1.3;
+    if (R.gauge >= 1) { R.gauge = 0; if (R.boosts < 2) { R.boosts++; R.newBoost = true; } }
+  }
   R.vx = vf * fx - vl * fy; R.vy = vf * fy + vl * fx;
   R.x += R.vx * dt; R.y += R.vy * dt;
   // 화면 밖 막기
@@ -884,10 +921,10 @@ function physics(dt) {
   const spd = Math.hypot(R.vx, R.vy);
   if (slip && Math.abs(vl) > 40) R.stat.slide += dt;
   if (!onTrack) R.stat.off += dt;
-  if (onTrack && sp.slope > 0 && (ctl.gas && vf < 30)) R.stat.slopeFail += dt;
+  if (onTrack && sp.slope > 0 && (gasOn() && vf < 30)) R.stat.slopeFail += dt;
   if (R.tire === 'chain' && key === 'asphalt') R.stat.chainAsph += dt;
   if (key === 'ice') R.stat.iceT += dt;
-  if (slip && spd > 60 && Math.random() < 0.5) { R.marks.push([R.x, R.y, key === 'ice' || key === 'snow' ? 'rgba(90,120,160,.35)' : 'rgba(20,20,20,.35)']); if (R.marks.length > 900) R.marks.shift(); }
+  if ((slip || drifting) && spd > 60 && Math.random() < 0.6) { R.marks.push([R.x, R.y, key === 'ice' || key === 'snow' ? 'rgba(90,120,160,.35)' : 'rgba(20,20,20,.35)']); if (R.marks.length > 900) R.marks.shift(); }
   R.vf = vf;
 }
 function loop(now) {
@@ -901,15 +938,24 @@ function loop(now) {
     if (R.cnt <= 0) { R.phase = 'run'; setTimeout(() => $('count').hidden = true, 500); }
   } else if (R.phase === 'run') {
     const sub = 4; for (let k = 0; k < sub; k++) physics(dt / sub);
-    R.t += dt;
+    R.t += dt; R.rt += dt;
+    while (R.rt >= R.nextRec) { R.rec.push(Math.round(R.x), Math.round(R.y), Math.round(R.h * 100) / 100); R.nextRec += 0.1; }
+    $('gaugeBar').style.width = Math.round(R.gauge * 100) + '%';
+    if (R.newBoost) { R.newBoost = false; $('boostN').textContent = R.boosts; $('boostBtn').disabled = false; beep(1200, 0.12, 'triangle', 0.07); if (!seenBoost) { seenBoost = true; toast('🔥 부스터 충전! 미끄러지는 드리프트로 모은 힘이에요.'); } }
+    if (R.drifting && !seenDrift) { seenDrift = true; toast('🌀 드리프트! 뒷바퀴 마찰력을 일부러 줄여 미끄러지며 돌아요.'); }
     const lap = Math.min(R.st.laps, Math.floor(Math.max(0, R.prog) / R.st.N) + 1);
     if (lap > R.lapShown) { R.lapShown = lap; beep(988, 0.15, 'triangle', 0.08); toast(lap === R.st.laps ? '마지막 바퀴!' : `${lap}바퀴째!`); }
     $('hLap').textContent = `${lap}/${R.st.laps}`;
     $('hTime').textContent = R.t.toFixed(1);
     R.maxProg = Math.max(R.maxProg || 0, R.prog); $('wrong').hidden = !(R.prog < R.maxProg - 40);
     const spdNow = Math.hypot(R.vx, R.vy);
-    if (ctl.gas && spdNow < 25) R.stuckT = (R.stuckT || 0) + dt; else R.stuckT = Math.max(0, (R.stuckT || 0) - dt * 2);
+    if (gasOn() && spdNow < 25) R.stuckT = (R.stuckT || 0) + dt; else R.stuckT = Math.max(0, (R.stuckT || 0) - dt * 2);
     if (R.stuckT > 5 && !R.stuckShown) { R.stuckShown = true; $('stuck').hidden = false; }
+    if (R.surf === R.st.off && spdNow < 60) R.offT = (R.offT || 0) + dt; else R.offT = 0;
+    if (R.offT > 2.5) {
+      const p = R.st.S[R.idx]; R.x = p.x; R.y = p.y; R.h = Math.atan2(p.ty, p.tx); R.vx = R.vy = 0; R.offT = 0; R.t += 2;
+      toast('🚚 견인차가 길로 옮겨 줬어요! (+2초)'); beep(330, 0.2, 'triangle', 0.06);
+    }
     if (R.prog >= R.st.N * R.st.laps) return finishRace();
   }
   const sf = SURF[R.surf];
@@ -921,15 +967,17 @@ function render() {
   const c = cx; c.drawImage(bgCv, 0, 0);
   R.patches.forEach(q => { c.fillStyle = 'rgba(226,192,122,.92)'; c.beginPath(); c.arc(q.x, q.y, 34, 0, 7); c.fill(); c.fillStyle = 'rgba(150,110,50,.6)'; for (let k = 0; k < 18; k++) c.fillRect(q.x + Math.cos(k * 2.4) * 22 * ((k % 3) / 3 + .3), q.y + Math.sin(k * 2.4) * 22 * ((k % 3) / 3 + .3), 3, 3); });
   R.marks.forEach(m => { c.fillStyle = m[2]; c.fillRect(m[0] - 2, m[1] - 2, 4, 4); });
-  // 차
-  c.save(); c.translate(R.x, R.y); c.rotate(R.h);
-  c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(-19, -10, 40, 24);
-  c.fillStyle = '#1C1F26'; [[-13, -12], [9, -12], [-13, 8], [9, 8]].forEach(([x, y]) => c.fillRect(x, y, 9, 5));
-  if (R.tire === 'chain') { c.fillStyle = '#C9D3E3'; [[-13, -12], [9, -12], [-13, 8], [9, 8]].forEach(([x, y]) => { c.fillRect(x + 2, y, 2, 5); c.fillRect(x + 6, y, 2, 5); }); }
-  c.fillStyle = '#E3242B'; c.strokeStyle = '#17324D'; c.lineWidth = 2.5;
-  c.beginPath(); c.moveTo(-18, -9); c.lineTo(12, -9); c.quadraticCurveTo(21, -8, 21, 0); c.quadraticCurveTo(21, 8, 12, 9); c.lineTo(-18, 9); c.closePath(); c.fill(); c.stroke();
-  c.fillStyle = '#BFE6F7'; c.fillRect(0, -6, 7, 12); c.fillStyle = '#fff'; c.fillRect(-16, -1.5, 30, 3);
-  c.restore();
+  // 고스트
+  if (R.phase !== 'count') R.ghosts.forEach(g => {
+    const f = Math.min(g.pts.length / 3 - 1, R.rt / 0.1), k = Math.floor(f), u = f - k, a = k * 3, b = Math.min(g.pts.length - 3, a + 3);
+    const gx = g.pts[a] + (g.pts[b] - g.pts[a]) * u, gy = g.pts[a + 1] + (g.pts[b + 1] - g.pts[a + 1]) * u;
+    drawCar(c, gx, gy, g.pts[a + 2], g.col, 0.45, g.label, 'none');
+  });
+  else R.ghosts.forEach(g => drawCar(c, g.pts[0], g.pts[1], g.pts[2], g.col, 0.45, g.label, 'none'));
+  // 부스터 불꽃
+  if (R.boostT > 0) { c.save(); c.translate(R.x, R.y); c.rotate(R.h); c.fillStyle = Math.random() < .5 ? '#FF6A3D' : '#FFC93C'; c.beginPath(); c.moveTo(-18, -6); c.lineTo(-36 - Math.random() * 14, 0); c.lineTo(-18, 6); c.closePath(); c.fill(); c.restore(); }
+  // 내 차
+  drawCar(c, R.x, R.y, R.h, R.drifting ? '#7C4DD6' : '#E3242B', 1, '', R.tire);
   // 마찰력 화살표
   const spd = Math.hypot(R.vx, R.vy);
   if (R.phase === 'run' && spd > 15 && R.fric > 20) {
@@ -942,19 +990,59 @@ function render() {
     c.restore();
   }
 }
+function drawCar(c, x, y, h, col, alpha, label, tire) {
+  c.save(); c.globalAlpha = alpha; c.translate(x, y); c.rotate(h);
+  c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(-19, -10, 40, 24);
+  c.fillStyle = '#1C1F26'; [[-13, -12], [9, -12], [-13, 8], [9, 8]].forEach(([a, b]) => c.fillRect(a, b, 9, 5));
+  if (tire === 'chain') { c.fillStyle = '#C9D3E3'; [[-13, -12], [9, -12], [-13, 8], [9, 8]].forEach(([a, b]) => { c.fillRect(a + 2, b, 2, 5); c.fillRect(a + 6, b, 2, 5); }); }
+  c.fillStyle = col; c.strokeStyle = '#17324D'; c.lineWidth = 2.5;
+  c.beginPath(); c.moveTo(-18, -9); c.lineTo(12, -9); c.quadraticCurveTo(21, -8, 21, 0); c.quadraticCurveTo(21, 8, 12, 9); c.lineTo(-18, 9); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#BFE6F7'; c.fillRect(0, -6, 7, 12); c.fillStyle = '#fff'; c.fillRect(-16, -1.5, 30, 3);
+  c.restore();
+  if (label) { c.save(); c.globalAlpha = 0.85; c.font = 'bold 14px "Gothic A1", sans-serif'; c.textAlign = 'center'; c.lineWidth = 4; c.strokeStyle = '#fff'; c.strokeText(label, x, y - 20); c.fillStyle = col; c.fillText(label, x, y - 20); c.restore(); }
+}
 function feedback() {
   const s = R.stat, out = [];
   if (s.slopeFail > 1.2) out.push('얼어붙은 오르막에서 바퀴가 헛돌았어요. 마찰력이 작으면 바퀴가 길을 밀어 내지 못해 올라가기 어려워요.');
   if (s.slide > 2.5 && s.iceT > 3) out.push('얼음 커브에서 차가 옆으로 미끄러졌어요. 얼음은 마찰력이 작아서 방향을 바꾸기 어려워요. 미리 속도를 줄이거나 바퀴가 길을 더 꽉 붙잡게 해 봐요.');
   if (s.chainAsph > 4) out.push('체인이 아스팔트에서 덜컹거려 속도가 줄었어요. 마찰력이 필요 이상으로 크면 오히려 움직임을 방해해요.');
   if (s.off > 2) out.push(`길 밖 ${SURF[R.st.off].n}에서 속도가 뚝 떨어졌어요. 거친 곳은 마찰력이 커서 차가 금방 느려져요.`);
+  if (R.boostUsedIce) out.push('얼음에서 쓴 부스터는 바퀴가 헛돌아 힘을 다 못 냈어요. 마찰력이 있어야 바퀴가 길을 밀어 앞으로 나가요.');
   if (!out.length) out.push('타이어 선택과 운전이 이 코스에 잘 맞았어요! 마찰력을 잘 이용했어요.');
   return out.slice(0, 2);
+}
+const GCOL = { top: '#E0A800', team: '#2B6CB0', me: '#7C4DD6' };
+let GHOSTS = [[], [], [], []];
+const GCOL2 = 'friction_race_ghost';
+async function loadGhosts(i) {
+  const list = [], mine = (() => { try { return JSON.parse(localStorage.getItem(`frace_g_${S.ban}_${S.num}_${i}`) || 'null'); } catch (e) { return null; } })();
+  let all = [];
+  const x = await Promise.race([initNet(), new Promise(r => setTimeout(() => r(null), 3000))]);
+  if (x) { try { const snap = await x.collection(GCOL2).where('ban', '==', S.ban).where('stage', '==', i).get(); all = snap.docs.map(d => d.data()).filter(g => g.pts && g.pts.length > 6); } catch (e) {} }
+  const others = all.filter(g => g.num !== S.num).sort((a, b) => a.t - b.t);
+  const top = others[0];
+  if (top) list.push({ pts: top.pts, col: GCOL.top, label: `반 1등 ${top.num}번`, t: top.t });
+  const team = others.find(g => g.team === S.team && g !== top);
+  if (team) list.push({ pts: team.pts, col: GCOL.team, label: `우리 모둠 ${team.num}번`, t: team.t });
+  const me = all.find(g => g.num === S.num) || mine;
+  if (me) list.push({ pts: me.pts, col: GCOL.me, label: '내 최고 기록', t: me.t });
+  GHOSTS[i] = list;
+  return list;
+}
+function ghostHTML(list) {
+  return list.length ? '👻 함께 달릴 고스트: ' + list.map(g => `<span style="--gc:${g.col}">${g.label} ${g.t.toFixed(1)}초</span>`).join('')
+    : '<span class="soft">👻 아직 이 코스를 완주한 친구가 없어요. 내가 처음으로 기록을 세우면 친구들의 고스트가 돼요!</span>';
+}
+function renderGhostList() { $('ghostList').innerHTML = R.ghosts.map(g => `<span style="--gc:${g.col}">👻 ${g.label}</span>`).join(''); }
+async function saveGhost(i, t, tire, pts) {
+  const d = { ban: S.ban, num: S.num, team: S.team, stage: i, t, tire, pts };
+  try { localStorage.setItem(`frace_g_${S.ban}_${S.num}_${i}`, JSON.stringify(d)); } catch (e) {}
+  const x = await initNet(); if (x) { try { await x.collection(GCOL2).doc(`b${S.ban}_${S.num}_${i}`).set(d); } catch (e) {} }
 }
 function finishRace() {
   R.phase = 'done'; cancelAnimationFrame(raf); render();
   const i = R.i, t = Math.round(R.t * 10) / 10, prev = S.best[i], isBest = !prev || t < prev;
-  if (!S.locked) { S.runs++; if (isBest) { S.best[i] = t; S.bestTire[i] = R.tire; } save(); }
+  if (!S.locked) { S.runs++; if (isBest) { S.best[i] = t; S.bestTire[i] = R.tire; saveGhost(i, t, R.tire, R.rec); GHOSTS[i] = GHOSTS[i].filter(g => g.col !== GCOL.me).concat([{ pts: R.rec, col: GCOL.me, label: '내 최고 기록', t }]); } save(); }
   updateHud(); fanfare();
   const st = starsOf(i, t), next = i < 3 && unlocked(i + 1);
   $('rbox').innerHTML = `<h2>${isBest && !S.locked ? '🎉 최고 기록!' : '완주!'}</h2>
@@ -980,19 +1068,36 @@ document.querySelectorAll('.cb').forEach(b => {
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => b.addEventListener(t, () => on(false)));
   b.addEventListener('contextmenu', e => e.preventDefault());
 });
-const KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'gas', ArrowDown: 'brake', a: 'left', d: 'right', w: 'gas', s: 'brake' };
+const KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'gas', ArrowDown: 'brake', KeyA: 'left', KeyD: 'right', KeyW: 'gas', KeyS: 'brake', ShiftLeft: 'drift', ShiftRight: 'drift' };
 document.addEventListener('keydown', e => {
   if ($('sRace').hidden) return;
-  if (KEYS[e.key]) { ctl[KEYS[e.key]] = true; e.preventDefault(); }
-  if (e.key === ' ') { dropSand(); e.preventDefault(); }
+  const k = KEYS[e.code] || KEYS[e.key];
+  if (k) { ctl[k] = true; e.preventDefault(); }
+  if (e.code === 'Space' || e.key === ' ') { if (!e.repeat) dropSand(); e.preventDefault(); }
+  if (e.code === 'ControlLeft' || e.code === 'ControlRight' || e.code === 'KeyB') { if (!e.repeat) useBoost(); e.preventDefault(); }
 });
-document.addEventListener('keyup', e => { if (KEYS[e.key]) ctl[KEYS[e.key]] = false; });
+document.addEventListener('keyup', e => { const k = KEYS[e.code] || KEYS[e.key]; if (k) ctl[k] = false; });
+window.addEventListener('blur', () => Object.keys(ctl).forEach(k => ctl[k] = false));
+let seenDrift = false, seenBoost = false;
+function useBoost() {
+  if (!R || R.phase !== 'run' || R.boosts <= 0 || R.boostT > 0) return;
+  R.boosts--; R.boostT = 1.3; $('boostN').textContent = R.boosts; $('boostBtn').disabled = R.boosts <= 0; beep(220, 0.4, 'sawtooth', 0.05);
+  if (R.surf === 'ice' && TIRES[R.tire].mu.ice < 0.3) R.boostUsedIce = true;
+  if (R.surf === 'ice' && TIRES[R.tire].mu.ice < 0.3) toast('얼음 위라 바퀴가 헛돌아요! 마찰력이 작으면 부스터 힘도 길에 전해지지 않아요.');
+}
+$('boostBtn').addEventListener('pointerdown', e => { e.preventDefault(); useBoost(); });
 function dropSand() {
   if (!R || R.phase !== 'run' || R.sand <= 0) return;
   R.sand--; R.patches.push({ x: R.x, y: R.y }); $('sandN').textContent = R.sand; $('sandBtn').disabled = R.sand <= 0; beep(300, 0.12, 'triangle', 0.06);
 }
 $('sandBtn').addEventListener('pointerdown', e => { e.preventDefault(); dropSand(); });
 $('pitBtn').onclick = () => { if (R) openPit(R.i); };
+function paintAuto() { $('autoBtn').textContent = autoGas ? '자동 가속 켜짐' : '자동 가속 꺼짐'; $('autoBtn').style.background = autoGas ? '#FFC93C' : 'rgba(255,255,255,.9)'; }
+$('autoBtn').onclick = () => { autoGas = !autoGas; paintAuto(); $('autoBtn').blur(); };
+paintAuto();
+function paintAssist() { $('assistBtn').textContent = assist ? '핸들 도우미 켜짐' : '핸들 도우미 꺼짐'; $('assistBtn').style.background = assist ? '#FFC93C' : 'rgba(255,255,255,.9)'; }
+$('assistBtn').onclick = () => { assist = !assist; paintAssist(); $('assistBtn').blur(); };
+paintAssist();
 $('stuckGo').onclick = () => { if (R) openPit(R.i); };
 $('stuckX').onclick = () => { $('stuck').hidden = true; R.stuckT = 0; setTimeout(() => { if (R) R.stuckShown = false; }, 8000); };
 
@@ -1147,11 +1252,13 @@ $('bEnd').onclick = async () => {
 $('bSolo').onclick = () => { const s = $('bSoloBox'); s.hidden = !s.hidden; $('bSolo').textContent = s.hidden ? '개인 기록 보기' : '개인 기록 숨기기'; };
 $('bClear').onclick = async () => {
   if (!db) return; const ban = $('bBan').value;
-  if (!confirm(`${ban}반의 마찰력 그랑프리 기록을 모두 지울까요? 지운 기록은 되살릴 수 없어요.`)) return;
+  if (!confirm(`${ban}반의 마찰력 그랑프리 기록과 고스트를 모두 지울까요? 지운 기록은 되살릴 수 없어요.`)) return;
   const snap = await db.collection(COL).where('ban', '==', ban).get(), docs = snap.docs;
   for (let i = 0; i < docs.length; i += 400) { const b = db.batch(); docs.slice(i, i + 400).forEach(d => b.delete(d.ref)); await b.commit(); }
+  const gs = await db.collection(GCOL2).where('ban', '==', ban).get();
+  for (let i = 0; i < gs.docs.length; i += 400) { const b = db.batch(); gs.docs.slice(i, i + 400).forEach(d => b.delete(d.ref)); await b.commit(); }
   await db.collection(CTRL).doc('b' + ban).set({ ended: false, at: Date.now() });
-  alert(`${ban}반 기록 ${docs.length}개를 지웠어요.`);
+  alert(`${ban}반 기록 ${docs.length}개와 고스트 ${gs.docs.length}개를 지웠어요.`);
 };
 updateHud();
 </script>
