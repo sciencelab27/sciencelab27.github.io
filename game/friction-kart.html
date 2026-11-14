@@ -1,6 +1,6 @@
 <!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>언동 사이언스 | FRICTION KART</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#152239;color:white;font:600 16px system-ui,sans-serif;overflow:hidden}#world{width:100vw;height:100dvh;display:block}button{font:inherit;color:inherit;border:1px solid #ffffff45;background:#152239e8;border-radius:12px;cursor:pointer;padding:12px 17px;touch-action:none}button:focus-visible{outline:3px solid #8efdeb}button.active,button.primary{background:#9affde;color:#122735}#hud{position:absolute;inset:14px 14px auto;display:flex;justify-content:space-between;gap:8px;pointer-events:none}.panel{background:#142239e9;padding:10px 14px;border-radius:13px;border:1px solid #ffffff45}#speed{font-size:29px}#surface{color:#9affde}#map{width:135px;height:84px;display:block}#actions{position:absolute;top:126px;right:14px;display:flex;gap:6px}#actions button{padding:8px}#controls{position:absolute;inset:auto 16px max(13px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;pointer-events:none}#controls div{display:flex;gap:9px}#controls button{pointer-events:auto;min-width:65px;height:60px;font-size:20px;user-select:none;-webkit-user-select:none}#message{position:absolute;top:28%;left:50%;transform:translateX(-50%);max-width:90vw;text-align:center;pointer-events:none;color:#152239;background:#fff6c9;padding:8px 14px;border-radius:20px}#intro{position:absolute;inset:0;display:grid;align-items:center;padding:5vw;background:linear-gradient(90deg,#0b1528fa 0%,#0b1528d9 34%,transparent 85%);overflow:auto}#intro section{max-width:540px}h1{font-size:clamp(38px,8vw,108px);line-height:.85;margin:12px 0 20px;font-style:italic;letter-spacing:-.07em}small,.accent{color:#9affde}p{line-height:1.55}#intro button{margin:4px}#help{max-width:500px}dialog{color:white;background:#152239;border:1px solid #7892ab;border-radius:16px;width:min(92vw,470px)}dialog::backdrop{background:#111a2bb0}[hidden]{display:none!important}@media(max-height:450px){#controls button{height:52px}#intro{padding:16px 5vw}#intro h1{font-size:clamp(38px,8vw,68px)}}
+*{box-sizing:border-box}body{margin:0;background:#152239;color:white;font:600 16px system-ui,sans-serif;overflow:hidden}#world{width:100vw;height:100dvh;display:block}button{font:inherit;color:inherit;border:1px solid #ffffff45;background:#152239e8;border-radius:12px;cursor:pointer;padding:12px 17px;touch-action:none}button:focus-visible{outline:3px solid #8efdeb}button.active,button.primary{background:#9affde;color:#122735}#hud{position:absolute;inset:14px 14px auto;display:flex;justify-content:space-between;gap:8px;pointer-events:none}.panel{background:#142239e9;padding:10px 14px;border-radius:13px;border:1px solid #ffffff45}#speed{font-size:29px}#surface{color:#9affde}#map{width:135px;height:84px;display:block}#actions{position:absolute;top:126px;right:14px;display:flex;gap:6px}#actions button{padding:8px}#controls{position:absolute;inset:auto 12px max(12px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;pointer-events:none}#controls div{display:flex;gap:14px}#controls button{pointer-events:auto;min-width:108px;height:100px;font-size:30px;border-radius:22px;border-width:2px;user-select:none;-webkit-user-select:none}#message{position:absolute;top:28%;left:50%;transform:translateX(-50%);max-width:90vw;text-align:center;pointer-events:none;color:#152239;background:#fff6c9;padding:8px 14px;border-radius:20px}#intro{position:absolute;inset:0;display:grid;align-items:center;padding:5vw;background:linear-gradient(90deg,#0b1528fa 0%,#0b1528d9 34%,transparent 85%);overflow:auto}#intro section{max-width:540px}h1{font-size:clamp(38px,8vw,108px);line-height:.85;margin:12px 0 20px;font-style:italic;letter-spacing:-.07em}small,.accent{color:#9affde}p{line-height:1.55}#intro button{margin:4px}#help{max-width:500px}dialog{color:white;background:#152239;border:1px solid #7892ab;border-radius:16px;width:min(92vw,470px)}dialog::backdrop{background:#111a2bb0}[hidden]{display:none!important}#controls [data-key=gas]{min-width:136px}@media(max-height:450px){#controls button{height:80px;min-width:90px;font-size:26px}#controls [data-key=gas]{min-width:112px}#intro{padding:16px 5vw}#intro h1{font-size:clamp(38px,8vw,68px)}}
 
 select,textarea,input{font:inherit;color:inherit;background:#263a53;border:1px solid #8398ac;border-radius:8px;padding:8px}textarea{width:100%;resize:vertical}#activity{width:min(94vw,750px);max-height:90dvh;overflow:auto}#activity.wide{width:min(96vw,1150px);max-width:none}#activity button{margin:4px}#activity p{margin:8px 0}#activity h2{margin:0 0 12px}.options{display:grid}.options button{text-align:left}.trackbar{height:18px;background:#344763;border-radius:8px;position:relative;margin:6px 0 14px}.marker{position:absolute;height:18px;width:14px;border-radius:5px;background:#ff975d}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:7px;border-bottom:1px solid #ffffff30;text-align:left}details{margin:8px 0}button:disabled{opacity:.45;cursor:not-allowed}#error{color:#ffb38a;font-size:18px}#ask{z-index:10}#ask p{font-size:19px;line-height:1.5}#ask button{margin:4px 6px 0 0;min-width:84px}#copy{position:fixed;left:50%;bottom:max(4px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2;font-size:12px;opacity:.75;pointer-events:none;text-shadow:0 1px 2px #000;white-space:nowrap}.explain{background:#103b3f;border-left:4px solid #9affde;padding:10px 14px;border-radius:8px;line-height:1.65}textarea::placeholder{color:#a9b8c8}#activity .grade{width:68px}.table-scroll{overflow:auto}
 </style>
@@ -10,7 +10,7 @@ select,textarea,input{font:inherit;color:inherit;background:#263a53;border:1px s
 <div id="controls" hidden><div><button data-key="left" aria-label="왼쪽">◀</button><button data-key="right" aria-label="오른쪽">▶</button></div><div><button data-key="brake">제동</button><button data-key="gas">가속</button></div></div>
 <div id="intro"><section><small>언동 사이언스 · 3D 주행 테스트</small><h1>FRICTION<br>KART</h1><p>마찰력을 지배하라! 과학 레이싱 챔피언십</p><label>반 <select id="cls" aria-label="반"><option value="">선택</option><option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option><option value="5">5반</option></select></label> <label>모둠 <select id="group" aria-label="모둠"><option value="">선택</option><option value="1">1모둠</option><option value="2">2모둠</option><option value="3">3모둠</option><option value="4">4모둠</option><option value="5">5모둠</option><option value="6">6모둠</option><option value="7">7모둠</option></select></label><br><button id="resume" class="primary" hidden>이어서 달리기</button><button id="race" class="primary">게임 시작</button><button id="teacher" hidden>교사 모드</button><button id="start">연습 주행</button><button id="instructions">조작 방법</button><p id="resumeInfo"></p><p id="error" role="alert"></p></section></div>
 <div id="copy">Copyright 2026 sapphire</div>
-<dialog id="help"><h2>조작 방법</h2><p>태블릿을 가로로 놓고 가속과 방향 버튼을 함께 누르세요. PC에서는 방향키 또는 WASD로 조작합니다.</p><p><strong>벽에 부딪혔을 때</strong>는 가속과 방향 버튼을 함께 누르세요. 카트 앞이 트랙 방향과 맞으면 방향 버튼을 뗍니다. 멈춘 상태에서는 방향 버튼만 눌러도 돌지 않고, 후진 기능은 없어요.</p><p>얼음길은 표면이 매끄러워 마찰력이 작아요. 코너에 들어가기 전에 감속해 보세요. 모래길은 표면이 거칠어 마찰력이 커요. 가속해도 속력이 잘 붙지 않지만 제동하면 빨리 멈춰요. 같은 속력에서 제동을 시작해 아스팔트와 얼음의 정지 거리를 비교해 보세요.</p><form method="dialog"><button>닫기</button></form></dialog>
+<dialog id="help"><h2>조작 방법</h2><p>태블릿을 가로로 놓고 가속과 방향 버튼을 함께 누르세요. PC에서는 방향키 또는 WASD로 조작합니다.</p><p><strong>부스터</strong>: 주황색 화살표 발판을 밟으면 잠깐 빨라져요. 부스터 뒤에는 급커브가 있으니 미리 제동하세요. 얼음 위에서 부스터를 받으면 마찰력이 작아 방향을 바꾸기 어려워요.</p><p><strong>벽에 부딪혔을 때</strong>는 가속과 방향 버튼을 함께 누르세요. 카트 앞이 트랙 방향과 맞으면 방향 버튼을 뗍니다. 멈춘 상태에서는 방향 버튼만 눌러도 돌지 않고, 후진 기능은 없어요.</p><p>얼음길은 표면이 매끄러워 마찰력이 작아요. 코너에 들어가기 전에 감속해 보세요. 모래길은 표면이 거칠어 마찰력이 커요. 가속해도 속력이 잘 붙지 않지만 제동하면 빨리 멈춰요. 같은 속력에서 제동을 시작해 아스팔트와 얼음의 정지 거리를 비교해 보세요.</p><form method="dialog"><button>닫기</button></form></dialog>
 <dialog id="activity"></dialog><dialog id="ask" aria-labelledby="askText"><p id="askText"></p><button id="askYes" class="primary">예</button><button id="askNo">아니요</button></dialog><script>
 'use strict';
 const byId = id => document.getElementById(id);
@@ -77,20 +77,55 @@ const surfaces=[
 ];
 const count=240, track=[], obstacles=[];
 const stages=['드라이빙 스쿨','아이스 드리프트','프릭션 그랑프리'];
+const courses=[
+ [[0,45],[45,46],[70,40],[80,18],[66,-4],[74,-28],[54,-46],[0,-46],[-50,-45],[-74,-28],[-78,8],[-68,36],[-40,46]],
+ [[-55,46],[10,47],[60,46],[82,34],[74,16],[50,18],[30,14],[24,-6],[44,-18],[72,-20],[82,-38],[62,-51],[0,-48],[-45,-50],[-76,-36],[-81,0],[-77,30]],
+ [[0,52],[45,53],[78,47],[93,28],[84,8],[64,4],[50,-8],[56,-24],[74,-32],[74,-50],[42,-57],[0,-52],[-34,-57],[-60,-48],[-66,-30],[-50,-18],[-56,-2],[-80,6],[-90,32],[-64,52],[-30,50]]
+];
+const branchRange=[102,142], TOP=22, WALL_KEEP=.35, WALL_DRAG=3;
+const boosterPads=[[12,118],[20,160],[6,106,196]];
+let boosters=[];
+function surfaceAt(i){
+ if(practice)return i>=54&&i<106?1:i>=145&&i<188?2:0;
+ if(stage===0)return 0;
+ if(stage===1)return i>=56&&i<112?1:0;
+ return i>=36&&i<62||i>=branchRange[0]&&i<branchRange[1]&&route!=='B'?1:i>=147&&i<185?2:0;
+}
+function spline(p0,p1,p2,p3,t){
+ const gap=(a,b)=>Math.sqrt(Math.hypot(b[0]-a[0],b[1]-a[1]))||1e-4;
+ const t1=gap(p0,p1),t2=t1+gap(p1,p2),t3=t2+gap(p2,p3),u=t1+(t2-t1)*t;
+ const mix=(a,b,ta,tb)=>[0,1].map(k=>((tb-u)*a[k]+(u-ta)*b[k])/(tb-ta));
+ const a1=mix(p0,p1,0,t1),a2=mix(p1,p2,t1,t2),a3=mix(p2,p3,t2,t3);
+ return mix(mix(a1,a2,0,t2),mix(a2,a3,t1,t3),t1,t2);
+}
 let stage=0, half=7.7, route='', scenery;
 function buildTrack(){
  track.length=0;obstacles.length=0;
  half=[8.6,7.7,7.5][stage];
-const course=t=>{
- const i=t*count/(2*Math.PI);
- const branch=stage===2&&i>108&&i<159?Math.sin(Math.PI*(i-108)/51)**2:0;
- if(stage===0)return [59*Math.sin(t),45*Math.cos(t)];
- if(stage===1)return [62*Math.sin(t)+5*Math.sin(2*t),46*Math.cos(t)-7*Math.cos(2*t)];
- return [75*Math.sin(t)+6*Math.sin(3*t),49*Math.cos(t)-9*Math.cos(2*t)-(route==='B'?21:0)*branch];
-};
+const waypoints=courses[stage],n=waypoints.length,dense=[];
+for(let k=0;k<n;k++)for(let m=0;m<60;m++)dense.push(spline(waypoints[(k-1+n)%n],waypoints[k],waypoints[(k+1)%n],waypoints[(k+2)%n],m/60));
+const cum=[0];
+for(let k=1;k<=dense.length;k++){const a=dense[k-1],b=dense[k%dense.length];cum.push(cum[k-1]+Math.hypot(b[0]-a[0],b[1]-a[1]))}
+const total=cum.at(-1),raw=[];
+for(let k=0,m=0;k<count;k++){
+ const target=total*k/count;while(cum[m+1]<target)m++;
+ const f=(target-cum[m])/(cum[m+1]-cum[m]),a=dense[m],b=dense[(m+1)%dense.length];
+ raw.push([a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f]);
+}
+if(stage===2&&route==='B'&&!practice){
+ const shifted=raw.map(p=>p.slice());
+ for(let k=branchRange[0];k<branchRange[1];k++){
+  const a=raw[k-1],b=raw[k+1],len=Math.hypot(b[0]-a[0],b[1]-a[1]);
+  let nx=(b[1]-a[1])/len,nz=-(b[0]-a[0])/len;
+  if(nx*raw[k][0]+nz*raw[k][1]<0){nx=-nx;nz=-nz}
+  const w=Math.sin(Math.PI*(k-branchRange[0])/(branchRange[1]-branchRange[0]))**2*22;
+  shifted[k]=[raw[k][0]+nx*w,raw[k][1]+nz*w];
+ }
+ raw.splice(0,count,...shifted);
+}
 for(let i=0;i<count;i++){
- const t=i*2*Math.PI/count,[x,z]=course(t),[a,b]=course(t+.001), length=Math.hypot(a-x,b-z);
- track.push({x,z,dx:(a-x)/length,dz:(b-z)/length,type:practice?(i>=54&&i<106?1:i>=145&&i<188?2:0):stage===0?0:stage===1?(i>=54&&i<106?1:0):(i>=39&&i<70||i>=108&&i<159&&route!=='B'?1:i>=168&&i<204?2:0)});
+ const [x,z]=raw[i],a=raw[(i-1+count)%count],b=raw[(i+1)%count],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
+ track.push({x,z,dx:(b[0]-a[0])/length,dz:(b[1]-a[1])/length,type:surfaceAt(i)});
 }
 const point=(p,offset,y)=>[p.x+p.dz*offset,y,p.z-p.dx*offset];
 for(let x=-240;x<240;x+=20) for(let z=-240;z<240;z+=20){
@@ -125,8 +160,20 @@ for(let i=0;i<110;i++){
   triangle([x+Math.cos(a)*2,h*.36,z+Math.sin(a)*2],[x+Math.cos(b)*2,h*.36,z+Math.sin(b)*2],[x,h+1,z],tint.map(n=>n*(.78+k*.055)));
  }
 }
+boosters=boosterPads[stage];
+for(const pad of boosters){
+ for(let k=0;k<3;k++){
+  const p=track[(pad+k)%count],q=track[(pad+k+1)%count];
+  quad(point(p,-half+.5,.035),point(q,-half+.5,.035),point(q,half-.5,.035),point(p,half-.5,.035),k%2?[1,.78,.16]:[1,.5,.12]);
+  for(const lane of [-half/2,0,half/2]){
+   const tip=point(q,lane,.05);
+   triangle(point(p,lane-1.1,.05),point(p,lane-.45,.05),tip,[1,1,.95]);
+   triangle(point(p,lane+.45,.05),point(p,lane+1.1,.05),tip,[1,1,.95]);
+  }
+ }
+}
 if(!practice&&stage===2){
- for(const [index,offset] of [[81,3.7],[185,-3.9],[205,3.8]]){
+ for(const [index,offset] of [[75,3.4],[170,3.6],[208,-3.8]].concat(route==='B'?[]:[[124,-2.6]])){
   const [x,,z]=point(track[index],offset,0);
   obstacles.push({x,z});
   box(x,0,z,1.8,.87,1.8,[.95,.40,.16]);
@@ -170,13 +217,13 @@ const buttons=[...document.querySelectorAll('[data-key]')];
 const held=key=>[...keys].some(code=>bindings[code]===key)||[...touches.values()].includes(key);
 function clearInput(){keys.clear();touches.clear()}
 let practice=true, playing=false,x,z,heading,vx,vz,segment,time,crashes,lap,gate,lastCrash,notice,noticeUntil,camera;
-let braking,brakeDistance,brakeSurface,lastBrake,lastHint=-10;
+let braking,brakeDistance,brakeSurface,lastBrake,lastHint=-10,boostUntil=-10;
 function place(i){
  const p=track[i];x=p.x;z=p.z;heading=Math.atan2(p.dx,p.dz);vx=vz=0;segment=i;camera=null;
 }
 function restart(){
  clearInput();place(2);time=0;crashes=0;lap=0;gate=60;lastCrash=-10;notice='';noticeUntil=0;
- braking=false;lastBrake=null;lastHint=-10;
+ braking=false;lastBrake=null;lastHint=-10;boostUntil=-10;
 }
 function showGame(value){
  playing=value;clearInput();byId('intro').hidden=value;
@@ -221,7 +268,8 @@ function physics(dt){
  heading+=steer*road.steer*Math.min(1,speed/3.2)*Math.max(.54,1-speed*.016)*1.48*dt;
  const fx=Math.sin(heading),fz=Math.cos(heading);
  let longitudinal=vx*fx+vz*fz,lateral=vx*fz-vz*fx;
- if(gas&&!brake)longitudinal+=road.acc*Math.max(0,1-longitudinal/33)*dt;
+ if(gas&&!brake)longitudinal+=road.acc*Math.max(0,1-longitudinal/TOP)*dt;
+ if(time<boostUntil&&!brake)longitudinal+=16*Math.max(0,1-longitudinal/(TOP+11))*dt;
  if(brake)longitudinal=Math.sign(longitudinal)*Math.max(0,Math.abs(longitudinal)-road.brake*dt);
  longitudinal*=Math.exp(-road.drag*dt);lateral*=Math.exp(-(road.grip+road.drag)*dt);
  vx=longitudinal*fx+lateral*fz;vz=longitudinal*fz-lateral*fx;
@@ -245,9 +293,10 @@ function physics(dt){
   x-=p.dz*correction;z+=p.dx*correction;
   const outward=(vx*p.dz-vz*p.dx)*sign;
   if(outward>0){
-   vx=(vx-1.32*outward*p.dz*sign)*.68;vz=(vz+1.32*outward*p.dx*sign)*.68;
+   const keep=outward>1.25?(p.type===1?.18:WALL_KEEP):.68;vx=(vx-1.32*outward*p.dz*sign)*keep;vz=(vz+1.32*outward*p.dx*sign)*keep;
    if(outward>1.25&&time-lastCrash>.75){crashes++;lastCrash=time;announce('벽 충돌! 가속 + 방향 버튼을 함께 눌러 빠져나오세요');lastHint=time}
   }
+  vx*=Math.exp(-WALL_DRAG*dt);vz*=Math.exp(-WALL_DRAG*dt);
   braking=false;
   if(Math.hypot(vx,vz)<1.5&&time-lastHint>3){lastHint=time;announce('벽에 붙었어요! 가속 + 방향 버튼을 함께 누르세요')}
  }
@@ -262,6 +311,10 @@ function physics(dt){
   if(gate===0){lap++;announce(lap+'바퀴 완주!');if(!practice&&lap===lapTargets[stage]){stageFinish();return}}else announce('체크포인트 '+gate/60+'/3');
   gate=(gate+60)%count;
  }
+ if(advanced>0&&advanced<6)for(const pad of boosters){
+  const delta=(pad-oldSegment+count)%count;
+  if(delta>0&&delta<=advanced){boostUntil=time+1.3;announce(track[segment].type===1?'얼음 위 부스터! 미끄러지지 않게 조심':'부스터! 다음 커브 전에 제동 준비');break}
+ }
  const entered=track[segment].type;
  if(entered!==type){if(entered===1)announce('얼음길 · 마찰력이 작아요! 코너 전에 감속');else if(entered===2)announce('모래길 · 거칠어서 마찰력이 커요');}
  if(!practice&&advanced>0&&advanced<6){
@@ -274,12 +327,15 @@ function physics(dt){
 const map=byId('map').getContext('2d');
 function minimap(){
  map.clearRect(0,0,270,168);
- const mx=x=>135+x*1.48,mz=z=>79-z*1.35;
+ let x0=Infinity,x1=-Infinity,z0=Infinity,z1=-Infinity;
+ for(const p of track){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z)}
+ const scale=Math.min(246/(x1-x0),144/(z1-z0)),mx=v=>135+(v-(x0+x1)/2)*scale,mz=v=>84-(v-(z0+z1)/2)*scale;
  map.lineWidth=7;
  for(let i=0;i<count;i++){
   const p=track[i],q=track[(i+1)%count];
   map.strokeStyle=['#98a9bf','#77e7ff','#e9b77b'][p.type];map.beginPath();map.moveTo(mx(p.x),mz(p.z));map.lineTo(mx(q.x),mz(q.z));map.stroke();
  }
+ map.fillStyle='#ffb020';for(const pad of boosters){const p=track[pad];map.beginPath();map.arc(mx(p.x),mz(p.z),4,0,Math.PI*2);map.fill()}
  map.fillStyle='#a2ff8c';map.beginPath();map.arc(mx(x),mz(z),6,0,Math.PI*2);map.fill();
 }
 function render(dt){
@@ -311,7 +367,7 @@ function render(dt){
  }
 }
 const activity=byId('activity');
-const lapTargets=[1,1,2], missionGates=[[],[[0,48],[1,129]],[[2,101],[3,220]]];
+const lapTargets=[1,1,2], missionGates=[[],[[0,48],[1,129]],[[2,96],[3,220]]];
 const COL='frictionKart', SAVE_KEY='friction-kart-save-v2', RESULT_KEY='friction-kart-result-v2';
 const FB_SDK='https://www.gstatic.com/firebasejs/10.12.2/';
 let paused=false, cls=1, group=1, answers=[], splits=[], iceSlip=0, reflection='', result=null;
@@ -492,7 +548,7 @@ function openMission(id){
    const correct=choice===m.correct;
    function finish(){
     answers[id]={first,choice,reason,retried,points:id===2?0:correct?(id===3?5:15):0};
-    if(id===2){route=choice===0?'A':'B';buildTrack();place(103)}
+    if(id===2){route=choice===0?'A':'B';buildTrack();place(97)}
     autosave(true);
     const verdict=m.correct===undefined?'':'<p>'+(correct?'정답이에요!':'정답은 「'+m.options[m.correct]+'」예요.')+'</p>';
     panel('<small>마찰력으로 정리</small><h2>'+m.title+'</h2>'+verdict+'<p class="explain">'+m.explain+'</p><button id="explainNext" class="primary">계속 달리기</button>');
