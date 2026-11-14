@@ -1,16 +1,16 @@
 <!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>언동 사이언스 | FRICTION KART</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#152239;color:white;font:600 16px system-ui,sans-serif;overflow:hidden}#world{width:100vw;height:100dvh;display:block}button{font:inherit;color:inherit;border:1px solid #ffffff45;background:#152239e8;border-radius:12px;cursor:pointer;padding:12px 17px;touch-action:none}button:focus-visible{outline:3px solid #8efdeb}button.active,button.primary{background:#9affde;color:#122735}#hud{position:absolute;inset:14px 14px auto;display:flex;justify-content:space-between;gap:8px;pointer-events:none}.panel{background:#142239e9;padding:10px 14px;border-radius:13px;border:1px solid #ffffff45}#speed{font-size:29px}#surface{color:#9affde}#map{width:135px;height:84px;display:block}#actions{position:absolute;top:126px;right:14px;display:flex;gap:6px}#actions button{padding:8px}#controls{position:absolute;inset:auto 12px max(12px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;pointer-events:none}#controls div{display:flex;gap:14px}#controls button{pointer-events:auto;min-width:108px;height:100px;font-size:30px;border-radius:22px;border-width:2px;user-select:none;-webkit-user-select:none}#message{position:absolute;top:28%;left:50%;transform:translateX(-50%);max-width:90vw;text-align:center;pointer-events:none;color:#152239;background:#fff6c9;padding:8px 14px;border-radius:20px}#intro{position:absolute;inset:0;display:grid;align-items:center;padding:5vw;background:linear-gradient(90deg,#0b1528fa 0%,#0b1528d9 34%,transparent 85%);overflow:auto}#intro section{max-width:540px}h1{font-size:clamp(38px,8vw,108px);line-height:.85;margin:12px 0 20px;font-style:italic;letter-spacing:-.07em}small,.accent{color:#9affde}p{line-height:1.55}#intro button{margin:4px}#help{max-width:500px}dialog{color:white;background:#152239;border:1px solid #7892ab;border-radius:16px;width:min(92vw,470px)}dialog::backdrop{background:#111a2bb0}[hidden]{display:none!important}#controls [data-key=gas]{min-width:136px}@media(max-height:450px){#controls button{height:80px;min-width:90px;font-size:26px}#controls [data-key=gas]{min-width:112px}#intro{padding:16px 5vw}#intro h1{font-size:clamp(38px,8vw,68px)}}
+*{box-sizing:border-box}body{margin:0;background:#152239;color:white;font:600 16px system-ui,sans-serif;overflow:hidden}#world{width:100vw;height:100dvh;display:block}button{font:inherit;color:inherit;border:1px solid #ffffff45;background:#152239e8;border-radius:12px;cursor:pointer;padding:12px 17px;touch-action:none}button:focus-visible{outline:3px solid #8efdeb}button.active,button.primary{background:#9affde;color:#122735}#hud{position:absolute;inset:14px 14px auto;display:flex;justify-content:space-between;gap:8px;pointer-events:none}.panel{background:#142239e9;padding:10px 14px;border-radius:13px;border:1px solid #ffffff45}#speed{font-size:29px}#surface{color:#9affde}#map{width:135px;height:84px;display:block}#actions{position:absolute;top:126px;right:14px;display:flex;gap:6px}#actions button{padding:8px}#controls{position:absolute;inset:auto 12px max(12px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;pointer-events:none}#controls div{display:flex;gap:14px}#controls button{pointer-events:auto;min-width:108px;height:100px;font-size:30px;border-radius:22px;border-width:2px;user-select:none;-webkit-user-select:none}#message{position:absolute;top:28%;left:50%;transform:translateX(-50%);max-width:90vw;text-align:center;pointer-events:none;color:#152239;background:#fff6c9;padding:8px 14px;border-radius:20px}#intro{position:absolute;inset:0;display:grid;align-items:center;padding:5vw;background:linear-gradient(90deg,#0b1528fa 0%,#0b1528d9 34%,transparent 85%);overflow:auto}#intro section{max-width:540px}h1{font-size:clamp(38px,8vw,108px);line-height:.85;margin:12px 0 20px;font-style:italic;letter-spacing:-.07em}small,.accent{color:#9affde}p{line-height:1.55}#intro button{margin:4px}#help{max-width:500px}dialog{color:white;background:#152239;border:1px solid #7892ab;border-radius:16px;width:min(92vw,470px)}dialog::backdrop{background:#111a2bb0}[hidden]{display:none!important}#controls [data-key=gas]{min-width:136px}#gauge{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:min(34vw,360px);height:22px;border-radius:12px;background:#0d1626d9;border:2px solid #ffffff70;overflow:hidden}#gaugeFill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#ffb000,#ffe45c);transition:width .15s}#gauge b{position:relative;display:block;width:100%;text-align:center;font-size:13px;line-height:18px;color:#fff;text-shadow:0 1px 2px #000}#controls #boostBtn{position:absolute;right:0;bottom:114px;min-width:0;width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff7a6b,#d81e1e 60%,#8c0f0f);border:3px solid #ffd6d0;font-size:20px;display:grid;place-items:center;box-shadow:0 0 18px #ff3b2f99}#boostBtn span{font-weight:800}#boostBtn i{position:absolute;top:-6px;right:-6px;font-style:normal;background:#ffe45c;color:#3a1500;border-radius:50%;width:32px;height:32px;line-height:32px;font-size:18px;font-weight:800}#controls #boostBtn:disabled{filter:grayscale(1) brightness(.6);box-shadow:none;opacity:1}#boostBtn.firing{animation:fire .25s infinite alternate}@keyframes fire{to{transform:scale(1.08);box-shadow:0 0 34px #ffb000}}@media(max-height:450px){#controls button{height:80px;min-width:90px;font-size:26px}#controls #boostBtn{width:84px;height:84px;bottom:92px;font-size:17px}#gauge{bottom:14px}#controls [data-key=gas]{min-width:112px}#intro{padding:16px 5vw}#intro h1{font-size:clamp(38px,8vw,68px)}}
 
 select,textarea,input{font:inherit;color:inherit;background:#263a53;border:1px solid #8398ac;border-radius:8px;padding:8px}textarea{width:100%;resize:vertical}#activity{width:min(94vw,750px);max-height:90dvh;overflow:auto}#activity.wide{width:min(96vw,1150px);max-width:none}#activity button{margin:4px}#activity p{margin:8px 0}#activity h2{margin:0 0 12px}.options{display:grid}.options button{text-align:left}.trackbar{height:18px;background:#344763;border-radius:8px;position:relative;margin:6px 0 14px}.marker{position:absolute;height:18px;width:14px;border-radius:5px;background:#ff975d}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:7px;border-bottom:1px solid #ffffff30;text-align:left}details{margin:8px 0}button:disabled{opacity:.45;cursor:not-allowed}#error{color:#ffb38a;font-size:18px}#ask{z-index:10}#ask p{font-size:19px;line-height:1.5}#ask button{margin:4px 6px 0 0;min-width:84px}#copy{position:fixed;left:50%;bottom:max(4px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2;font-size:12px;opacity:.75;pointer-events:none;text-shadow:0 1px 2px #000;white-space:nowrap}.explain{background:#103b3f;border-left:4px solid #9affde;padding:10px 14px;border-radius:8px;line-height:1.65}textarea::placeholder{color:#a9b8c8}#activity .grade{width:68px}.table-scroll{overflow:auto}
 </style>
 <canvas id="world" aria-label="3D 카트 트랙"></canvas>
 <div id="hud" hidden><div class="panel"><span id="speed">0</span> km/h<br><span id="surface"></span><br><small id="stats"></small></div><div class="panel"><canvas id="map" width="270" height="168" aria-label="트랙 미니맵"></canvas></div></div>
 <div id="actions" hidden><button id="reset">재출발</button><button id="home">홈</button></div><div id="message" hidden></div>
-<div id="controls" hidden><div><button data-key="left" aria-label="왼쪽">◀</button><button data-key="right" aria-label="오른쪽">▶</button></div><div><button data-key="brake">제동</button><button data-key="gas">가속</button></div></div>
+<div id="controls" hidden><div id="gauge" aria-hidden="true"><span id="gaugeFill"></span><b>부스터 게이지</b></div><button id="boostBtn" aria-label="부스터 사용" disabled><span>부스터</span><i id="boostCount">0</i></button><div><button data-key="left" aria-label="왼쪽">◀</button><button data-key="right" aria-label="오른쪽">▶</button></div><div><button data-key="brake">제동</button><button data-key="gas">가속</button></div></div>
 <div id="intro"><section><small>언동 사이언스 · 3D 주행 테스트</small><h1>FRICTION<br>KART</h1><p>마찰력을 지배하라! 과학 레이싱 챔피언십</p><label>반 <select id="cls" aria-label="반"><option value="">선택</option><option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option><option value="5">5반</option></select></label> <label>모둠 <select id="group" aria-label="모둠"><option value="">선택</option><option value="1">1모둠</option><option value="2">2모둠</option><option value="3">3모둠</option><option value="4">4모둠</option><option value="5">5모둠</option><option value="6">6모둠</option><option value="7">7모둠</option></select></label><br><button id="resume" class="primary" hidden>이어서 달리기</button><button id="race" class="primary">게임 시작</button><button id="teacher" hidden>교사 모드</button><button id="start">연습 주행</button><button id="instructions">조작 방법</button><p id="resumeInfo"></p><p id="error" role="alert"></p></section></div>
 <div id="copy">Copyright 2026 sapphire</div>
-<dialog id="help"><h2>조작 방법</h2><p>태블릿을 가로로 놓고 가속과 방향 버튼을 함께 누르세요. PC에서는 방향키 또는 WASD로 조작합니다.</p><p><strong>부스터</strong>: 주황색 화살표 발판을 밟으면 잠깐 빨라져요. 부스터 뒤에는 급커브가 있으니 미리 제동하세요. 얼음 위에서 부스터를 받으면 마찰력이 작아 방향을 바꾸기 어려워요.</p><p><strong>벽에 부딪혔을 때</strong>는 가속과 방향 버튼을 함께 누르세요. 카트 앞이 트랙 방향과 맞으면 방향 버튼을 뗍니다. 멈춘 상태에서는 방향 버튼만 눌러도 돌지 않고, 후진 기능은 없어요.</p><p>얼음길은 표면이 매끄러워 마찰력이 작아요. 코너에 들어가기 전에 감속해 보세요. 모래길은 표면이 거칠어 마찰력이 커요. 가속해도 속력이 잘 붙지 않지만 제동하면 빨리 멈춰요. 같은 속력에서 제동을 시작해 아스팔트와 얼음의 정지 거리를 비교해 보세요.</p><form method="dialog"><button>닫기</button></form></dialog>
+<dialog id="help"><h2>조작 방법</h2><p>태블릿을 가로로 놓고 가속과 방향 버튼을 함께 누르세요. PC에서는 방향키 또는 WASD로 조작합니다.</p><p><strong>부스터</strong>: 가속하며 달리면 아래 노란 게이지가 차요. 가속과 방향 버튼을 함께 눌러 코너를 돌면 더 빨리 차요. 게이지가 가득 차면 빨간 부스터가 생기고(최대 2개), 빨간 버튼(PC는 스페이스바)을 누르면 잠깐 빨라져요. 벽에 세게 부딪히면 게이지가 줄어들어요. 얼음 위에서 쓰면 마찰력이 작아 방향을 바꾸기 어려우니 조심하세요.</p><p><strong>벽에 부딪혔을 때</strong>는 가속과 방향 버튼을 함께 누르세요. 카트 앞이 트랙 방향과 맞으면 방향 버튼을 뗍니다. 멈춘 상태에서는 방향 버튼만 눌러도 돌지 않고, 후진 기능은 없어요.</p><p>얼음길은 표면이 매끄러워 마찰력이 작아요. 코너에 들어가기 전에 감속해 보세요. 모래길은 표면이 거칠어 마찰력이 커요. 가속해도 속력이 잘 붙지 않지만 제동하면 빨리 멈춰요. 같은 속력에서 제동을 시작해 아스팔트와 얼음의 정지 거리를 비교해 보세요.</p><form method="dialog"><button>닫기</button></form></dialog>
 <dialog id="activity"></dialog><dialog id="ask" aria-labelledby="askText"><p id="askText"></p><button id="askYes" class="primary">예</button><button id="askNo">아니요</button></dialog><script>
 'use strict';
 const byId = id => document.getElementById(id);
@@ -83,8 +83,6 @@ const courses=[
  [[0,52],[45,53],[78,47],[93,28],[84,8],[64,4],[50,-8],[56,-24],[74,-32],[74,-50],[42,-57],[0,-52],[-34,-57],[-60,-48],[-66,-30],[-50,-18],[-56,-2],[-80,6],[-90,32],[-64,52],[-30,50]]
 ];
 const branchRange=[102,142], TOP=22, WALL_KEEP=.35, WALL_DRAG=3;
-const boosterPads=[[12,118],[20,160],[6,106,196]];
-let boosters=[];
 function surfaceAt(i){
  if(practice)return i>=54&&i<106?1:i>=145&&i<188?2:0;
  if(stage===0)return 0;
@@ -160,18 +158,6 @@ for(let i=0;i<110;i++){
   triangle([x+Math.cos(a)*2,h*.36,z+Math.sin(a)*2],[x+Math.cos(b)*2,h*.36,z+Math.sin(b)*2],[x,h+1,z],tint.map(n=>n*(.78+k*.055)));
  }
 }
-boosters=boosterPads[stage];
-for(const pad of boosters){
- for(let k=0;k<3;k++){
-  const p=track[(pad+k)%count],q=track[(pad+k+1)%count];
-  quad(point(p,-half+.5,.035),point(q,-half+.5,.035),point(q,half-.5,.035),point(p,half-.5,.035),k%2?[1,.78,.16]:[1,.5,.12]);
-  for(const lane of [-half/2,0,half/2]){
-   const tip=point(q,lane,.05);
-   triangle(point(p,lane-1.1,.05),point(p,lane-.45,.05),tip,[1,1,.95]);
-   triangle(point(p,lane+.45,.05),point(p,lane+1.1,.05),tip,[1,1,.95]);
-  }
- }
-}
 if(!practice&&stage===2){
  for(const [index,offset] of [[75,3.4],[170,3.6],[208,-3.8]].concat(route==='B'?[]:[[124,-2.6]])){
   const [x,,z]=point(track[index],offset,0);
@@ -183,6 +169,7 @@ if(!practice&&stage===2){
 if(scenery)gl.deleteBuffer(scenery.buffer);scenery=mesh();
 }
 box(0,.08,0,2.3,.025,3.2,[.13,.18,.22]);const shadow=mesh();
+for(const side of [-.45,.45]){box(side,.32,-2.05,.42,.34,.8,[1,.42,.08]);box(side,.38,-2.45,.24,.2,.55,[1,.9,.35])}const flame=mesh();
 box(0,.33,0,1.55,.38,2.55,[.98,.36,.16]);
 box(0,.55,.73,1.25,.33,1.0,[.99,.57,.21]);
 box(0,.57,-.35,.84,.4,.75,[.13,.21,.32]);
@@ -214,16 +201,24 @@ const keys=new Set(), touches=new Map(), bindings={
  ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'gas',w:'gas',ArrowDown:'brake',s:'brake'
 };
 const buttons=[...document.querySelectorAll('[data-key]')];
+byId('boostBtn').onpointerdown=event=>{event.preventDefault();useBoost()};
+byId('boostBtn').oncontextmenu=event=>event.preventDefault();
 const held=key=>[...keys].some(code=>bindings[code]===key)||[...touches.values()].includes(key);
 function clearInput(){keys.clear();touches.clear()}
 let practice=true, playing=false,x,z,heading,vx,vz,segment,time,crashes,lap,gate,lastCrash,notice,noticeUntil,camera;
-let braking,brakeDistance,brakeSurface,lastBrake,lastHint=-10,boostUntil=-10;
+let braking,brakeDistance,brakeSurface,lastBrake,lastHint=-10,boostUntil=-10,gauge=0,boostItems=0,lastGaugeUI='';
+const BOOST_MAX=2;
+function useBoost(){
+ if(!playing||paused||boostItems<1)return;
+ boostItems--;boostUntil=Math.max(time,boostUntil)+1.5;
+ announce(track[segment].type===1?'얼음 위 부스터! 마찰력이 작아 미끄러져요':'부스터!');
+}
 function place(i){
  const p=track[i];x=p.x;z=p.z;heading=Math.atan2(p.dx,p.dz);vx=vz=0;segment=i;camera=null;
 }
 function restart(){
  clearInput();place(2);time=0;crashes=0;lap=0;gate=60;lastCrash=-10;notice='';noticeUntil=0;
- braking=false;lastBrake=null;lastHint=-10;boostUntil=-10;
+ braking=false;lastBrake=null;lastHint=-10;boostUntil=-10;gauge=0;boostItems=0;
 }
 function showGame(value){
  playing=value;clearInput();byId('intro').hidden=value;
@@ -235,6 +230,7 @@ byId('home').onclick=async()=>{if(practice||await ask('주행을 멈추고 홈�
 byId('reset').onclick=async()=>{if(practice)restart();else if(await ask('이 모둠의 이번 주행을 처음부터 다시 시작할까요?'))begin(false,true)};
 window.addEventListener('keydown',event=>{
  const key=event.key.length===1?event.key.toLowerCase():event.key;
+ if(playing&&!paused&&!event.repeat&&(key===' '||key==='b')&&!document.querySelector('dialog[open]')){event.preventDefault();useBoost();return}
  if(playing&&bindings[key]){event.preventDefault();keys.add(key)}
 });
 window.addEventListener('keyup',event=>keys.delete(event.key.length===1?event.key.toLowerCase():event.key));
@@ -269,6 +265,14 @@ function physics(dt){
  const fx=Math.sin(heading),fz=Math.cos(heading);
  let longitudinal=vx*fx+vz*fz,lateral=vx*fz-vz*fx;
  if(gas&&!brake)longitudinal+=road.acc*Math.max(0,1-longitudinal/TOP)*dt;
+ if(gas&&!brake&&speed>4&&time>=boostUntil){
+  gauge+=dt/16;
+  if(steer&&speed>5)gauge+=dt/6;
+  if(gauge>=1){
+   if(boostItems<BOOST_MAX){boostItems++;gauge=0;announce('빨간 부스터 생성! 부스터 버튼을 누르세요')}
+   else gauge=1;
+  }
+ }
  if(time<boostUntil&&!brake)longitudinal+=16*Math.max(0,1-longitudinal/(TOP+11))*dt;
  if(brake)longitudinal=Math.sign(longitudinal)*Math.max(0,Math.abs(longitudinal)-road.brake*dt);
  longitudinal*=Math.exp(-road.drag*dt);lateral*=Math.exp(-(road.grip+road.drag)*dt);
@@ -294,7 +298,7 @@ function physics(dt){
   const outward=(vx*p.dz-vz*p.dx)*sign;
   if(outward>0){
    const keep=outward>1.25?(p.type===1?.18:WALL_KEEP):.68;vx=(vx-1.32*outward*p.dz*sign)*keep;vz=(vz+1.32*outward*p.dx*sign)*keep;
-   if(outward>1.25&&time-lastCrash>.75){crashes++;lastCrash=time;announce('벽 충돌! 가속 + 방향 버튼을 함께 눌러 빠져나오세요');lastHint=time}
+   if(outward>1.25&&time-lastCrash>.75){gauge=Math.max(0,gauge-.3);crashes++;lastCrash=time;announce('벽 충돌! 가속 + 방향 버튼을 함께 눌러 빠져나오세요');lastHint=time}
   }
   vx*=Math.exp(-WALL_DRAG*dt);vz*=Math.exp(-WALL_DRAG*dt);
   braking=false;
@@ -310,10 +314,6 @@ function physics(dt){
  if(advanced>0&&advanced<6&&remaining>0&&remaining<=advanced){
   if(gate===0){lap++;announce(lap+'바퀴 완주!');if(!practice&&lap===lapTargets[stage]){stageFinish();return}}else announce('체크포인트 '+gate/60+'/3');
   gate=(gate+60)%count;
- }
- if(advanced>0&&advanced<6)for(const pad of boosters){
-  const delta=(pad-oldSegment+count)%count;
-  if(delta>0&&delta<=advanced){boostUntil=time+1.3;announce(track[segment].type===1?'얼음 위 부스터! 미끄러지지 않게 조심':'부스터! 다음 커브 전에 제동 준비');break}
  }
  const entered=track[segment].type;
  if(entered!==type){if(entered===1)announce('얼음길 · 마찰력이 작아요! 코너 전에 감속');else if(entered===2)announce('모래길 · 거칠어서 마찰력이 커요');}
@@ -335,7 +335,6 @@ function minimap(){
   const p=track[i],q=track[(i+1)%count];
   map.strokeStyle=['#98a9bf','#77e7ff','#e9b77b'][p.type];map.beginPath();map.moveTo(mx(p.x),mz(p.z));map.lineTo(mx(q.x),mz(q.z));map.stroke();
  }
- map.fillStyle='#ffb020';for(const pad of boosters){const p=track[pad];map.beginPath();map.arc(mx(p.x),mz(p.z),4,0,Math.PI*2);map.fill()}
  map.fillStyle='#a2ff8c';map.beginPath();map.arc(mx(x),mz(z),6,0,Math.PI*2);map.fill();
 }
 function render(dt){
@@ -357,12 +356,21 @@ function render(dt){
  gl.uniform3fv(locations.right,right);gl.uniform3fv(locations.up,cross(forward,right));
  gl.uniform1f(locations.aspect,width/Math.max(1,height));
  draw(scenery);draw(shadow,x,0,z,heading);draw(kart,x,0,z,heading);
+ if(playing&&time<boostUntil&&Math.floor(time*24)%2===0)draw(flame,x,0,z,heading);
  if(playing){
   byId('speed').textContent=Math.round(speed*3.6);
   byId('surface').textContent=surfaces[track[segment].type].name;
   byId('stats').textContent=(practice?'연습 · ':stages[stage]+' · ')+time.toFixed(1)+'초 · 충돌 '+crashes+'회 · '+(practice?lap+'바퀴':Math.min(lap+1,lapTargets[stage])+'/'+lapTargets[stage]+'바퀴')+(lastBrake?' · '+lastBrake:'');
   byId('message').hidden=time>=noticeUntil;byId('message').textContent=notice;
   buttons.forEach(button=>button.classList.toggle('active',held(button.dataset.key)));
+  const ui=Math.round(gauge*100)+'|'+boostItems+'|'+(time<boostUntil);
+  if(ui!==lastGaugeUI){
+   lastGaugeUI=ui;
+   byId('gaugeFill').style.width=Math.round(gauge*100)+'%';
+   byId('boostCount').textContent=boostItems;
+   byId('boostBtn').disabled=boostItems<1;
+   byId('boostBtn').classList.toggle('firing',time<boostUntil);
+  }
   minimap();
  }
 }
@@ -405,7 +413,7 @@ function autosave(force){
  if(practice||!playing)return;
  if(!force&&(paused||performance.now()-lastAutosave<1000))return;
  lastAutosave=performance.now();
- try{localStorage.setItem(SAVE_KEY,JSON.stringify({savedAt:Date.now(),cls,group,stage,route,answers,splits,iceSlip,time,crashes,lap,gate,segment,x,z,heading,lastBrake}))}catch{}
+ try{localStorage.setItem(SAVE_KEY,JSON.stringify({savedAt:Date.now(),cls,group,stage,route,answers,splits,iceSlip,time,crashes,lap,gate,segment,x,z,heading,lastBrake,gauge,boostItems}))}catch{}
 }
 function readSave(){
  try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&Date.now()-s.savedAt<3600000&&Array.isArray(s.answers))return s}catch{}
@@ -469,6 +477,7 @@ function resume(s){
  buildTrack();
  playing=true;clearInput();byId('intro').hidden=true;
  for(const id of ['hud','actions','controls'])byId(id).hidden=false;
+ gauge=Number(s.gauge)||0;boostItems=Number(s.boostItems)||0;
  x=s.x;z=s.z;heading=s.heading;vx=vz=0;segment=s.segment;camera=null;
  lastCrash=-10;notice='';noticeUntil=0;braking=false;
  reportProgress();countdown();
