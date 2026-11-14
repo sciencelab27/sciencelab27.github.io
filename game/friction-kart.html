@@ -1,13 +1,13 @@
 <!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>언동 사이언스 | FRICTION KART</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#152239;color:white;font:600 16px system-ui,sans-serif;overflow:hidden}#world{width:100vw;height:100dvh;display:block}button{font:inherit;color:inherit;border:1px solid #ffffff45;background:#152239e8;border-radius:12px;cursor:pointer;padding:12px 17px;touch-action:none}button:focus-visible{outline:3px solid #8efdeb}button.active,button.primary{background:#9affde;color:#122735}#hud{position:absolute;inset:14px 14px auto;display:flex;justify-content:space-between;gap:8px;pointer-events:none}.panel{background:#142239e9;padding:10px 14px;border-radius:13px;border:1px solid #ffffff45}#speed{font-size:29px}#surface{color:#9affde}#map{width:135px;height:84px;display:block}#actions{position:absolute;top:126px;right:14px;display:flex;gap:6px}#actions button{padding:8px}#controls{position:absolute;inset:auto 12px max(12px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;pointer-events:none}#controls div{display:flex;gap:14px}#controls button{pointer-events:auto;min-width:108px;height:100px;font-size:30px;border-radius:22px;border-width:2px;user-select:none;-webkit-user-select:none}#message{position:absolute;top:28%;left:50%;transform:translateX(-50%);max-width:90vw;text-align:center;pointer-events:none;color:#152239;background:#fff6c9;padding:8px 14px;border-radius:20px}#intro{position:absolute;inset:0;display:grid;align-items:center;padding:5vw;background:linear-gradient(90deg,#0b1528fa 0%,#0b1528d9 34%,transparent 85%);overflow:auto}#intro section{max-width:540px}h1{font-size:clamp(38px,8vw,108px);line-height:.85;margin:12px 0 20px;font-style:italic;letter-spacing:-.07em}small,.accent{color:#9affde}p{line-height:1.55}#intro button{margin:4px}#help{max-width:500px}dialog{color:white;background:#152239;border:1px solid #7892ab;border-radius:16px;width:min(92vw,470px)}dialog::backdrop{background:#111a2bb0}[hidden]{display:none!important}#controls [data-key=gas]{min-width:136px}#gauge{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:min(34vw,360px);height:22px;border-radius:12px;background:#0d1626d9;border:2px solid #ffffff70;overflow:hidden}#gaugeFill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#ffb000,#ffe45c);transition:width .15s}#gauge b{position:relative;display:block;width:100%;text-align:center;font-size:13px;line-height:18px;color:#fff;text-shadow:0 1px 2px #000}#controls #boostBtn{position:absolute;right:0;bottom:114px;min-width:0;width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff7a6b,#d81e1e 60%,#8c0f0f);border:3px solid #ffd6d0;font-size:20px;display:grid;place-items:center;box-shadow:0 0 18px #ff3b2f99}#boostBtn span{font-weight:800}#boostBtn i{position:absolute;top:-6px;right:-6px;font-style:normal;background:#ffe45c;color:#3a1500;border-radius:50%;width:32px;height:32px;line-height:32px;font-size:18px;font-weight:800}#controls #boostBtn:disabled{filter:grayscale(1) brightness(.6);box-shadow:none;opacity:1}#boostBtn.firing{animation:fire .25s infinite alternate}@keyframes fire{to{transform:scale(1.08);box-shadow:0 0 34px #ffb000}}@media(max-height:450px){#controls button{height:80px;min-width:90px;font-size:26px}#controls #boostBtn{width:84px;height:84px;bottom:92px;font-size:17px}#gauge{bottom:14px}#controls [data-key=gas]{min-width:112px}#intro{padding:16px 5vw}#intro h1{font-size:clamp(38px,8vw,68px)}}
+*{box-sizing:border-box}body{margin:0;background:#152239;color:white;font:600 16px system-ui,sans-serif;overflow:hidden}#world{width:100vw;height:100dvh;display:block}button{font:inherit;color:inherit;border:1px solid #ffffff45;background:#152239e8;border-radius:12px;cursor:pointer;padding:12px 17px;touch-action:none}button:focus-visible{outline:3px solid #8efdeb}button.active,button.primary{background:#9affde;color:#122735}#hud{position:absolute;inset:14px 14px auto;display:flex;justify-content:space-between;gap:8px;pointer-events:none}.panel{background:#142239e9;padding:10px 14px;border-radius:13px;border:1px solid #ffffff45}#speed{font-size:29px}#surface{color:#9affde}#map{width:135px;height:84px;display:block}#actions{position:absolute;top:126px;right:14px;display:flex;gap:6px}#actions button{padding:8px}#controls{position:absolute;inset:auto 12px max(12px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;pointer-events:none}#controls div{display:flex;gap:14px}#controls button{pointer-events:auto;min-width:108px;height:100px;font-size:30px;border-radius:22px;border-width:2px;user-select:none;-webkit-user-select:none}#message{position:absolute;top:28%;left:50%;transform:translateX(-50%);max-width:90vw;text-align:center;pointer-events:none;color:#152239;background:#fff6c9;padding:8px 14px;border-radius:20px}#intro{position:absolute;inset:0;display:grid;align-items:center;padding:5vw;background:linear-gradient(90deg,#0b1528fa 0%,#0b1528d9 34%,transparent 85%);overflow:auto}#intro section{max-width:540px}h1{font-size:clamp(38px,8vw,108px);line-height:.85;margin:12px 0 20px;font-style:italic;letter-spacing:-.07em}small,.accent{color:#9affde}p{line-height:1.55}#intro button{margin:4px}#help{max-width:500px}dialog{color:white;background:#152239;border:1px solid #7892ab;border-radius:16px;width:min(92vw,470px)}dialog::backdrop{background:#111a2bb0}[hidden]{display:none!important}#controls [data-key=gas]{min-width:136px}#gauge{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);width:min(34vw,360px);height:22px;border-radius:12px;background:#0d1626d9;border:2px solid #ffffff70;overflow:hidden}#gaugeFill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#ffb000,#ffe45c);transition:width .15s}#bigSpeed{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);font-size:18px;text-shadow:0 2px 4px #000;white-space:nowrap}#speedNum{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums}#gauge b{position:relative;display:block;width:100%;text-align:center;font-size:13px;line-height:18px;color:#fff;text-shadow:0 1px 2px #000}#controls #boostBtn{position:absolute;right:0;bottom:114px;min-width:0;width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff7a6b,#d81e1e 60%,#8c0f0f);border:3px solid #ffd6d0;font-size:20px;display:grid;place-items:center;box-shadow:0 0 18px #ff3b2f99}#boostBtn span{font-weight:800}#boostBtn i{position:absolute;top:-6px;right:-6px;font-style:normal;background:#ffe45c;color:#3a1500;border-radius:50%;width:32px;height:32px;line-height:32px;font-size:18px;font-weight:800}#controls #boostBtn:disabled{filter:grayscale(1) brightness(.6);box-shadow:none;opacity:1}#boostBtn.firing{animation:fire .25s infinite alternate}@keyframes fire{to{transform:scale(1.08);box-shadow:0 0 34px #ffb000}}@media(max-height:450px){#controls button{height:80px;min-width:90px;font-size:26px}#controls #boostBtn{width:84px;height:84px;bottom:92px;font-size:17px}#gauge{bottom:50px}#bigSpeed{bottom:14px}#speedNum{font-size:30px}#controls [data-key=gas]{min-width:112px}#intro{padding:16px 5vw}#intro h1{font-size:clamp(38px,8vw,68px)}}
 
 select,textarea,input{font:inherit;color:inherit;background:#263a53;border:1px solid #8398ac;border-radius:8px;padding:8px}textarea{width:100%;resize:vertical}#activity{width:min(94vw,750px);max-height:90dvh;overflow:auto}#activity.wide{width:min(96vw,1150px);max-width:none}#activity button{margin:4px}#activity p{margin:8px 0}#activity h2{margin:0 0 12px}.options{display:grid}.options button{text-align:left}.trackbar{height:18px;background:#344763;border-radius:8px;position:relative;margin:6px 0 14px}.marker{position:absolute;height:18px;width:14px;border-radius:5px;background:#ff975d}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:7px;border-bottom:1px solid #ffffff30;text-align:left}details{margin:8px 0}button:disabled{opacity:.45;cursor:not-allowed}#error{color:#ffb38a;font-size:18px}#ask{z-index:10}#ask p{font-size:19px;line-height:1.5}#ask button{margin:4px 6px 0 0;min-width:84px}#copy{position:fixed;left:50%;bottom:max(4px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2;font-size:12px;opacity:.75;pointer-events:none;text-shadow:0 1px 2px #000;white-space:nowrap}.explain{background:#103b3f;border-left:4px solid #9affde;padding:10px 14px;border-radius:8px;line-height:1.65}textarea::placeholder{color:#a9b8c8}#activity .grade{width:68px}.table-scroll{overflow:auto}
 </style>
 <canvas id="world" aria-label="3D 카트 트랙"></canvas>
-<div id="hud" hidden><div class="panel"><span id="speed">0</span> km/h<br><span id="surface"></span><br><small id="stats"></small></div><div class="panel"><canvas id="map" width="270" height="168" aria-label="트랙 미니맵"></canvas></div></div>
+<div id="hud" hidden><div class="panel"><span id="speed" hidden>0</span><span id="surface"></span><br><small id="stats"></small></div><div class="panel"><canvas id="map" width="270" height="168" aria-label="트랙 미니맵"></canvas></div></div>
 <div id="actions" hidden><button id="reset">재출발</button><button id="home">홈</button></div><div id="message" hidden></div>
-<div id="controls" hidden><div id="gauge" aria-hidden="true"><span id="gaugeFill"></span><b>부스터 게이지</b></div><button id="boostBtn" aria-label="부스터 사용" disabled><span>부스터</span><i id="boostCount">0</i></button><div><button data-key="left" aria-label="왼쪽">◀</button><button data-key="right" aria-label="오른쪽">▶</button></div><div><button data-key="brake">제동</button><button data-key="gas">가속</button></div></div>
+<div id="controls" hidden><div id="gauge" aria-hidden="true"><span id="gaugeFill"></span><b>부스터 게이지</b></div><div id="bigSpeed"><b id="speedNum">0</b> km/h</div><button id="boostBtn" aria-label="부스터 사용" disabled><span>부스터</span><i id="boostCount">0</i></button><div><button data-key="left" aria-label="왼쪽">◀</button><button data-key="right" aria-label="오른쪽">▶</button></div><div><button data-key="brake">제동</button><button data-key="gas">가속</button></div></div>
 <div id="intro"><section><small>언동 사이언스 · 3D 주행 테스트</small><h1>FRICTION<br>KART</h1><p>마찰력을 지배하라! 과학 레이싱 챔피언십</p><label>반 <select id="cls" aria-label="반"><option value="">선택</option><option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option><option value="5">5반</option></select></label> <label>모둠 <select id="group" aria-label="모둠"><option value="">선택</option><option value="1">1모둠</option><option value="2">2모둠</option><option value="3">3모둠</option><option value="4">4모둠</option><option value="5">5모둠</option><option value="6">6모둠</option><option value="7">7모둠</option></select></label><br><button id="resume" class="primary" hidden>이어서 달리기</button><button id="race" class="primary">게임 시작</button><button id="teacher" hidden>교사 모드</button><button id="start">연습 주행</button><button id="instructions">조작 방법</button><p id="resumeInfo"></p><p id="error" role="alert"></p></section></div>
 <div id="copy">Copyright 2026 sapphire</div>
 <dialog id="help"><h2>조작 방법</h2><p>태블릿을 가로로 놓고 가속과 방향 버튼을 함께 누르세요. PC에서는 방향키 또는 WASD로 조작합니다.</p><p><strong>부스터</strong>: 가속하며 달리면 아래 노란 게이지가 차요. 가속과 방향 버튼을 함께 눌러 코너를 돌면 더 빨리 차요. 게이지가 가득 차면 빨간 부스터가 생기고(최대 2개), 빨간 버튼(PC는 스페이스바)을 누르면 잠깐 빨라져요. 벽에 세게 부딪히면 게이지가 줄어들어요. 얼음 위에서 쓰면 마찰력이 작아 방향을 바꾸기 어려우니 조심하세요.</p><p><strong>벽에 부딪혔을 때</strong>는 가속과 방향 버튼을 함께 누르세요. 카트 앞이 트랙 방향과 맞으면 방향 버튼을 뗍니다. 멈춘 상태에서는 방향 버튼만 눌러도 돌지 않고, 후진 기능은 없어요.</p><p>얼음길은 표면이 매끄러워 마찰력이 작아요. 코너에 들어가기 전에 감속해 보세요. 모래길은 표면이 거칠어 마찰력이 커요. 가속해도 속력이 잘 붙지 않지만 제동하면 빨리 멈춰요. 같은 속력에서 제동을 시작해 아스팔트와 얼음의 정지 거리를 비교해 보세요.</p><form method="dialog"><button>닫기</button></form></dialog>
@@ -273,7 +273,7 @@ function physics(dt){
    else gauge=1;
   }
  }
- if(time<boostUntil&&!brake)longitudinal+=16*Math.max(0,1-longitudinal/(TOP+11))*dt;
+ if(time<boostUntil&&!brake)longitudinal+=34*Math.max(0,1-longitudinal/(TOP+18))*dt;
  if(brake)longitudinal=Math.sign(longitudinal)*Math.max(0,Math.abs(longitudinal)-road.brake*dt);
  longitudinal*=Math.exp(-road.drag*dt);lateral*=Math.exp(-(road.grip+road.drag)*dt);
  vx=longitudinal*fx+lateral*fz;vz=longitudinal*fz-lateral*fx;
@@ -358,7 +358,7 @@ function render(dt){
  draw(scenery);draw(shadow,x,0,z,heading);draw(kart,x,0,z,heading);
  if(playing&&time<boostUntil&&Math.floor(time*24)%2===0)draw(flame,x,0,z,heading);
  if(playing){
-  byId('speed').textContent=Math.round(speed*3.6);
+  byId('speed').textContent=byId('speedNum').textContent=Math.round(speed*3.6);
   byId('surface').textContent=surfaces[track[segment].type].name;
   byId('stats').textContent=(practice?'연습 · ':stages[stage]+' · ')+time.toFixed(1)+'초 · 충돌 '+crashes+'회 · '+(practice?lap+'바퀴':Math.min(lap+1,lapTargets[stage])+'/'+lapTargets[stage]+'바퀴')+(lastBrake?' · '+lastBrake:'');
   byId('message').hidden=time>=noticeUntil;byId('message').textContent=notice;
@@ -426,9 +426,9 @@ function readPending(){
  return null;
 }
 function pack(r,c){
- return {version:2,cls:c,group:r.group,status:'done',updatedAt:Date.now(),
+ return {version:3,cls:c,group:r.group,status:'done',updatedAt:Date.now(),
   splits:r.splits.map(s=>({time:s.time,crashes:s.crashes})),
-  answers:r.answers.map(a=>({first:{choice:a.first.choice,reason:a.first.reason},choice:a.choice,reason:a.reason,retried:a.retried,points:Number(a.points)||0})),
+  answers:r.answers.map(a=>({first:{choice:a.first.choice,reason:a.first.reason},choice:a.choice,reason:a.reason,retried:a.retried,tries:Number.isInteger(a.tries)?a.tries:(a.retried?2:1),points:Number(a.points)||0})),
   route:typeof r.route==='string'?r.route:'',iceSlip:Number.isFinite(r.iceSlip)?r.iceSlip:0,reflection:r.reflection};
 }
 function refreshIntro(){
@@ -504,7 +504,7 @@ function brakingModel(type,step=1/120){
 }
 const stops=[brakingModel(0),brakingModel(1)];
 const distanceLabel=i=>stops[i].at(-1).toFixed(1)+' m';
-function demonstration(id,choice,after){
+function demonstration(id,after){
  const corner=id===0;
  const names=corner?['진입 전 감속','속력을 유지한 채 진입']:['아스팔트','얼음'];
  panel('<h2>'+ (corner?'같은 얼음 코너에서 비교':'같은 초기 속력 43.2 km/h에서 제동') +'</h2>'+
@@ -519,60 +519,83 @@ function demonstration(id,choice,after){
    byId('marker'+i).style.left=fraction+'%';
   }
   if(t<1){requestAnimationFrame(tick);return}
-  byId('demoText').textContent=corner?(choice===0?'코너 전 감속을 선택했어요. 실제 코너에서 확인해 보세요.':'빠른 진입에서는 카트가 코너 바깥쪽으로 더 밀릴 수 있어요. 위 막대는 두 전략의 밀림 정도를 비교한 개념 모형이에요.'):'아스팔트 '+distanceLabel(0)+' · 얼음 '+distanceLabel(1)+' · 마찰력이 작은 얼음에서 약 '+(stops[1].at(-1)/stops[0].at(-1)).toFixed(1)+'배 더 미끄러져요.';
+  byId('demoText').textContent=corner?'같은 얼음 커브라도 빠르게 들어가면 카트가 바깥쪽으로 훨씬 더 밀려요. 마찰력이 작아 방향을 바꾸는 힘이 부족하기 때문이에요. (위 막대는 개념 모형이에요.)':'아스팔트 '+distanceLabel(0)+' · 얼음 '+distanceLabel(1)+' · 마찰력이 작은 얼음에서 약 '+(stops[1].at(-1)/stops[0].at(-1)).toFixed(1)+'배 더 미끄러져요.';
   byId('demoNext').disabled=false;
  }
  on('demoNext',after);requestAnimationFrame(tick);
 }
 const missions=[
- {title:'얼음 커브의 비밀',prompt:'얼음 코너에 들어가기 직전입니다. 어떤 방법이 가장 안전할까요?',options:['아스팔트에서 미리 감속하고 얼음에서는 부드럽게 조향한다.','속력을 유지하다 얼음 위에서 급제동한다.','가속하며 핸들을 한 번에 크게 돌린다.'],correct:0,
-  explain:'얼음은 표면이 매끄러워 마찰력이 작아요. 코너를 돌 때는 바퀴와 길 사이의 마찰력이 카트를 안쪽으로 붙잡아 줘야 하는데, 마찰력이 작으면 빠른 카트를 붙잡지 못해 바깥으로 미끄러져요. 그래서 마찰력이 큰 아스팔트에서 미리 속력을 줄이는 것이 안전해요.'},
- {title:'긴급 제동 테스트',prompt:'같은 카트가 같은 초기 속력에서 제동합니다. 어느 노면에서 더 멀리 갈까요?',options:['아스팔트','얼음','두 노면에서 같다'],correct:1,
+ {title:'얼음 커브의 비밀',prompt:'곧 얼음 커브예요. 얼음 커브에서 속력이 빠른 카트가 바깥쪽으로 미끄러지는 까닭으로 옳은 것은?',
+  options:['얼음은 마찰력이 작아서, 카트가 안쪽으로 방향을 바꾸는 데 필요한 힘을 충분히 받지 못하기 때문이다.','얼음은 마찰력이 커서 바퀴가 길에 붙어 버리기 때문이다.','속력이 빠를수록 카트에 작용하는 중력이 커지기 때문이다.','마찰력은 운동 방향과 같은 방향으로 작용해 카트를 바깥으로 밀기 때문이다.'],correct:0,
+  hint:'코너를 돌려면 카트를 안쪽으로 붙잡아 주는 힘이 필요해요. 그 힘은 무엇일까요? 얼음에서는 그 힘이 클까요, 작을까요?',
+  explain:'얼음은 표면이 매끄러워 마찰력이 작아요. 코너를 돌 때는 바퀴와 길 사이의 마찰력이 카트를 안쪽으로 붙잡아 줘야 하는데, 마찰력이 작으면 빠른 카트를 붙잡지 못해 바깥으로 미끄러져요. 그래서 마찰력이 큰 아스팔트에서 미리 속력을 줄여야 해요.'},
+ {title:'긴급 제동 테스트',prompt:'같은 카트가 같은 속력(43.2 km/h)에서 제동했더니, 멈출 때까지 아스팔트에서는 '+distanceLabel(0)+', 얼음에서는 '+distanceLabel(1)+'를 미끄러졌어요. 이 결과를 옳게 설명한 것은?',
+  options:['얼음은 아스팔트보다 마찰력이 작아서, 운동을 방해하는 힘이 작기 때문이다.','얼음은 아스팔트보다 마찰력이 커서, 카트를 앞으로 더 멀리 밀어 주기 때문이다.','마찰력이 카트의 운동 방향과 같은 방향으로 작용하기 때문이다.','두 노면에서 카트의 무게가 달라졌기 때문이다.'],correct:0,
+  hint:'마찰력은 운동을 방해하는 힘이에요. 운동을 방해하는 힘이 작으면 멈출 때까지 걸리는 거리는 어떻게 될까요? 같은 카트라는 점도 생각해 보세요.',
   explain:'제동할 때 마찰력은 카트가 움직이는 방향과 반대 방향으로 작용해 운동을 방해해요. 얼음은 매끄러워 마찰력이 작기 때문에 속력이 천천히 줄어 더 멀리 미끄러져요. 겨울철 빙판길에서 자동차 바퀴에 스노체인을 감는 것도 마찰력을 크게 하기 위해서예요.'},
- {title:'운명의 갈림길',prompt:'모둠이 실제로 달릴 코스를 골라 보세요. 선택의 이점과 주의할 점을 마찰력과 연결해 쓰세요.',options:['A · 짧은 얼음길','B · 긴 아스팔트길'],
-  hint:'예) 얼음길은 마찰력이 작아서 …, 그래서 우리는 …',
-  explain:'A 얼음길은 짧지만 마찰력이 작아 미끄러지기 쉬워요. B 아스팔트길은 길지만 마찰력이 커서 가속, 제동, 방향 바꾸기가 안정적이에요. 어느 쪽을 골랐든 근거에 마찰력의 크기가 들어갔는지 확인해 보세요.'},
- {title:'최종 레이싱 분석',prompt:'모둠의 기록을 살펴보고, 다음 경기에서 적용할 전략과 근거를 쓰세요.',options:['얼음에 들어가기 전 속력을 줄인다.','얼음에 들어간 뒤 더 세게 가속한다.','모래길은 마찰력이 작으니 더 세게 가속한다.'],correct:0,
-  hint:'예) 우리 모둠은 얼음에서 □초 밀렸으므로 …',
-  explain:'마찰력이 작은 얼음길에서는 가속, 제동, 방향 바꾸기가 모두 어려워요. 그래서 마찰력이 큰 곳에서 미리 속력을 조절해야 해요. 모래길은 거칠어서 마찰력이 크기 때문에 가속해도 속력이 쉽게 줄어든다는 점도 기억하세요.'}
+ {title:'운명의 갈림길',prompt:'갈림길 앞! 한 번에 맞히면 지름길(얼음길)이 열려요.<br>얼음길에서 마찰력을 크게 해 덜 미끄러지게 하는 방법으로 옳은 것을 <strong>모두</strong> 고른 것은?<br>ㄱ. 바퀴에 스노체인을 감는다.<br>ㄴ. 얼음 위에 모래를 뿌린다.<br>ㄷ. 바퀴 표면을 매끄럽게 간다.',
+  options:['ㄱ','ㄷ','ㄱ, ㄴ','ㄴ, ㄷ'],correct:2,
+  hint:'마찰력은 접촉면이 거칠수록 커져요. ㄱ, ㄴ, ㄷ이 각각 접촉면을 거칠게 만드는지, 매끄럽게 만드는지 따져 보세요.',
+  explain:'스노체인과 모래는 바퀴와 얼음 사이의 접촉면을 거칠게 만들어 마찰력을 크게 해요. 바퀴 표면을 매끄럽게 갈면 마찰력이 작아져 더 잘 미끄러져요. 겨울철 빙판길에 모래나 염화 칼슘을 뿌리고, 타이어에 홈을 파는 것도 같은 까닭이에요.'},
+ {title:'무게와 마찰력',prompt:'같은 아스팔트 위에서 짐을 싣지 않은 카트와 짐을 가득 실은 카트를 같은 힘으로 밀었어요. 이에 대한 설명으로 옳은 것은?',
+  options:['무거운 카트는 바닥을 누르는 힘이 커서 마찰력이 더 크다.','무거운 카트는 마찰력이 작아서 더 쉽게 미끄러진다.','마찰력은 접촉면의 거칠기로만 정해지므로 두 카트의 마찰력은 같다.','무게가 클수록 마찰력이 운동 방향과 같은 방향으로 작용한다.'],correct:0,
+  hint:'마찰력의 크기를 정하는 것은 접촉면의 거칠기만이 아니에요. 물체가 무거우면 바닥을 누르는 힘은 어떻게 될까요? 마찰력의 방향도 다시 떠올려 보세요.',
+  explain:'마찰력은 접촉면이 거칠수록, 그리고 물체의 무게가 클수록 커요. 짐을 가득 실은 카트는 바닥을 더 세게 누르기 때문에 마찰력이 커서 같은 힘으로 밀어도 잘 움직이지 않아요. 마찰력은 무게와 상관없이 항상 운동을 방해하는 방향, 즉 운동 반대 방향으로 작용해요.'}
 ];
+const triesPoints=(id,tries)=>[15,8,3][Math.min(tries,3)-1];
+const shuffled=n=>{const order=[...Array(n).keys()];for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}return order};
 function openMission(id){
  freeze();
- const m=missions[id];let choice=-1, first=null, retried=false, reason='';
+ const m=missions[id];
+ let choice=-1, first=null, tries=0, order=shuffled(m.options.length);
  function prompt(){
-  panel('<small>과학 미션 '+(id+1)+' / 4 · 15점</small><h2>'+m.title+'</h2><p>'+m.prompt+'</p>'+
-   (id===3?'<p>기록 경기 '+time.toFixed(1)+'초 · 충돌 '+crashes+'회 · 얼음에서 옆으로 밀린 시간 '+iceSlip.toFixed(1)+'초<br>제동 실험 결과 · 아스팔트 '+distanceLabel(0)+' · 얼음 '+distanceLabel(1)+(lastBrake?'<br>최근 직접 측정 · '+escapeText(lastBrake):'')+'</p>':'')+
-   '<div class="options">'+m.options.map((label,i)=>'<button id="option'+i+'" aria-pressed="'+(choice===i)+'" class="'+(choice===i?'primary':'')+'">'+label+'</button>').join('')+'</div>'+
-   (id>=2?'<label>모둠의 근거<textarea id="reason" maxlength="400" rows="2" placeholder="'+m.hint+'"></textarea></label>':'')+
+  const scoreLine='첫 시도 정답 '+triesPoints(id,1)+'점 · 두 번째 '+triesPoints(id,2)+'점 · 세 번째부터 '+triesPoints(id,3)+'점';
+  panel('<small>과학 미션 '+(id+1)+' / 4 · '+scoreLine+'</small><h2>'+m.title+'</h2>'+
+   (tries?'<p class="explain">힌트 · '+m.hint+'</p>':'')+'<p>'+m.prompt+'</p>'+
+   '<div class="options">'+order.map((k,n)=>'<button id="option'+k+'" aria-pressed="false">'+'①②③④'[n]+' '+m.options[k]+'</button>').join('')+'</div>'+
    '<p id="missionError" role="alert"></p><button id="submitMission" class="primary">응답 제출</button>');
-  if(id>=2)byId('reason').value=reason;
-  m.options.forEach((_,i)=>on('option'+i,()=>{
+  choice=-1;
+  order.forEach(i=>on('option'+i,()=>{
    choice=i;
-   m.options.forEach((__,j)=>{const button=byId('option'+j);button.classList.toggle('primary',i===j);button.setAttribute('aria-pressed',i===j)});
+   order.forEach(j=>{const button=byId('option'+j);button.classList.toggle('primary',i===j);button.setAttribute('aria-pressed',i===j)});
   }));
   on('submitMission',()=>{
-   reason=id>=2?byId('reason').value.trim():'';
-   if(choice<0||id>=2&&!reason){byId('missionError').textContent='전략을 선택하고 근거 입력란이 있으면 작성해 주세요.';return}
-   if(first===null)first={choice,reason};
-   const correct=choice===m.correct;
-   function finish(){
-    answers[id]={first,choice,reason,retried,points:id===2?0:correct?(id===3?5:15):0};
-    if(id===2){route=choice===0?'A':'B';buildTrack();place(97)}
-    autosave(true);
-    const verdict=m.correct===undefined?'':'<p>'+(correct?'정답이에요!':'정답은 「'+m.options[m.correct]+'」예요.')+'</p>';
-    panel('<small>마찰력으로 정리</small><h2>'+m.title+'</h2>'+verdict+'<p class="explain">'+m.explain+'</p><button id="explainNext" class="primary">계속 달리기</button>');
-    on('explainNext',countdown);
-   }
-   function feedback(){
-    if(m.correct!==undefined&&!correct&&!retried){
-     panel('<h2>한 번 더 생각해 볼까요?</h2><p>처음 응답은 기록됩니다.</p><button id="retryMission">재도전</button><button id="keepMission">이 답으로 계속</button>');
-     on('retryMission',()=>{retried=true;choice=-1;prompt()});on('keepMission',finish);
-    }else finish();
-   }
-   if(id<2)demonstration(id,choice,feedback);else feedback();
+   if(choice<0){byId('missionError').textContent='답을 먼저 고르세요.';return}
+   tries++;
+   if(first===null)first={choice,reason:''};
+   if(choice!==m.correct){wrong();return}
+   if(id<2)demonstration(id,finish);else finish();
   });
  }
+ function wrong(){
+  autosave(true);
+  let wait=5;
+  panel('<h2>아쉬워요, 정답이 아니에요</h2><p>정답을 맞혀야 다음으로 갈 수 있어요. 틀릴수록 이 미션 점수가 줄어들어요. (다음 시도 정답이면 '+triesPoints(id,tries+1)+'점)</p><p class="explain">힌트 · '+m.hint+'</p><p>모둠원과 함께 다시 생각해 보세요. 보기 순서는 바뀌어요.</p><button id="retryMission" class="primary" disabled>'+wait+'초 뒤 다시 풀기</button>');
+  const timer=setInterval(()=>{
+   const button=byId('retryMission');
+   if(!button){clearInterval(timer);return}
+   if(--wait>0){button.textContent=wait+'초 뒤 다시 풀기';return}
+   clearInterval(timer);button.textContent='다시 풀기';button.disabled=false;
+  },1000);
+  on('retryMission',()=>{order=shuffled(m.options.length);prompt()});
+ }
+ function finish(){
+  answers[id]={first,choice,reason:'',retried:tries>1,tries,points:triesPoints(id,tries)};
+  if(id===2)route='B';
+  autosave(true);
+  const verdict='<p>정답이에요! '+(tries===1?'한 번에 맞혔어요.':tries+'번째 시도에 맞혔어요.')+' · '+triesPoints(id,tries)+'점</p>';
+  panel('<small>마찰력으로 정리</small><h2>'+m.title+'</h2>'+verdict+'<p class="explain">'+m.explain+'</p><button id="explainNext" class="primary">계속 달리기</button>');
+  on('explainNext',id===2?()=>chooseRoute(tries===1):countdown);
+ }
  prompt();
+}
+function chooseRoute(open){
+ panel('<small>운명의 갈림길</small><h2>코스 선택</h2>'+
+  (open?'<p>한 번에 맞혀서 지름길이 열렸어요! 어느 길로 갈까요?</p>':'<p>한 번에 맞히지 못해 지름길이 닫혔어요. 긴 아스팔트길로 가야 해요.</p>')+
+  '<div class="options"><button id="routeA"'+(open?'':' disabled')+'>'+(open?'':'🔒 ')+'A · 짧은 얼음길 — 짧지만 마찰력이 작고, 장애물이 있어요</button>'+
+  '<button id="routeB">B · 긴 아스팔트길 — 길지만 마찰력이 커서 안정적이에요</button></div>');
+ const go=r=>{route=r;buildTrack();place(97);autosave(true);countdown()};
+ on('routeA',()=>{if(open)go('A')});on('routeB',()=>go('B'));
 }
 function stageFinish(){
  freeze();
@@ -581,7 +604,7 @@ function stageFinish(){
   panel('<h2>'+stages[stage]+' 완주</h2><p>'+time.toFixed(1)+'초 · 충돌 '+crashes+'회</p><button id="nextStage" class="primary">다음 · '+stages[stage+1]+'</button>');
   on('nextStage',()=>{stage++;buildTrack();restart();reportProgress();autosave(true);countdown()});
  }else{
-  result={version:2,cls,group,splits,answers,route,iceSlip,reflection:'',sent:false};
+  result={version:3,cls,group,splits,answers,route,iceSlip,reflection:'',sent:false};
   keepResult();clearSave();reportProgress(3);
   studentResult();
  }
@@ -637,8 +660,7 @@ function saveImage(){
  result.answers.forEach((a,i)=>{
   const m=missions[i];
   write('미션 '+(i+1)+'. '+m.title,31,'#9affde',700,2);
-  write('선택: '+m.options[a.choice]+(m.correct===undefined?'':a.choice===m.correct?'  (정답)':'  (오답)'),27,'#ffffff',500,2);
-  if(a.reason)write('근거: '+a.reason,27,'#ffffff',500,2);
+  write('정답: '+m.options[m.correct]+'  ('+(a.tries>1?a.tries+'번째 시도에 정답':'한 번에 정답')+' · '+a.points+'점)',27,'#ffffff',500,2);
   y+=18;
  });
  write('마찰력에 대해 배운 점',31,'#9affde',700,2);
@@ -651,7 +673,7 @@ function saveImage(){
 function studentResult(){
  const last=result.splits[2];
  panel('<h2>'+result.cls+'반 '+result.group+'모둠 · 결승선 통과!</h2><p>그랑프리 '+last.time.toFixed(1)+'초 · 충돌 '+last.crashes+'회 · 안전 운전 '+safety(result)+' / 10점</p>'+
- result.answers.map((a,i)=>'<p>'+missions[i].title+' · '+a.points+'점'+(i>=2?' (서술형 채점 대기)':'')+'</p>').join('')+
+ result.answers.map((a,i)=>'<p>미션 '+(i+1)+' '+missions[i].title+' · '+a.points+'점'+(a.tries>1?' ('+a.tries+'번째 시도)':' (한 번에 정답)')+'</p>').join('')+'<p>선택한 코스 · '+(result.route==='A'?'A 짧은 얼음길':'B 긴 아스팔트길')+'</p>'+
  '<p>완주 점수, 총점, 최종 순위는 선생님 화면에서 발표해요.</p>'+
  '<label>마찰력에 대해 배운 점<textarea id="reflection" maxlength="400" rows="2" placeholder="예) 얼음은 마찰력이 작아서 …"></textarea></label>'+
  '<p id="sendStatus" role="status">'+(result.sent?'선생님께 제출했어요!':'')+'</p>'+
@@ -667,10 +689,10 @@ function studentResult(){
 }
 const raceTime=r=>r.splits[2].time;
 const safety=r=>Math.max(0,10-r.splits[2].crashes);
-const science=r=>r.answers.reduce((sum,a,i)=>sum+(i===2?0:a.choice===missions[i].correct?(i===3?5:15):0),0);
+const science=r=>r.answers.reduce((sum,a,i)=>sum+(a.choice===missions[i].correct?triesPoints(i,Number.isInteger(a.tries)&&a.tries>=1?a.tries:1):0),0);
 const validResponse=(response,id)=>response&&Number.isInteger(response.choice)&&response.choice>=0&&response.choice<missions[id].options.length&&typeof response.reason==='string'&&response.reason.length<=400;
 function validRecord(r){
- return (r?.version===1||r?.version===2)&&Number.isInteger(r.group)&&r.group>=1&&r.group<=7&&Array.isArray(r.splits)&&r.splits.length===3&&r.splits.every(s=>s&&Number.isFinite(s.time)&&s.time>0&&Number.isInteger(s.crashes)&&s.crashes>=0)&&Array.isArray(r.answers)&&r.answers.length===4&&r.answers.every((a,i)=>validResponse(a,i)&&validResponse(a.first,i)&&typeof a.retried==='boolean')&&typeof r.reflection==='string'&&r.reflection.length<=400;
+ return r?.version===3&&Number.isInteger(r.group)&&r.group>=1&&r.group<=7&&Array.isArray(r.splits)&&r.splits.length===3&&r.splits.every(s=>s&&Number.isFinite(s.time)&&s.time>0&&Number.isInteger(s.crashes)&&s.crashes>=0)&&Array.isArray(r.answers)&&r.answers.length===4&&r.answers.every((a,i)=>validResponse(a,i)&&validResponse(a.first,i)&&typeof a.retried==='boolean')&&typeof r.reflection==='string'&&r.reflection.length<=400;
 }
 let teacherCls=1, teacherDocs=[], teacherUnsub=null, gradesDirty=false, teacherMsg='';
 function openTeacher(){
@@ -699,10 +721,9 @@ function renderTeacher(){
  const rows=sorted.map(r=>{
   const place=sorted.findIndex(a=>raceTime(a).toFixed(1)===raceTime(r).toFixed(1));
   const race=Math.max(12,30-3*place)+safety(r);
-  const g3=Number.isFinite(r.grade3)?r.grade3:null, g4=Number.isFinite(r.grade4)?r.grade4:null;
-  return {r,race,g3,g4,total:race+science(r)+(g3??0)+(g4??0),graded:g3!==null&&g4!==null};
+  return {r,race,total:race+science(r)};
  }).sort((a,b)=>b.total-a.total);
- const official=rows.length>0&&!waiting.length&&rows.every(row=>row.graded);
+ const official=rows.length>0&&!waiting.length;
  const winners=official?rows.filter(row=>row.total===rows[0].total).map(row=>row.r.group+'모둠').join(' · '):'';
  const groups=[...new Set([...done,...waiting].map(d=>d.group))].sort((a,b)=>a-b);
  const classOptions=[1,2,3,4,5].map(c=>'<option value="'+c+'"'+(c===teacherCls?' selected':'')+'>'+c+'반</option>').join('');
@@ -710,24 +731,23 @@ function renderTeacher(){
   const row=rows.find(a=>a.r.group===g);
   if(row){
    const {r,race,total}=row;
-   const grade=(id,max)=>'<input class="grade" type="number" inputmode="numeric" aria-label="'+g+'모둠 미션 '+id+'" data-doc="'+escapeText(r.id)+'" data-grade="'+id+'" min="0" max="'+max+'" value="'+(row['g'+id]??'')+'">';
-   return '<tr><td>'+g+'</td><td>제출</td><td>'+raceTime(r).toFixed(1)+'초</td><td>'+r.splits[2].crashes+'</td><td>'+race+'</td><td>'+science(r)+'</td><td>'+grade(3,15)+'</td><td>'+grade(4,10)+'</td><td>'+total+(official?'':' (잠정)')+'</td><td>'+(official?rows.findIndex(a=>a.total===total)+1:'—')+'</td></tr>';
+   return '<tr><td>'+g+'</td><td>제출</td><td>'+raceTime(r).toFixed(1)+'초</td><td>'+r.splits[2].crashes+'</td><td>'+race+'</td><td>'+science(r)+'</td><td>'+total+(official?'':' (잠정)')+'</td><td>'+(official?rows.findIndex(a=>a.total===total)+1:'—')+'</td></tr>';
   }
   const p=waiting.find(d=>d.group===g);
   const label=p.stage>=3?'결승 통과 · 제출 기다리는 중':'달리는 중 · '+(stages[p.stage]||'');
-  return '<tr><td>'+g+'</td><td colspan="8">'+label+'</td><td><button class="dropRow" data-g="'+g+'" data-doc="'+escapeText(p.id)+'">빼기</button></td></tr>';
- }).join(''):'<tr><td colspan="10">아직 들어온 기록이 없어요. 학생이 게임을 시작하면 여기에 나타납니다.</td></tr>';
+  return '<tr><td>'+g+'</td><td colspan="6">'+label+'</td><td><button class="dropRow" data-g="'+g+'" data-doc="'+escapeText(p.id)+'">빼기</button></td></tr>';
+ }).join(''):'<tr><td colspan="8">아직 들어온 기록이 없어요. 학생이 게임을 시작하면 여기에 나타납니다.</td></tr>';
  panel('<h2>교사 모드 · 모둠 성적표</h2>'+
   '<p><label>반 <select id="teacherClass">'+classOptions+'</select></label> 학생이 결과를 제출하면 이 표에 바로 나타나요.</p>'+
   '<p role="status">'+escapeText(teacherMsg)+'</p><p id="pendingNote" role="status"></p>'+
-  (official?'<h3>🏆 챔피언 · '+winners+'</h3>':'<p>제출 '+rows.length+'모둠'+(waiting.length?' · 아직 달리는 중 '+waiting.length+'모둠':'')+'. 모든 모둠이 제출하고 서술형 채점을 마치면 최종 순위가 나와요.</p>')+
-  '<div class="table-scroll"><table><thead><tr><th>모둠</th><th>진행</th><th>결승 기록</th><th>충돌</th><th>레이스 /40</th><th>객관식 /35</th><th>미션 3 /15</th><th>미션 4 서술 /10</th><th>합계 /100</th><th>최종 순위</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
-  '<p>완주 순위 배점은 30·27·24·21·18·15·12점이며, 0.1초 단위 동률은 같은 점수입니다. 서술형 채점: 미션 3은 노면 특성 5점, 선택 근거 5점, 위험 대비 5점. 미션 4는 기록 인용 5점, 마찰력과 전략 연결 5점.</p>'+
+  (official?'<h3>🏆 챔피언 · '+winners+'</h3>':'<p>제출 '+rows.length+'모둠'+(waiting.length?' · 아직 달리는 중 '+waiting.length+'모둠':'')+'. 모든 모둠이 제출하면 최종 순위가 나와요. 달리는 중인 모둠을 빼면 바로 발표할 수도 있어요.</p>')+
+  '<div class="table-scroll"><table><thead><tr><th>모둠</th><th>진행</th><th>결승 기록</th><th>충돌</th><th>레이스 /40</th><th>미션 /60</th><th>합계 /100</th><th>최종 순위</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
+  '<p>완주 순위 배점은 30·27·24·21·18·15·12점이며, 0.1초 단위 동률은 같은 점수입니다. 미션은 4문제이고, 한 문제당 첫 시도에 맞히면 15점, 두 번째 8점, 세 번째부터 3점이에요.</p>'+
   rows.map(({r})=>'<details data-g="'+r.group+'"><summary>'+r.group+'모둠 응답과 기록</summary>'+
    '<p>'+r.splits.map((s,i)=>stages[i]+' '+s.time.toFixed(1)+'초 · 충돌 '+s.crashes+'회').join(' / ')+(r.route?' · 선택 코스 '+escapeText(r.route):'')+'</p>'+
-   r.answers.map((a,i)=>'<p><strong>'+missions[i].title+'</strong><br>최초 · '+missions[i].options[a.first.choice]+' '+escapeText(a.first.reason)+'<br>최종 · '+missions[i].options[a.choice]+' '+escapeText(a.reason)+' · '+(a.retried?'재도전':'첫 답 제출')+'</p>').join('')+
+   r.answers.map((a,i)=>'<p><strong>'+missions[i].title+'</strong><br>'+(a.tries>1?a.tries+'번 시도 · 처음 고른 답: '+escapeText(missions[i].options[a.first.choice]):'한 번에 정답')+'</p>').join('')+
    '<p>배운 점 · '+escapeText(r.reflection)+'</p></details>').join('')+
-  '<button id="saveGrades" class="primary">채점 저장</button><button id="clearClass">이 반 기록 모두 지우기</button><button id="teacherClose">닫기</button>'+
+  '<button id="clearClass">이 반 기록 모두 지우기</button><button id="teacherClose">닫기</button>'+
   '<details><summary>제출이 안 된 모둠의 기록 파일 가져오기</summary><input id="importRecords" type="file" accept=".json,application/json" multiple></details>',true);
  activity.scrollTop=scroll;
  activity.querySelectorAll('details[data-g]').forEach(d=>{if(opened.includes(d.dataset.g))d.open=true});
@@ -741,19 +761,8 @@ function renderTeacher(){
   try{await db.collection(COL).doc(button.dataset.doc).delete()}catch(error){teacherMsg='빼지 못했습니다: '+error.message;renderTeacher()}
  });
  on('teacherClose',async()=>{if(gradesDirty&&!await ask('저장하지 않은 채점이 있어요. 그래도 닫을까요?'))return;closeTeacher()});
- on('saveGrades',async()=>{
-  const fields=[...activity.querySelectorAll('.grade')];
-  const bad=fields.find(field=>!field.checkValidity());
-  if(bad){bad.reportValidity();return}
-  const changes={};
-  for(const field of fields){changes[field.dataset.doc]=changes[field.dataset.doc]||{};changes[field.dataset.doc]['grade'+field.dataset.grade]=field.value===''?null:Number(field.value)}
-  const batch=db.batch();
-  for(const [id,data] of Object.entries(changes))batch.update(db.collection(COL).doc(id),data);
-  try{await batch.commit();gradesDirty=false;teacherMsg='채점을 저장했습니다.'}catch(error){teacherMsg='채점을 저장하지 못했습니다: '+error.message}
-  renderTeacher();
- });
  on('clearClass',async()=>{
-  if(!await ask(teacherCls+'반의 모든 모둠 기록과 채점을 지울까요? 되돌릴 수 없어요.'))return;
+  if(!await ask(teacherCls+'반의 모든 모둠 기록을 지울까요? 되돌릴 수 없어요.'))return;
   const batch=db.batch();
   teacherDocs.forEach(d=>batch.delete(db.collection(COL).doc(d.id)));
   try{await batch.commit();gradesDirty=false;teacherMsg=teacherCls+'반 기록을 지웠습니다.'}catch(error){teacherMsg='지우지 못했습니다: '+error.message}
@@ -767,7 +776,7 @@ function renderTeacher(){
     const r=JSON.parse(await file.text());
     if(!validRecord(r))throw Error();
     const c=Number.isInteger(r.cls)&&r.cls>=1&&r.cls<=5?r.cls:teacherCls;
-    if(c===teacherCls&&done.some(d=>d.group===r.group)&&!await ask(r.group+'모둠의 기존 기록과 채점을 새 파일로 바꿀까요?')){skipped++;continue}
+    if(c===teacherCls&&done.some(d=>d.group===r.group)&&!await ask(r.group+'모둠의 기존 기록을 새 파일로 바꿀까요?')){skipped++;continue}
     await db.collection(COL).doc(docId(c,r.group)).set(pack(r,c));added++;
    }catch{skipped++}
   }
