@@ -904,8 +904,8 @@ function renderTeacher(){
  const sorted=[...done].sort((a,b)=>raceTime(a)-raceTime(b));
  const rows=sorted.map(r=>{
   const place=sorted.findIndex(a=>raceTime(a).toFixed(1)===raceTime(r).toFixed(1));
-  const race=(teacherMode==='group'?Math.max(12,30-3*place):Math.max(10,30-place))+safety(r);
-  return {r,race,total:race+science(r)};
+  const finish=teacherMode==='group'?Math.max(12,30-3*place):Math.max(10,30-place), race=finish+safety(r);
+  return {r,finish,race,total:race+science(r)};
  }).sort((a,b)=>b.total-a.total);
  const official=rows.length>0&&!waiting.length, G=teacherMode==='group', who=G?'모둠':'학생', cnt=G?'모둠':'명';
  const winners=official?rows.filter(row=>row.total===rows[0].total).map(row=>unitOf(teacherMode,row.r.group)).join(' · '):'';
@@ -914,19 +914,19 @@ function renderTeacher(){
  const body=groups.length?groups.map(g=>{
   const row=rows.find(a=>a.r.group===g);
   if(row){
-   const {r,race,total}=row;
-   return '<tr><td>'+g+'</td><td>제출</td><td>'+raceTime(r).toFixed(1)+'초</td><td>'+r.splits[2].crashes+'</td><td>'+race+'</td><td>'+science(r)+'</td><td>'+total+(official?'':' (잠정)')+'</td><td>'+(official?rows.findIndex(a=>a.total===total)+1:'—')+'</td></tr>';
+   const {r,finish,total}=row;
+   return '<tr><td>'+g+'</td><td>제출</td><td>'+raceTime(r).toFixed(1)+'초</td><td>'+r.splits[2].crashes+'회</td><td>'+finish+'</td><td>'+safety(r)+'</td><td>'+science(r)+'</td><td>'+total+(official?'':' (잠정)')+'</td><td>'+(official?rows.findIndex(a=>a.total===total)+1:'—')+'</td></tr>';
   }
   const p=waiting.find(d=>d.group===g);
   const label=p.stage>=3?'결승 통과 · 제출 기다리는 중':'달리는 중 · '+(stages[p.stage]||'');
-  return '<tr><td>'+g+'</td><td colspan="6">'+label+'</td><td><button class="dropRow" data-g="'+g+'" data-doc="'+escapeText(p.id)+'">빼기</button></td></tr>';
- }).join(''):'<tr><td colspan="8">아직 들어온 기록이 없어요. 학생이 게임을 시작하면 여기에 나타납니다.</td></tr>';
+  return '<tr><td>'+g+'</td><td colspan="7">'+label+'</td><td><button class="dropRow" data-g="'+g+'" data-doc="'+escapeText(p.id)+'">빼기</button></td></tr>';
+ }).join(''):'<tr><td colspan="9">아직 들어온 기록이 없어요. 학생이 게임을 시작하면 여기에 나타납니다.</td></tr>';
  panel('<h2>교사 모드 · '+(G?'모둠':'개인')+' 성적표</h2>'+
   '<p><label>반 <select id="teacherClass">'+classOptions+'</select></label> <label>구분 <select id="teacherMode"><option value="group"'+(G?' selected':'')+'>모둠별</option><option value="solo"'+(G?'':' selected')+'>개인별</option></select></label> 학생이 결과를 제출하면 이 표에 바로 나타나요. <button id="toLive" class="primary">실시간 주행 보기</button></p>'+
   '<p role="status">'+escapeText(teacherMsg)+'</p><p id="pendingNote" role="status"></p>'+
   (official?'<h3>🏆 챔피언 · '+winners+'</h3>':'<p>제출 '+rows.length+cnt+(waiting.length?' · 아직 달리는 중 '+waiting.length+cnt:'')+'. 모든 '+who+'이 제출하면 최종 순위가 나와요. 달리는 중인 '+who+'을 빼면 바로 발표할 수도 있어요.</p>')+
-  '<div class="table-scroll"><table><thead><tr><th>'+(G?'모둠':'번호')+'</th><th>진행</th><th>결승 기록</th><th>충돌</th><th>레이스 /40</th><th>미션 /60</th><th>합계 /100</th><th>최종 순위</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
-  '<p>완주 순위 배점은 '+(G?'30·27·24·21·18·15·12점이며':'1등 30점부터 한 등수마다 1점씩 줄고 최소 10점이며')+', 0.1초 단위 동률은 같은 점수입니다. 미션은 10문제이고, 한 문제당 첫 시도에 맞히면 6점, 두 번째 3점, 세 번째부터 1점이에요.</p>'+
+  '<div class="table-scroll"><table><thead><tr><th>'+(G?'모둠':'번호')+'</th><th>진행</th><th>결승 기록</th><th>충돌</th><th>완주 /30</th><th>안전 /10</th><th>미션 /60</th><th>합계 /100</th><th>최종 순위</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
+  '<p>합계 = 완주 순위(30) + 안전 운전(10) + 미션(60). 안전 운전은 그랑프리에서 10점부터 충돌 1회마다 1점씩 깎여요. 완주 순위 배점은 '+(G?'30·27·24·21·18·15·12점이며':'1등 30점부터 한 등수마다 1점씩 줄고 최소 10점이며')+', 0.1초 단위 동률은 같은 점수입니다. 미션은 10문제이고, 한 문제당 첫 시도에 맞히면 6점, 두 번째 3점, 세 번째부터 1점이에요.</p>'+
   rows.map(({r})=>'<details data-g="'+r.group+'"><summary>'+unitOf(teacherMode,r.group)+' 응답과 기록</summary>'+
    '<p>'+r.splits.map((s,i)=>stages[i]+' '+s.time.toFixed(1)+'초 · 충돌 '+s.crashes+'회').join(' / ')+(r.route?' · 선택 코스 '+escapeText(r.route):'')+'</p>'+
    missionOrder.map(i=>{const a=r.answers[i];return '<p><strong>'+missionNo(i)+'. '+missions[i].title+'</strong><br>'+(a.tries>1?a.tries+'번 시도 · 처음 고른 답: '+escapeText(missions[i].options[a.first.choice]):'한 번에 정답')+'</p>'}).join('')+
