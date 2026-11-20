@@ -83,11 +83,11 @@ const courses=[
  [[0,52],[45,53],[78,47],[93,28],[84,8],[64,4],[50,-8],[56,-24],[74,-32],[74,-50],[42,-57],[0,-52],[-34,-57],[-60,-48],[-66,-30],[-50,-18],[-56,-2],[-80,6],[-90,32],[-64,52],[-30,50]]
 ];
 const branchRange=[102,142], TOP=22, WALL_KEEP=.35, WALL_DRAG=3;
-function surfaceAt(i){
- if(practice)return i>=54&&i<106?1:i>=145&&i<188?2:0;
- if(stage===0)return 0;
- if(stage===1)return i>=56&&i<112?1:0;
- return i>=36&&i<62||i>=branchRange[0]&&i<branchRange[1]&&route!=='B'?1:i>=147&&i<185?2:0;
+function surfaceAt(i,stg=stage,rt=route,prac=practice){
+ if(prac)return i>=54&&i<106?1:i>=145&&i<188?2:0;
+ if(stg===0)return 0;
+ if(stg===1)return i>=56&&i<112?1:0;
+ return i>=36&&i<62||i>=branchRange[0]&&i<branchRange[1]&&rt!=='B'?1:i>=147&&i<185?2:0;
 }
 function spline(p0,p1,p2,p3,t){
  const gap=(a,b)=>Math.sqrt(Math.hypot(b[0]-a[0],b[1]-a[1]))||1e-4;
@@ -97,10 +97,8 @@ function spline(p0,p1,p2,p3,t){
  return mix(mix(a1,a2,0,t2),mix(a2,a3,t1,t3),t1,t2);
 }
 let stage=0, half=7.7, route='', scenery;
-function buildTrack(){
- track.length=0;obstacles.length=0;
- half=[8.6,7.7,7.5][stage];
-const waypoints=courses[stage],n=waypoints.length,dense=[];
+function rawPoints(stg,rt,prac){
+const waypoints=courses[stg],n=waypoints.length,dense=[];
 for(let k=0;k<n;k++)for(let m=0;m<60;m++)dense.push(spline(waypoints[(k-1+n)%n],waypoints[k],waypoints[(k+1)%n],waypoints[(k+2)%n],m/60));
 const cum=[0];
 for(let k=1;k<=dense.length;k++){const a=dense[k-1],b=dense[k%dense.length];cum.push(cum[k-1]+Math.hypot(b[0]-a[0],b[1]-a[1]))}
@@ -110,7 +108,7 @@ for(let k=0,m=0;k<count;k++){
  const f=(target-cum[m])/(cum[m+1]-cum[m]),a=dense[m],b=dense[(m+1)%dense.length];
  raw.push([a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f]);
 }
-if(stage===2&&route==='B'&&!practice){
+if(stg===2&&rt==='B'&&!prac){
  const shifted=raw.map(p=>p.slice());
  for(let k=branchRange[0];k<branchRange[1];k++){
   const a=raw[k-1],b=raw[k+1],len=Math.hypot(b[0]-a[0],b[1]-a[1]);
@@ -121,6 +119,12 @@ if(stage===2&&route==='B'&&!practice){
  }
  raw.splice(0,count,...shifted);
 }
+return raw;
+}
+function buildTrack(){
+ track.length=0;obstacles.length=0;
+ half=[8.6,7.7,7.5][stage];
+const raw=rawPoints(stage,route,practice);
 for(let i=0;i<count;i++){
  const [x,z]=raw[i],a=raw[(i-1+count)%count],b=raw[(i+1)%count],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
  track.push({x,z,dx:(b[0]-a[0])/length,dz:(b[1]-a[1])/length,type:surfaceAt(i)});
@@ -223,7 +227,7 @@ function restart(){
 function showGame(value){
  playing=value;clearInput();byId('intro').hidden=value;
  for(const id of ['hud','actions','controls'])byId(id).hidden=!value;
- if(value)restart();else{place(67);byId('message').hidden=true;refreshIntro()}
+ if(value)restart();else{stopWatchMe();place(67);byId('message').hidden=true;refreshIntro()}
 }
 byId('start').onclick=()=>begin(true);
 byId('home').onclick=async()=>{if(practice||await ask('주행을 멈추고 홈으로 갈까요? 1시간 안에는 「이어서 달리기」로 계속할 수 있어요.')){paused=false;showGame(false)}};
@@ -411,6 +415,32 @@ function connect(){
  })(),15000).catch(error=>{dbReady=null;throw error});
  return dbReady;
 }
+const WATCH_COL='frictionKartWatch', WATCH_MAX=5;
+let watched=false, watchUnsubStudent=null;
+function watchMe(){
+ stopWatchMe();if(practice)return;
+ connect().then(base=>{
+  if(practice||!playing||watchUnsubStudent)return;
+  watchUnsubStudent=base.collection(WATCH_COL).doc('c'+cls+'-'+mode).onSnapshot(s=>{
+   const list=(s.exists&&s.data().list)||[], now=Array.isArray(list)&&list.includes(group);
+   if(now&&!watched){liveLast=0;liveSentPos=null;liveSentMission=-1}
+   watched=now;
+  },()=>{});
+ }).catch(()=>{});
+}
+function stopWatchMe(){if(watchUnsubStudent){watchUnsubStudent();watchUnsubStudent=null}watched=false}
+let liveLast=0, liveSentMission=-1, liveSentPos=null, liveMission=0;
+const LIVE_MS=4000;
+function liveTick(){
+ if(practice||!playing||result||!watched)return;
+ const now=Date.now();
+ if(now-liveLast<1000)return;
+ const moved=!liveSentPos||Math.hypot(x-liveSentPos[0],z-liveSentPos[1])>1;
+ if(!(liveMission!==liveSentMission||(now-liveLast>=LIVE_MS&&moved)||now-liveLast>=20000))return;
+ liveLast=now;liveSentMission=liveMission;liveSentPos=[x,z];
+ const data={cls,group,mode,status:'playing',stage,updatedAt:now,live:{x:Math.round(x*10)/10,z:Math.round(z*10)/10,v:Math.round(Math.hypot(vx,vz)*3.6),lap,route,q:liveMission,t:now}};
+ connect().then(base=>base.collection(COL).doc(docId(cls,group,mode)).set(data,{merge:true})).catch(()=>{});
+}
 function reportProgress(step=stage){
  if(practice)return;
  const data={cls,group,mode,status:'playing',stage:step,updatedAt:Date.now()};
@@ -477,7 +507,7 @@ async function begin(isPractice,again=false){
  if(!isPractice){clearSave();connect().catch(()=>{})}
  practice=isPractice;stage=0;route='';paused=false;
  answers=[];splits=[];iceSlip=0;reflection='';result=null;
- buildTrack();showGame(true);reportProgress();
+ buildTrack();showGame(true);reportProgress();if(!isPractice)watchMe();
 }
 on('race',()=>begin(false));
 function resume(s){
@@ -491,7 +521,7 @@ function resume(s){
  gauge=Number(s.gauge)||0;boostItems=Number(s.boostItems)||0;
  x=s.x;z=s.z;heading=s.heading;vx=vz=0;segment=s.segment;camera=null;
  lastCrash=-10;notice='';noticeUntil=0;braking=false;
- reportProgress();countdown();
+ reportProgress();watchMe();countdown();
 }
 
 function freeze(){paused=true;clearInput();vx=0;vz=0}
@@ -501,7 +531,7 @@ function countdown(){
  panel('<h2>주행 재개</h2><p id="countdown">3</p>');
  const timer=setInterval(()=>{
   if(--n){byId('countdown').textContent=n;return}
-  clearInterval(timer);activity.close();clearInput();paused=false;
+  clearInterval(timer);activity.close();clearInput();paused=false;liveMission=0;
  },1000);
 }
 function brakingModel(type,step=1/120){
@@ -581,7 +611,7 @@ const missions=[
 const triesPoints=(id,tries)=>[6,3,1][Math.min(tries,3)-1];
 const shuffled=n=>{const order=[...Array(n).keys()];for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}return order};
 function openMission(id){
- freeze();
+ freeze();liveMission=missionNo(id);
  const m=missions[id];
  let choice=-1, first=null, tries=0, order=shuffled(m.options.length);
  function prompt(){
@@ -641,7 +671,7 @@ function stageFinish(){
   on('nextStage',()=>{stage++;buildTrack();restart();reportProgress();autosave(true);countdown()});
  }else{
   result={version:3,cls,group,mode,splits,answers,route,iceSlip,reflection:'',sent:false};
-  keepResult();clearSave();reportProgress(3);
+  keepResult();clearSave();reportProgress(3);stopWatchMe();
   studentResult();
  }
 }
@@ -730,6 +760,8 @@ const validResponse=(response,id)=>response&&Number.isInteger(response.choice)&&
 function validRecord(r){
  return r?.version===3&&Number.isInteger(r.group)&&r.group>=1&&r.group<=(r.mode==='group'?7:40)&&Array.isArray(r.splits)&&r.splits.length===3&&r.splits.every(s=>s&&Number.isFinite(s.time)&&s.time>0&&Number.isInteger(s.crashes)&&s.crashes>=0)&&Array.isArray(r.answers)&&r.answers.length===MISSION_COUNT&&r.answers.every((a,i)=>validResponse(a,i)&&validResponse(a.first,i)&&typeof a.retried==='boolean')&&typeof r.reflection==='string'&&r.reflection.length<=400;
 }
+let watchList=[], watchUnsubT=null, watchKeyOn='';
+let teacherView='board', liveState={}, trackCache={}, liveRunning=false;
 let teacherCls=1, teacherMode='group', teacherAll=[], teacherDocs=[], teacherUnsub=null, gradesDirty=false, teacherMsg='';
 function openTeacher(){
  panel('<h2>교사 모드</h2><p>기록 저장소에 연결하는 중…</p>',true);
@@ -739,17 +771,132 @@ function openTeacher(){
  });
 }
 function watchClass(c){
- teacherCls=c;teacherAll=[];teacherDocs=[];gradesDirty=false;teacherMsg='';
+ clearWatch();
+ teacherCls=c;teacherAll=[];teacherDocs=[];gradesDirty=false;teacherMsg='';liveState={};
  if(teacherUnsub)teacherUnsub();
- renderTeacher();
+ showTeacher();
  teacherUnsub=db.collection(COL).where('cls','==',c).onSnapshot(snapshot=>{
-  teacherAll=snapshot.docs.map(d=>Object.assign({id:d.id},d.data()));filterTeacher();
+  teacherAll=snapshot.docs.map(d=>Object.assign({id:d.id},d.data()));filterTeacher();liveUpdate();
+  if(teacherView==='live'){renderChips();return}
   if(gradesDirty){const note=byId('pendingNote');if(note)note.textContent='새 기록이 들어왔어요. 「채점 저장」을 누르면 표에 반영됩니다.'}
   else renderTeacher();
- },error=>{teacherMsg='기록을 불러오지 못했습니다: '+error.message;renderTeacher()});
+ },error=>{teacherMsg='기록을 불러오지 못했습니다: '+error.message;showTeacher()});
 }
 function filterTeacher(){teacherDocs=teacherAll.filter(d=>(d.mode==='group'?'group':'solo')===teacherMode)}
-function closeTeacher(){if(teacherUnsub){teacherUnsub();teacherUnsub=null}activity.close()}
+function showTeacher(){if(teacherView==='live')renderLive();else renderTeacher()}
+function teacherTrack(stg,rt){
+ const key=stg+'|'+(stg===2&&rt==='B'?'B':'');
+ if(!trackCache[key]){
+  const pts=rawPoints(stg,rt,false).map((p,i)=>({x:p[0],z:p[1],type:surfaceAt(i,stg,rt,false)}));
+  let x0=Infinity,x1=-Infinity,z0=Infinity,z1=-Infinity;
+  for(const p of pts){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z)}
+  trackCache[key]={pts,x0,x1,z0,z1};
+ }
+ return trackCache[key];
+}
+function livePos(st){const k=Math.min(1,(performance.now()-st.at)/LIVE_MS);return [st.from[0]+(st.to[0]-st.from[0])*k,st.from[1]+(st.to[1]-st.from[1])*k]}
+function liveUpdate(){
+ const now=performance.now();
+ for(const d of teacherDocs){
+  const L=d.live;if(!L||!Number.isFinite(L.x)||!Number.isFinite(L.z))continue;
+  const key=d.stage+'|'+(L.route||''), st=liveState[d.id];
+  if(!st||st.key!==key){liveState[d.id]={key,from:[L.x,L.z],to:[L.x,L.z],at:now,t:L.t,recv:now-Math.max(0,Date.now()-(L.t||Date.now()))}}
+  else if(st.t!==L.t){st.from=livePos(st);st.to=[L.x,L.z];st.at=now;st.t=L.t;st.recv=now;st.fresh=true}
+ }
+}
+const watchKey=()=>'c'+teacherCls+'-'+teacherMode;
+function listenWatch(){
+ if(watchKeyOn===watchKey()&&watchUnsubT)return;
+ if(watchUnsubT)watchUnsubT();
+ watchKeyOn=watchKey();watchList=[];
+ watchUnsubT=db.collection(WATCH_COL).doc(watchKeyOn).onSnapshot(s=>{const l=s.exists&&s.data().list;watchList=Array.isArray(l)?l:[];renderChips()},()=>{});
+}
+function clearWatch(){
+ if(watchUnsubT){watchUnsubT();watchUnsubT=null}
+ if(watchKeyOn&&watchList.length&&db)db.collection(WATCH_COL).doc(watchKeyOn).set({list:[],updatedAt:Date.now()}).catch(()=>{});
+ watchKeyOn='';watchList=[];
+}
+function saveWatch(list){
+ watchList=list;renderChips();
+ db.collection(WATCH_COL).doc(watchKey()).set({list,updatedAt:Date.now()}).catch(error=>{const n=byId('liveNote');if(n)n.textContent='선택을 저장하지 못했어요: '+error.message});
+}
+function renderChips(){
+ const box=byId('liveChips');if(!box)return;
+ const G=teacherMode==='group', people=teacherDocs.filter(d=>Number.isInteger(d.group)&&(d.status==='playing'||(d.status==='done'&&validRecord(d)))).sort((a,b)=>a.group-b.group);
+ box.innerHTML=people.length?people.map(d=>{const on=watchList.includes(d.group),done=d.status==='done';return '<button data-g="'+d.group+'"'+(on?' class="primary"':'')+(done&&!on?' disabled':'')+'>'+(on?'👁 ':'')+unitOf(teacherMode,d.group)+(done?' 🏁':'')+'</button>'}).join('')+(watchList.length?'<button id="watchNone">모두 해제</button>':''):'<span>아직 게임을 시작한 '+(G?'모둠':'학생')+'이 없어요.</span>';
+ box.querySelectorAll('button[data-g]').forEach(b=>b.onclick=()=>{
+  const g=Number(b.dataset.g), note=byId('liveNote');
+  if(watchList.includes(g)){saveWatch(watchList.filter(v=>v!==g));return}
+  if(watchList.length>=WATCH_MAX){if(note)note.textContent='한 번에 '+WATCH_MAX+(G?'모둠':'명')+'까지 볼 수 있어요. 다른 '+(G?'모둠':'학생')+'을 먼저 해제하세요.';return}
+  if(note)note.textContent='';saveWatch([...watchList,g]);
+ });
+ const none=byId('watchNone');if(none)none.onclick=()=>saveWatch([]);
+}
+function renderLive(){
+ const G=teacherMode==='group';
+ const classOptions=[1,2,3,4,5].map(c=>'<option value="'+c+'"'+(c===teacherCls?' selected':'')+'>'+c+'반</option>').join('');
+ panel('<h2>교사 모드 · 실시간 주행</h2>'+
+  '<p><label>반 <select id="teacherClass">'+classOptions+'</select></label> <label>구분 <select id="teacherMode"><option value="group"'+(G?' selected':'')+'>모둠별</option><option value="solo"'+(G?'':' selected')+'>개인별</option></select></label> <button id="toBoard" class="primary">성적표 보기</button><button id="teacherClose">닫기</button></p>'+
+  '<p role="status">'+escapeText(teacherMsg)+'</p>'+
+  '<p><strong>볼 '+(G?'모둠':'학생')+'을 눌러 고르세요 (최대 '+WATCH_MAX+(G?'모둠':'명')+')</strong> · 고른 '+(G?'모둠':'학생')+'의 태블릿만 위치를 보내요.</p><div id="liveChips" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0"></div><p id="liveNote" role="status" style="color:#ffb38a"></p>'+
+  '<p style="font-size:14px;opacity:.8">고른 태블릿의 위치를 약 4초마다 받아 와요. 점은 실제보다 조금 늦게 따라와요. · 회색 길: 아스팔트 · 하늘색: 얼음 · 주황색: 모래</p>'+
+  '<canvas id="liveCanvas" style="width:100%;display:block"></canvas>',true);
+ byId('teacherClass').onchange=event=>watchClass(Number(event.target.value));
+ byId('teacherMode').onchange=event=>{clearWatch();teacherMode=event.target.value;filterTeacher();liveUpdate();showTeacher()};
+ listenWatch();renderChips();
+ on('toBoard',()=>{teacherView='board';showTeacher()});
+ on('teacherClose',closeTeacher);
+ if(!liveRunning){liveRunning=true;requestAnimationFrame(liveLoop)}
+}
+const LIVE_COLORS=['#ff5c5c','#ffd23f','#7dff8a','#5cc8ff','#c58bff','#ff9f43','#ff7ad9','#8affea'];
+function liveLoop(){
+ const cv=byId('liveCanvas');
+ if(!cv||teacherView!=='live'||!activity.open){liveRunning=false;return}
+ const list=watchList.map(g=>teacherDocs.find(d=>d.group===g&&(d.status==='playing'||(d.status==='done'&&validRecord(d))))).filter(Boolean);
+ const W=Math.max(300,cv.clientWidth), cols=W>=900?3:2, cw=W/cols, ch=Math.round(cw*.78), rows=Math.max(1,Math.ceil(list.length/cols)), H=list.length?rows*ch:120;
+ const dpr=Math.min(devicePixelRatio||1,2);
+ if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.height=H+'px'}
+ const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+ g.textBaseline='top';
+ if(!list.length){g.fillStyle='#dfe8f2';g.font='600 20px system-ui,sans-serif';g.fillText('위에서 볼 '+(teacherMode==='group'?'모둠':'학생')+'을 고르면 여기에 주행 화면이 나타나요.',10,40)}
+ const now=performance.now();
+ list.forEach((d,k)=>{
+  const ox=(k%cols)*cw+6, oy=Math.floor(k/cols)*ch+6, w=cw-12, h=ch-12, color=LIVE_COLORS[(d.group-1)%LIVE_COLORS.length];
+  g.fillStyle='#1d2f4a';g.beginPath();g.roundRect(ox,oy,w,h,12);g.fill();
+  g.fillStyle=color;g.fillRect(ox,oy+10,5,26);
+  g.fillStyle='#ffffff';g.font='800 22px system-ui,sans-serif';g.fillText(unitOf(teacherMode,d.group),ox+14,oy+10);
+  const foot=(text,c)=>{g.fillStyle=c;g.font='700 16px system-ui,sans-serif';g.fillText(text,ox+14,oy+h-28)};
+  if(d.status==='done'){
+   g.fillStyle='#9affde';g.font='800 26px system-ui,sans-serif';g.fillText('🏁 완주!',ox+14,oy+h/2-30);
+   g.font='700 18px system-ui,sans-serif';g.fillStyle='#dfe8f2';g.fillText('그랑프리 '+raceTime(d).toFixed(1)+'초 · 결과 제출 완료',ox+14,oy+h/2+8);
+   return;
+  }
+  const L=d.live;
+  if(d.stage>=3){g.fillStyle='#ffe45c';g.font='800 22px system-ui,sans-serif';g.fillText('🏁 결승 통과',ox+14,oy+h/2-24);g.fillStyle='#dfe8f2';g.font='600 16px system-ui,sans-serif';g.fillText('배운 점 쓰고 제출하는 중',ox+14,oy+h/2+10);return}
+  if(!L||!liveState[d.id]||now-liveState[d.id].recv>30000&&!liveState[d.id].fresh){g.fillStyle='#a9b8c8';g.font='600 17px system-ui,sans-serif';g.fillText('위치 기다리는 중…',ox+14,oy+h/2-10);return}
+  const stg=Math.max(0,Math.min(2,d.stage|0)), tr=teacherTrack(stg,L.route), st=liveState[d.id];
+  g.fillStyle='#a9d6ff';g.font='600 14px system-ui,sans-serif';g.fillText(stages[stg],ox+w-14-g.measureText(stages[stg]).width,oy+16);
+  const mx0=ox+14,my0=oy+44,mw=w-28,mh=h-44-40;
+  const sc=Math.min(mw/(tr.x1-tr.x0),mh/(tr.z1-tr.z0)), cx=mx0+mw/2, cz=my0+mh/2;
+  const px=v=>cx+(v-(tr.x0+tr.x1)/2)*sc, pz=v=>cz-(v-(tr.z0+tr.z1)/2)*sc;
+  g.lineWidth=Math.max(4,sc*6);g.lineCap='round';
+  for(let type=0;type<3;type++){
+   g.strokeStyle=['#7f90a6','#77e7ff','#e9b77b'][type];g.beginPath();
+   tr.pts.forEach((p,i)=>{if(p.type!==type)return;const q=tr.pts[(i+1)%tr.pts.length];g.moveTo(px(p.x),pz(p.z));g.lineTo(px(q.x),pz(q.z))});
+   g.stroke();
+  }
+  const s0=tr.pts[0],s1=tr.pts[1],ang=Math.atan2(-(s1.z-s0.z),s1.x-s0.x);
+  g.save();g.translate(px(s0.x),pz(s0.z));g.rotate(ang);g.fillStyle='#ffffff';g.fillRect(-2,-9,4,18);g.restore();
+  const [lx,lz]=livePos(st), stale=now-st.recv>30000;
+  g.beginPath();g.arc(px(lx),pz(lz),9,0,Math.PI*2);g.fillStyle=stale?'#7a8594':color;g.fill();g.lineWidth=3;g.strokeStyle='#ffffff';g.stroke();
+  const laps=lapTargets[stg];
+  if(L.q){g.fillStyle='#fff6c9';g.beginPath();g.roundRect(ox+10,oy+h-34,w-20,28,8);g.fill();g.fillStyle='#152239';g.font='700 16px system-ui,sans-serif';g.fillText('📝 미션 '+L.q+' 푸는 중',ox+14,oy+h-28)}
+  else if(stale)foot('⚠ 신호 없음 (홈으로 나갔거나 연결 끊김)','#ffb38a');
+  else foot(Math.min((L.lap|0)+1,laps)+'/'+laps+'바퀴 · '+(L.v|0)+' km/h'+(stg===2&&L.route?' · 코스 '+L.route:''),'#dfe8f2');
+ });
+ requestAnimationFrame(liveLoop);
+}
+function closeTeacher(){clearWatch();if(teacherUnsub){teacherUnsub();teacherUnsub=null}activity.close()}
 function renderTeacher(){
  const scroll=activity.scrollTop, opened=[...activity.querySelectorAll('details[data-g][open]')].map(d=>d.dataset.g);
  const done=teacherDocs.filter(d=>d.status==='done'&&validRecord(d));
@@ -775,7 +922,7 @@ function renderTeacher(){
   return '<tr><td>'+g+'</td><td colspan="6">'+label+'</td><td><button class="dropRow" data-g="'+g+'" data-doc="'+escapeText(p.id)+'">빼기</button></td></tr>';
  }).join(''):'<tr><td colspan="8">아직 들어온 기록이 없어요. 학생이 게임을 시작하면 여기에 나타납니다.</td></tr>';
  panel('<h2>교사 모드 · '+(G?'모둠':'개인')+' 성적표</h2>'+
-  '<p><label>반 <select id="teacherClass">'+classOptions+'</select></label> <label>구분 <select id="teacherMode"><option value="group"'+(G?' selected':'')+'>모둠별</option><option value="solo"'+(G?'':' selected')+'>개인별</option></select></label> 학생이 결과를 제출하면 이 표에 바로 나타나요.</p>'+
+  '<p><label>반 <select id="teacherClass">'+classOptions+'</select></label> <label>구분 <select id="teacherMode"><option value="group"'+(G?' selected':'')+'>모둠별</option><option value="solo"'+(G?'':' selected')+'>개인별</option></select></label> 학생이 결과를 제출하면 이 표에 바로 나타나요. <button id="toLive" class="primary">실시간 주행 보기</button></p>'+
   '<p role="status">'+escapeText(teacherMsg)+'</p><p id="pendingNote" role="status"></p>'+
   (official?'<h3>🏆 챔피언 · '+winners+'</h3>':'<p>제출 '+rows.length+cnt+(waiting.length?' · 아직 달리는 중 '+waiting.length+cnt:'')+'. 모든 '+who+'이 제출하면 최종 순위가 나와요. 달리는 중인 '+who+'을 빼면 바로 발표할 수도 있어요.</p>')+
   '<div class="table-scroll"><table><thead><tr><th>'+(G?'모둠':'번호')+'</th><th>진행</th><th>결승 기록</th><th>충돌</th><th>레이스 /40</th><th>미션 /60</th><th>합계 /100</th><th>최종 순위</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
@@ -792,7 +939,8 @@ function renderTeacher(){
   if(gradesDirty&&!await ask('저장하지 않은 채점이 있어요. 다른 반으로 바꿀까요?')){event.target.value=teacherCls;return}
   watchClass(Number(event.target.value));
  };
- byId('teacherMode').onchange=event=>{teacherMode=event.target.value;filterTeacher();teacherMsg='';renderTeacher()};
+ byId('teacherMode').onchange=event=>{clearWatch();teacherMode=event.target.value;filterTeacher();teacherMsg='';showTeacher()};
+ on('toLive',()=>{teacherView='live';showTeacher()});
  activity.querySelectorAll('.grade').forEach(field=>field.oninput=()=>{gradesDirty=true});
  activity.querySelectorAll('.dropRow').forEach(button=>button.onclick=async()=>{
   if(!await ask(unitOf(teacherMode,button.dataset.g)+'을 목록에서 뺄까요?'))return;
@@ -833,7 +981,7 @@ function frame(now){
   while(accumulator>=1/120&&!paused){physics(1/120);accumulator-=1/120}
   autosave();
  }else accumulator=0;
- render(dt);requestAnimationFrame(frame);
+ render(dt);liveTick();requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 }
