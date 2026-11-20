@@ -1,0 +1,840 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>언동 사이언스 | FRICTION KART</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#152239;color:white;font:600 16px system-ui,sans-serif;overflow:hidden}#world{width:100vw;height:100dvh;display:block}button{font:inherit;color:inherit;border:1px solid #ffffff45;background:#152239e8;border-radius:12px;cursor:pointer;padding:12px 17px;touch-action:none}button:focus-visible{outline:3px solid #8efdeb}button.active,button.primary{background:#9affde;color:#122735}#hud{position:absolute;inset:14px 14px auto;display:flex;justify-content:space-between;gap:8px;pointer-events:none}.panel{background:#142239e9;padding:10px 14px;border-radius:13px;border:1px solid #ffffff45}#speed{font-size:29px}#surface{color:#9affde}#map{width:135px;height:84px;display:block}#actions{position:absolute;top:126px;right:14px;display:flex;gap:6px}#actions button{padding:8px}#controls{position:absolute;inset:auto 12px max(12px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;pointer-events:none}#controls div{display:flex;gap:14px}#controls button{pointer-events:auto;min-width:108px;height:100px;font-size:30px;border-radius:22px;border-width:2px;user-select:none;-webkit-user-select:none}#message{position:absolute;top:28%;left:50%;transform:translateX(-50%);max-width:90vw;text-align:center;pointer-events:none;color:#152239;background:#fff6c9;padding:8px 14px;border-radius:20px}#intro{position:absolute;inset:0;display:grid;align-items:center;padding:5vw;background:linear-gradient(90deg,#0b1528fa 0%,#0b1528d9 34%,transparent 85%);overflow:auto}#intro section{max-width:540px}h1{font-size:clamp(38px,8vw,108px);line-height:.85;margin:12px 0 20px;font-style:italic;letter-spacing:-.07em}small,.accent{color:#9affde}p{line-height:1.55}#intro button{margin:4px}#help{max-width:500px}dialog{color:white;background:#152239;border:1px solid #7892ab;border-radius:16px;width:min(92vw,470px)}dialog::backdrop{background:#111a2bb0}[hidden]{display:none!important}#controls [data-key=gas]{min-width:136px}#gauge{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);width:min(34vw,360px);height:22px;border-radius:12px;background:#0d1626d9;border:2px solid #ffffff70;overflow:hidden}#gaugeFill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#ffb000,#ffe45c);transition:width .15s}#bigSpeed{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);font-size:18px;text-shadow:0 2px 4px #000;white-space:nowrap}#speedNum{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums}#gauge b{position:relative;display:block;width:100%;text-align:center;font-size:13px;line-height:18px;color:#fff;text-shadow:0 1px 2px #000}#controls #boostBtn{position:absolute;right:0;bottom:114px;min-width:0;width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff7a6b,#d81e1e 60%,#8c0f0f);border:3px solid #ffd6d0;font-size:20px;display:grid;place-items:center;box-shadow:0 0 18px #ff3b2f99}#boostBtn span{font-weight:800}#boostBtn i{position:absolute;top:-6px;right:-6px;font-style:normal;background:#ffe45c;color:#3a1500;border-radius:50%;width:32px;height:32px;line-height:32px;font-size:18px;font-weight:800}#controls #boostBtn:disabled{filter:grayscale(1) brightness(.6);box-shadow:none;opacity:1}#boostBtn.firing{animation:fire .25s infinite alternate}@keyframes fire{to{transform:scale(1.08);box-shadow:0 0 34px #ffb000}}@media(max-height:450px){#controls button{height:80px;min-width:90px;font-size:26px}#controls #boostBtn{width:84px;height:84px;bottom:92px;font-size:17px}#gauge{bottom:50px}#bigSpeed{bottom:14px}#speedNum{font-size:30px}#controls [data-key=gas]{min-width:112px}#intro{padding:16px 5vw}#intro h1{font-size:clamp(38px,8vw,68px)}}
+
+select,textarea,input{font:inherit;color:inherit;background:#263a53;border:1px solid #8398ac;border-radius:8px;padding:8px}textarea{width:100%;resize:vertical}#activity{width:min(94vw,750px);max-height:90dvh;overflow:auto}#activity.wide{width:min(96vw,1150px);max-width:none}#activity button{margin:4px}#activity p{margin:8px 0}#activity h2{margin:0 0 12px}.options{display:grid}.options button{text-align:left}.trackbar{height:18px;background:#344763;border-radius:8px;position:relative;margin:6px 0 14px}.marker{position:absolute;height:18px;width:14px;border-radius:5px;background:#ff975d}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:7px;border-bottom:1px solid #ffffff30;text-align:left}details{margin:8px 0}button:disabled{opacity:.45;cursor:not-allowed}#error{color:#ffb38a;font-size:18px}#ask{z-index:10}#ask p{font-size:19px;line-height:1.5}#ask button{margin:4px 6px 0 0;min-width:84px}#copy{position:fixed;left:50%;bottom:max(4px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2;font-size:12px;opacity:.75;pointer-events:none;text-shadow:0 1px 2px #000;white-space:nowrap}.explain{background:#103b3f;border-left:4px solid #9affde;padding:10px 14px;border-radius:8px;line-height:1.65}textarea::placeholder{color:#a9b8c8}#activity .grade{width:68px}#modePick label{display:inline-flex;align-items:center;gap:6px;margin-right:10px;padding:6px 0}#modePick input{width:24px;height:24px;margin:0}.table-scroll{overflow:auto}
+</style>
+<canvas id="world" aria-label="3D 카트 트랙"></canvas>
+<div id="hud" hidden><div class="panel"><span id="speed" hidden>0</span><span id="surface"></span><br><small id="stats"></small></div><div class="panel"><canvas id="map" width="270" height="168" aria-label="트랙 미니맵"></canvas></div></div>
+<div id="actions" hidden><button id="reset">재출발</button><button id="home">홈</button></div><div id="message" hidden></div>
+<div id="controls" hidden><div id="gauge" aria-hidden="true"><span id="gaugeFill"></span><b>부스터 게이지</b></div><div id="bigSpeed"><b id="speedNum">0</b> km/h</div><button id="boostBtn" aria-label="부스터 사용" disabled><span>부스터</span><i id="boostCount">0</i></button><div><button data-key="left" aria-label="왼쪽">◀</button><button data-key="right" aria-label="오른쪽">▶</button></div><div><button data-key="brake">제동</button><button data-key="gas">가속</button></div></div>
+<div id="intro"><section><small>언동 사이언스 · 3D 주행 테스트</small><h1>FRICTION<br>KART</h1><p>마찰력을 지배하라! 과학 레이싱 챔피언십</p><span id="modePick" role="radiogroup" aria-label="참가 방식">참가 방식 <label><input type="radio" name="mode" value="group"> 모둠별</label> <label><input type="radio" name="mode" value="solo"> 개인별</label></span><br>1학년 <label>반 <select id="cls" aria-label="반"><option value="">선택</option><option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option><option value="5">5반</option></select></label> <label id="groupBox" hidden>모둠 <select id="group" aria-label="모둠"><option value="">선택</option><option value="1">1모둠</option><option value="2">2모둠</option><option value="3">3모둠</option><option value="4">4모둠</option><option value="5">5모둠</option><option value="6">6모둠</option><option value="7">7모둠</option></select></label><label id="numBox" hidden>번호 <input id="num" type="number" inputmode="numeric" min="1" max="40" placeholder="번호" aria-label="번호" style="width:90px"></label><br><button id="resume" class="primary" hidden>이어서 달리기</button><button id="race" class="primary">게임 시작</button><button id="teacher" hidden>교사 모드</button><button id="start">연습 주행</button><button id="instructions">조작 방법</button><p id="resumeInfo"></p><p id="error" role="alert"></p></section></div>
+<div id="copy">Copyright 2026 sapphire</div>
+<dialog id="help"><h2>조작 방법</h2><p>태블릿을 가로로 놓고 가속과 방향 버튼을 함께 누르세요. PC에서는 방향키 또는 WASD로 조작합니다.</p><p><strong>부스터</strong>: 가속하며 달리면 아래 노란 게이지가 차요. 가속과 방향 버튼을 함께 눌러 코너를 돌면 더 빨리 차요. 게이지가 가득 차면 빨간 부스터가 생기고(최대 2개), 빨간 버튼(PC는 스페이스바)을 누르면 잠깐 빨라져요. 벽에 세게 부딪히면 게이지가 줄어들어요. 얼음 위에서 쓰면 마찰력이 작아 방향을 바꾸기 어려우니 조심하세요.</p><p><strong>벽에 부딪혔을 때</strong>는 가속과 방향 버튼을 함께 누르세요. 카트 앞이 트랙 방향과 맞으면 방향 버튼을 뗍니다. 멈춘 상태에서는 방향 버튼만 눌러도 돌지 않고, 후진 기능은 없어요.</p><p>얼음길은 표면이 매끄러워 마찰력이 작아요. 코너에 들어가기 전에 감속해 보세요. 모래길은 표면이 거칠어 마찰력이 커요. 가속해도 속력이 잘 붙지 않지만 제동하면 빨리 멈춰요. 같은 속력에서 제동을 시작해 아스팔트와 얼음의 정지 거리를 비교해 보세요.</p><form method="dialog"><button>닫기</button></form></dialog>
+<dialog id="activity"></dialog><dialog id="ask" aria-labelledby="askText"><p id="askText"></p><button id="askYes" class="primary">예</button><button id="askNo">아니요</button></dialog><script>
+'use strict';
+const byId = id => document.getElementById(id);
+function ask(message){
+ const box=byId('ask');byId('askText').textContent=message;
+ return new Promise(resolve=>{
+  const done=answer=>{byId('askYes').onclick=byId('askNo').onclick=box.oncancel=null;box.close();resolve(answer)};
+  byId('askYes').onclick=()=>done(true);byId('askNo').onclick=()=>done(false);
+  box.oncancel=event=>{event.preventDefault();done(false)};
+  box.showModal();byId('askYes').focus();
+ });
+}
+const canvas = byId('world');
+const gl = canvas.getContext('webgl', {antialias:true, alpha:false});
+byId('instructions').onclick = () => byId('help').showModal();
+if (!gl) {
+  byId('error').textContent = '이 브라우저에서 WebGL을 사용할 수 없습니다. WebGL이 켜진 브라우저에서 열어 주세요.';
+  byId('start').disabled = byId('race').disabled = true;
+} else {
+const program = gl.createProgram();
+function shader(kind, source) {
+  const s = gl.createShader(kind);
+  gl.shaderSource(s,source); gl.compileShader(s);
+  if (!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw Error(gl.getShaderInfoLog(s));
+  gl.attachShader(program,s);
+}
+shader(gl.VERTEX_SHADER,`
+attribute vec3 p,c; uniform vec3 eye,right,up,forward,offset; uniform vec2 turn; uniform float aspect;
+varying vec3 color; varying float depth;
+void main(){
+ vec3 w=vec3(turn.x*p.x+turn.y*p.z,p.y,-turn.y*p.x+turn.x*p.z)+offset-eye;
+ float z=dot(w,forward); depth=z; color=c;
+ gl_Position=vec4(dot(w,right)*1.52/aspect,dot(w,up)*1.52,z*1.001-0.30,z);
+}`);
+shader(gl.FRAGMENT_SHADER,`
+precision mediump float; varying vec3 color; varying float depth;
+void main(){gl_FragColor=vec4(mix(color,vec3(.69,.84,.94),smoothstep(55.,230.,depth)),1.);}
+`);
+gl.linkProgram(program); gl.useProgram(program); gl.enable(gl.DEPTH_TEST);
+const locations = Object.fromEntries(['eye','right','up','forward','offset','turn','aspect'].map(k=>[k,gl.getUniformLocation(program,k)]));
+const position = gl.getAttribLocation(program,'p'), color = gl.getAttribLocation(program,'c');
+gl.enableVertexAttribArray(position); gl.enableVertexAttribArray(color);
+const cross = (a,b) => [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const normalize = a => {const length=Math.hypot(...a);return a.map(n=>n/length)};
+let vertices=[];
+function triangle(a,b,c,tint){for(const p of [a,b,c]) vertices.push(...p,...tint)}
+function quad(a,b,c,d,tint){triangle(a,b,c,tint);triangle(a,c,d,tint)}
+function box(x,y,z,w,h,d,tint){
+ const a=[x-w/2,y,z-d/2], b=[x+w/2,y,z-d/2],c=[x+w/2,y,z+d/2],e=[x-w/2,y,z+d/2];
+ const top=p=>[p[0],p[1]+h,p[2]];
+ quad(top(a),top(b),top(c),top(e),tint);
+ for(const [i,j,k] of [[a,b,.63],[b,c,.83],[c,e,.92],[e,a,.73]]) quad(i,j,top(j),top(i),tint.map(n=>n*k));
+}
+function mesh(){
+ const buffer=gl.createBuffer(), count=vertices.length/6;
+ gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+ gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
+ vertices=[];return {buffer,count};
+}
+const surfaces=[
+ {name:'아스팔트',acc:9.4,brake:15,grip:7.8,drag:.115,steer:1,tint:[.21,.27,.34]},
+ {name:'얼음길',acc:4.8,brake:3.8,grip:.68,drag:.058,steer:.91,tint:[.34,.76,.90]},
+ {name:'모래길',acc:5.6,brake:17,grip:8.4,drag:.42,steer:.82,tint:[.77,.54,.31]}
+];
+const count=240, track=[], obstacles=[];
+const stages=['드라이빙 스쿨','아이스 드리프트','프릭션 그랑프리'];
+const courses=[
+ [[0,45],[45,46],[70,40],[80,18],[66,-4],[74,-28],[54,-46],[0,-46],[-50,-45],[-74,-28],[-78,8],[-68,36],[-40,46]],
+ [[-55,46],[10,47],[60,46],[82,34],[74,16],[50,18],[30,14],[24,-6],[44,-18],[72,-20],[82,-38],[62,-51],[0,-48],[-45,-50],[-76,-36],[-81,0],[-77,30]],
+ [[0,52],[45,53],[78,47],[93,28],[84,8],[64,4],[50,-8],[56,-24],[74,-32],[74,-50],[42,-57],[0,-52],[-34,-57],[-60,-48],[-66,-30],[-50,-18],[-56,-2],[-80,6],[-90,32],[-64,52],[-30,50]]
+];
+const branchRange=[102,142], TOP=22, WALL_KEEP=.35, WALL_DRAG=3;
+function surfaceAt(i){
+ if(practice)return i>=54&&i<106?1:i>=145&&i<188?2:0;
+ if(stage===0)return 0;
+ if(stage===1)return i>=56&&i<112?1:0;
+ return i>=36&&i<62||i>=branchRange[0]&&i<branchRange[1]&&route!=='B'?1:i>=147&&i<185?2:0;
+}
+function spline(p0,p1,p2,p3,t){
+ const gap=(a,b)=>Math.sqrt(Math.hypot(b[0]-a[0],b[1]-a[1]))||1e-4;
+ const t1=gap(p0,p1),t2=t1+gap(p1,p2),t3=t2+gap(p2,p3),u=t1+(t2-t1)*t;
+ const mix=(a,b,ta,tb)=>[0,1].map(k=>((tb-u)*a[k]+(u-ta)*b[k])/(tb-ta));
+ const a1=mix(p0,p1,0,t1),a2=mix(p1,p2,t1,t2),a3=mix(p2,p3,t2,t3);
+ return mix(mix(a1,a2,0,t2),mix(a2,a3,t1,t3),t1,t2);
+}
+let stage=0, half=7.7, route='', scenery;
+function buildTrack(){
+ track.length=0;obstacles.length=0;
+ half=[8.6,7.7,7.5][stage];
+const waypoints=courses[stage],n=waypoints.length,dense=[];
+for(let k=0;k<n;k++)for(let m=0;m<60;m++)dense.push(spline(waypoints[(k-1+n)%n],waypoints[k],waypoints[(k+1)%n],waypoints[(k+2)%n],m/60));
+const cum=[0];
+for(let k=1;k<=dense.length;k++){const a=dense[k-1],b=dense[k%dense.length];cum.push(cum[k-1]+Math.hypot(b[0]-a[0],b[1]-a[1]))}
+const total=cum.at(-1),raw=[];
+for(let k=0,m=0;k<count;k++){
+ const target=total*k/count;while(cum[m+1]<target)m++;
+ const f=(target-cum[m])/(cum[m+1]-cum[m]),a=dense[m],b=dense[(m+1)%dense.length];
+ raw.push([a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f]);
+}
+if(stage===2&&route==='B'&&!practice){
+ const shifted=raw.map(p=>p.slice());
+ for(let k=branchRange[0];k<branchRange[1];k++){
+  const a=raw[k-1],b=raw[k+1],len=Math.hypot(b[0]-a[0],b[1]-a[1]);
+  let nx=(b[1]-a[1])/len,nz=-(b[0]-a[0])/len;
+  if(nx*raw[k][0]+nz*raw[k][1]<0){nx=-nx;nz=-nz}
+  const w=Math.sin(Math.PI*(k-branchRange[0])/(branchRange[1]-branchRange[0]))**2*22;
+  shifted[k]=[raw[k][0]+nx*w,raw[k][1]+nz*w];
+ }
+ raw.splice(0,count,...shifted);
+}
+for(let i=0;i<count;i++){
+ const [x,z]=raw[i],a=raw[(i-1+count)%count],b=raw[(i+1)%count],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
+ track.push({x,z,dx:(b[0]-a[0])/length,dz:(b[1]-a[1])/length,type:surfaceAt(i)});
+}
+const point=(p,offset,y)=>[p.x+p.dz*offset,y,p.z-p.dx*offset];
+for(let x=-240;x<240;x+=20) for(let z=-240;z<240;z+=20){
+ quad([x,-.12,z],[x+20,-.12,z],[x+20,-.12,z+20],[x,-.12,z+20],(x+z)%40===0?[.27,.53,.42]:[.29,.56,.44]);
+}
+for(let i=0;i<count;i++){
+ const p=track[i],q=track[(i+1)%count], tint=surfaces[p.type].tint;
+ quad(point(p,-half,0),point(q,-half,0),point(q,half,0),point(p,half,0),tint.map(n=>n*(i%2?.97:1)));
+ for(const side of [-1,1]){
+  const edge=side*half, outer=edge+side*.43;
+  const rail=i%6<3?[.97,.46,.20]:[.88,.95,.95];
+  quad(point(p,edge,.03),point(q,edge,.03),point(q,outer,.03),point(p,outer,.03),rail);
+  quad(point(p,outer,0),point(q,outer,0),point(q,outer,.52),point(p,outer,.52),rail.map(n=>n*.67));
+  quad(point(p,edge,.52),point(q,edge,.52),point(q,outer,.52),point(p,outer,.52),rail);
+ }
+ if(i%6<2) quad(point(p,-.08,.02),point(q,-.08,.02),point(q,.08,.02),point(p,.08,.02),[.88,.9,.82]);
+ if(i%60===0){
+  for(let j=0;j<10;j++){
+   const a=-half+j*half/5,b=a+half/5;
+   quad(point(p,a,.025),point(q,a,.025),point(q,b,.025),point(p,b,.025),j%2?[.94,.98,.99]:[.11,.16,.25]);
+  }
+ }
+}
+for(let i=0;i<110;i++){
+ const x=Math.sin(i*75.413)*170,z=Math.cos(i*23.181)*142;
+ if(track.some(p=>Math.hypot(p.x-x,p.z-z)<13))continue;
+ const h=3+i%6;
+ box(x,0,z,.65,h*.7,.65,[.41,.28,.20]);
+ const tint=i%2?[.20,.53,.39]:[.17,.43,.37];
+ for(let k=0;k<5;k++){
+  const a=k*6.283/5,b=(k+1)*6.283/5;
+  triangle([x+Math.cos(a)*2,h*.36,z+Math.sin(a)*2],[x+Math.cos(b)*2,h*.36,z+Math.sin(b)*2],[x,h+1,z],tint.map(n=>n*(.78+k*.055)));
+ }
+}
+if(!practice&&stage===2){
+ for(const [index,offset] of [[75,3.4],[170,3.6],[208,-3.8]].concat(route==='B'?[]:[[124,-2.6]])){
+  const [x,,z]=point(track[index],offset,0);
+  obstacles.push({x,z});
+  box(x,0,z,1.8,.87,1.8,[.95,.40,.16]);
+  box(x,.87,z,1.85,.09,1.85,[1,.86,.46]);
+ }
+}
+if(scenery)gl.deleteBuffer(scenery.buffer);scenery=mesh();
+}
+box(0,.08,0,2.3,.025,3.2,[.13,.18,.22]);const shadow=mesh();
+for(const side of [-.45,.45]){box(side,.32,-2.05,.42,.34,.8,[1,.42,.08]);box(side,.38,-2.45,.24,.2,.55,[1,.9,.35])}const flame=mesh();
+box(0,.33,0,1.55,.38,2.55,[.98,.36,.16]);
+box(0,.55,.73,1.25,.33,1.0,[.99,.57,.21]);
+box(0,.57,-.35,.84,.4,.75,[.13,.21,.32]);
+box(0,.61,-1.25,1.86,.22,.22,[.93,.39,.16]);
+box(0,.96,-.27,.63,.38,.58,[.32,.92,.82]);
+box(0,1.04,-.56,.52,.16,.04,[.14,.21,.33]);
+for(const side of [-1,1]){
+ box(side*.63,.68,-1.36,.29,.13,.05,[1,.23,.15]);
+ for(const z of [-.83,.79]){
+  const x=side*.84;
+  for(let j=0;j<12;j++){
+   const ring=(n,edge,r=.39)=>[x+edge,.40+Math.cos(n*Math.PI/6)*r,z+Math.sin(n*Math.PI/6)*r];
+   quad(ring(j,-.19),ring(j+1,-.19),ring(j+1,.19),ring(j,.19),j%2?[.12,.15,.20]:[.19,.23,.27]);
+   triangle([x+side*.192,.4,z],ring(j,side*.192),ring(j+1,side*.192),[.14,.18,.23]);
+   triangle([x+side*.195,.4,z],ring(j,side*.195,.21),ring(j+1,side*.195,.21),[.58,.66,.72]);
+  }
+ }
+}
+const kart=mesh();
+function draw(model,x=0,y=0,z=0,angle=0){
+ gl.bindBuffer(gl.ARRAY_BUFFER,model.buffer);
+ gl.vertexAttribPointer(position,3,gl.FLOAT,false,24,0);
+ gl.vertexAttribPointer(color,3,gl.FLOAT,false,24,12);
+ gl.uniform3f(locations.offset,x,y,z);
+ gl.uniform2f(locations.turn,Math.cos(angle),Math.sin(angle));
+ gl.drawArrays(gl.TRIANGLES,0,model.count);
+}
+const keys=new Set(), touches=new Map(), bindings={
+ ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'gas',w:'gas',ArrowDown:'brake',s:'brake'
+};
+const buttons=[...document.querySelectorAll('[data-key]')];
+byId('boostBtn').onpointerdown=event=>{event.preventDefault();useBoost()};
+byId('boostBtn').oncontextmenu=event=>event.preventDefault();
+const held=key=>[...keys].some(code=>bindings[code]===key)||[...touches.values()].includes(key);
+function clearInput(){keys.clear();touches.clear()}
+let practice=true, playing=false,x,z,heading,vx,vz,segment,time,crashes,lap,gate,lastCrash,notice,noticeUntil,camera;
+let braking,brakeDistance,brakeSurface,lastBrake,lastHint=-10,boostUntil=-10,gauge=0,boostItems=0,lastGaugeUI='';
+const BOOST_MAX=2;
+function useBoost(){
+ if(!playing||paused||boostItems<1)return;
+ boostItems--;boostUntil=Math.max(time,boostUntil)+1.5;
+ announce(track[segment].type===1?'얼음 위 부스터! 마찰력이 작아 미끄러져요':'부스터!');
+}
+function place(i){
+ const p=track[i];x=p.x;z=p.z;heading=Math.atan2(p.dx,p.dz);vx=vz=0;segment=i;camera=null;
+}
+function restart(){
+ clearInput();place(2);time=0;crashes=0;lap=0;gate=60;lastCrash=-10;notice='';noticeUntil=0;
+ braking=false;lastBrake=null;lastHint=-10;boostUntil=-10;gauge=0;boostItems=0;
+}
+function showGame(value){
+ playing=value;clearInput();byId('intro').hidden=value;
+ for(const id of ['hud','actions','controls'])byId(id).hidden=!value;
+ if(value)restart();else{place(67);byId('message').hidden=true;refreshIntro()}
+}
+byId('start').onclick=()=>begin(true);
+byId('home').onclick=async()=>{if(practice||await ask('주행을 멈추고 홈으로 갈까요? 1시간 안에는 「이어서 달리기」로 계속할 수 있어요.')){paused=false;showGame(false)}};
+byId('reset').onclick=async()=>{if(practice)restart();else if(await ask('이번 주행을 처음부터 다시 시작할까요?'))begin(false,true)};
+window.addEventListener('keydown',event=>{
+ const key=event.key.length===1?event.key.toLowerCase():event.key;
+ if(playing&&!paused&&!event.repeat&&(key===' '||key==='b')&&!document.querySelector('dialog[open]')){event.preventDefault();useBoost();return}
+ if(playing&&bindings[key]){event.preventDefault();keys.add(key)}
+});
+window.addEventListener('keyup',event=>keys.delete(event.key.length===1?event.key.toLowerCase():event.key));
+window.addEventListener('blur',clearInput);
+document.addEventListener('visibilitychange',clearInput);
+for(const button of buttons){
+ button.onpointerdown=event=>{
+  event.preventDefault();button.setPointerCapture(event.pointerId);
+  touches.set(event.pointerId,button.dataset.key);
+ };
+ button.onpointerup=button.onpointercancel=button.onlostpointercapture=event=>touches.delete(event.pointerId);
+ button.oncontextmenu=event=>event.preventDefault();
+}
+function nearest(){
+ let best=Infinity,index=0;
+ for(let i=0;i<count;i++){
+  const p=track[i],distance=(x-p.x)**2+(z-p.z)**2;
+  if(distance<best){best=distance;index=i}
+ }
+ return index;
+}
+function announce(message){notice=message;noticeUntil=time+2.6}
+function physics(dt){
+ time+=dt;
+ if(!practice&&track[segment].type===1&&Math.hypot(vx,vz)>2){const slip=Math.abs(vx*Math.cos(heading)-vz*Math.sin(heading));if(slip>2)iceSlip+=dt}
+ const oldSegment=segment, type=track[segment].type, road=surfaces[type];
+ const speed=Math.hypot(vx,vz), gas=held('gas'), brake=held('brake');
+ if(brake&&!braking&&speed>2){braking=true;brakeDistance=0;brakeSurface=type}
+ if(!brake||type!==brakeSurface)braking=false;
+ const steer=Number(held('right'))-Number(held('left'));
+ heading+=steer*road.steer*Math.min(1,speed/3.2)*Math.max(.54,1-speed*.016)*1.48*dt;
+ const fx=Math.sin(heading),fz=Math.cos(heading);
+ let longitudinal=vx*fx+vz*fz,lateral=vx*fz-vz*fx;
+ if(gas&&!brake)longitudinal+=road.acc*Math.max(0,1-longitudinal/TOP)*dt;
+ if(gas&&!brake&&speed>4&&time>=boostUntil){
+  gauge+=dt/16;
+  if(steer&&speed>5)gauge+=dt/6;
+  if(gauge>=1){
+   if(boostItems<BOOST_MAX){boostItems++;gauge=0;announce('빨간 부스터 생성! 부스터 버튼을 누르세요')}
+   else gauge=1;
+  }
+ }
+ if(time<boostUntil&&!brake)longitudinal+=34*Math.max(0,1-longitudinal/(TOP+18))*dt;
+ if(brake)longitudinal=Math.sign(longitudinal)*Math.max(0,Math.abs(longitudinal)-road.brake*dt);
+ longitudinal*=Math.exp(-road.drag*dt);lateral*=Math.exp(-(road.grip+road.drag)*dt);
+ vx=longitudinal*fx+lateral*fz;vz=longitudinal*fz-lateral*fx;
+ x+=vx*dt;z+=vz*dt;
+ for(const obstacle of obstacles){
+  const dx=x-obstacle.x,dz=z-obstacle.z,distance=Math.hypot(dx,dz);
+  if(distance>0&&distance<1.95){
+   const nx=dx/distance,nz=dz/distance, approach=vx*nx+vz*nz;
+   x=obstacle.x+nx*1.95;z=obstacle.z+nz*1.95;
+   if(approach<0){
+    vx=(vx-1.3*approach*nx)*.65;vz=(vz-1.3*approach*nz)*.65;
+    if(time-lastCrash>.75){lastCrash=time;crashes++;announce('장애물 충돌 · 속력 감소')}
+   }
+   braking=false;
+  }
+ }
+ segment=nearest();
+ const p=track[segment],side=(x-p.x)*p.dz-(z-p.z)*p.dx;
+ if(Math.abs(side)>half-.84){
+  const sign=Math.sign(side),correction=side-sign*(half-.84);
+  x-=p.dz*correction;z+=p.dx*correction;
+  const outward=(vx*p.dz-vz*p.dx)*sign;
+  if(outward>0){
+   const keep=outward>1.25?(p.type===1?.18:WALL_KEEP):.68;vx=(vx-1.32*outward*p.dz*sign)*keep;vz=(vz+1.32*outward*p.dx*sign)*keep;
+   if(outward>1.25&&time-lastCrash>.75){gauge=Math.max(0,gauge-.3);crashes++;lastCrash=time;announce('벽 충돌! 가속 + 방향 버튼을 함께 눌러 빠져나오세요');lastHint=time}
+  }
+  vx*=Math.exp(-WALL_DRAG*dt);vz*=Math.exp(-WALL_DRAG*dt);
+  braking=false;
+  if(Math.hypot(vx,vz)<1.5&&time-lastHint>3){lastHint=time;announce('벽에 붙었어요! 가속 + 방향 버튼을 함께 누르세요')}
+ }
+ if(steer&&!gas&&speed<.5&&time-lastHint>3){lastHint=time;announce('방향을 바꾸려면 가속도 함께 누르세요')}
+ if(braking){
+  brakeDistance+=Math.hypot(vx,vz)*dt;
+  if(Math.hypot(vx,vz)<.3){lastBrake=surfaces[type].name+' 제동 '+brakeDistance.toFixed(1)+' m';braking=false;announce(lastBrake)}
+ }
+ const advanced=(segment-oldSegment+count)%count;
+ const remaining=(gate-oldSegment+count)%count;
+ if(advanced>0&&advanced<6&&remaining>0&&remaining<=advanced){
+  if(gate===0){lap++;announce(lap+'바퀴 완주!');if(!practice&&lap===lapTargets[stage]){stageFinish();return}}else announce('체크포인트 '+gate/60+'/3');
+  gate=(gate+60)%count;
+ }
+ const entered=track[segment].type;
+ if(entered!==type){if(entered===1)announce('얼음길 · 마찰력이 작아요! 코너 전에 감속');else if(entered===2)announce('모래길 · 거칠어서 마찰력이 커요');}
+ if(!practice&&advanced>0&&advanced<6){
+  for(const [id,target,needLap] of missionGates[stage]){
+   const delta=(target-oldSegment+count)%count;
+   if(!answers[id]&&delta>0&&delta<=advanced&&lap===needLap){openMission(id);break}
+  }
+ }
+}
+const map=byId('map').getContext('2d');
+function minimap(){
+ map.clearRect(0,0,270,168);
+ let x0=Infinity,x1=-Infinity,z0=Infinity,z1=-Infinity;
+ for(const p of track){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z)}
+ const scale=Math.min(246/(x1-x0),144/(z1-z0)),mx=v=>135+(v-(x0+x1)/2)*scale,mz=v=>84-(v-(z0+z1)/2)*scale;
+ map.lineWidth=7;
+ for(let i=0;i<count;i++){
+  const p=track[i],q=track[(i+1)%count];
+  map.strokeStyle=['#98a9bf','#77e7ff','#e9b77b'][p.type];map.beginPath();map.moveTo(mx(p.x),mz(p.z));map.lineTo(mx(q.x),mz(q.z));map.stroke();
+ }
+ map.fillStyle='#a2ff8c';map.beginPath();map.arc(mx(x),mz(z),6,0,Math.PI*2);map.fill();
+}
+function render(dt){
+ const width=Math.round(canvas.clientWidth*Math.min(devicePixelRatio,1.5));
+ const height=Math.round(canvas.clientHeight*Math.min(devicePixelRatio,1.5));
+ if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}
+ gl.viewport(0,0,width,height);gl.clearColor(.69,.84,.94,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ const speed=Math.hypot(vx,vz);
+ const distance=playing?7.7+speed*.12:5.2;
+ const target=playing?[x-Math.sin(heading)*distance,4.6+speed*.038,z-Math.cos(heading)*distance]:[x-6,3.4,z+4.6];
+ if(!camera)camera=target;
+ else camera=camera.map((n,i)=>n+(target[i]-n)*(1-Math.exp(-7*dt)));
+ const shake=playing?Math.max(0,1-(time-lastCrash)*4)*Math.sin(time*75)*.22:0;
+ const eye=[camera[0]+shake,camera[1],camera[2]];
+ const aim=playing?[x+Math.sin(heading)*6,.25,z+Math.cos(heading)*6]:[x-1.7,.5,z-2];
+ const forward=normalize(aim.map((n,i)=>n-eye[i]));
+ const right=normalize(cross([0,1,0],forward));
+ gl.uniform3fv(locations.eye,eye);gl.uniform3fv(locations.forward,forward);
+ gl.uniform3fv(locations.right,right);gl.uniform3fv(locations.up,cross(forward,right));
+ gl.uniform1f(locations.aspect,width/Math.max(1,height));
+ draw(scenery);draw(shadow,x,0,z,heading);draw(kart,x,0,z,heading);
+ if(playing&&time<boostUntil&&Math.floor(time*24)%2===0)draw(flame,x,0,z,heading);
+ if(playing){
+  byId('speed').textContent=byId('speedNum').textContent=Math.round(speed*3.6);
+  byId('surface').textContent=surfaces[track[segment].type].name;
+  byId('stats').textContent=(practice?'연습 · ':stages[stage]+' · ')+time.toFixed(1)+'초 · 충돌 '+crashes+'회 · '+(practice?lap+'바퀴':Math.min(lap+1,lapTargets[stage])+'/'+lapTargets[stage]+'바퀴')+(lastBrake?' · '+lastBrake:'');
+  byId('message').hidden=time>=noticeUntil;byId('message').textContent=notice;
+  buttons.forEach(button=>button.classList.toggle('active',held(button.dataset.key)));
+  const ui=Math.round(gauge*100)+'|'+boostItems+'|'+(time<boostUntil);
+  if(ui!==lastGaugeUI){
+   lastGaugeUI=ui;
+   byId('gaugeFill').style.width=Math.round(gauge*100)+'%';
+   byId('boostCount').textContent=boostItems;
+   byId('boostBtn').disabled=boostItems<1;
+   byId('boostBtn').classList.toggle('firing',time<boostUntil);
+  }
+  minimap();
+ }
+}
+const activity=byId('activity');
+const lapTargets=[1,1,2], missionGates=[[[4,50,0],[5,120,0],[6,190,0]],[[0,48,0],[1,129,0],[7,200,0]],[[8,28,0],[2,96,0],[9,190,0],[3,220,1]]];
+const missionOrder=[4,5,6,0,1,7,8,2,9,3], MISSION_COUNT=missionOrder.length;
+const missionNo=id=>missionOrder.indexOf(id)+1;
+const COL='frictionKartSolo', SAVE_KEY='friction-kart-solo-save-v1', RESULT_KEY='friction-kart-solo-result-v1';
+const FB_SDK='https://www.gstatic.com/firebasejs/10.12.2/';
+const unitOf=(m,g)=>g+(m==='group'?'모둠':'번');
+const pickedMode=()=>document.querySelector('input[name=mode]:checked')?.value||'';
+function showModeFields(){const m=pickedMode();byId('groupBox').hidden=m!=='group';byId('numBox').hidden=m!=='solo'}
+document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>{showModeFields();byId('error').textContent=''});
+{const q=new URLSearchParams(location.search).get('mode');const r=document.querySelector('input[name=mode][value="'+(q==='group'||q==='solo'?q:'')+'"]');if(r){r.checked=true;showModeFields()}}
+let mode='solo', paused=false, cls=1, group=1, answers=[], splits=[], iceSlip=0, reflection='', result=null;
+let db=null, dbReady=null, lastAutosave=0;
+const docId=(c,g,m)=>'c'+c+(m==='group'?'-g':'-n')+g;
+const withTimeout=(promise,ms)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(Error('연결 시간이 초과되었습니다. 인터넷 연결을 확인해 주세요.')),ms))]);
+function loadScript(src){
+ return new Promise((resolve,reject)=>{
+  const script=document.createElement('script');script.src=src;script.onload=resolve;
+  script.onerror=()=>reject(Error(src+' 파일을 불러오지 못했습니다.'));document.head.appendChild(script);
+ });
+}
+function connect(){
+ if(!dbReady)dbReady=withTimeout((async()=>{
+  if(!window.firebase)await loadScript(FB_SDK+'firebase-app-compat.js');
+  if(!window.firebase.firestore)await loadScript(FB_SDK+'firebase-firestore-compat.js');
+  if(!firebase.apps.length){
+   try{await loadScript('firebase-config.js')}catch{throw Error('firebase-config.js를 찾지 못했습니다. 이 파일을 game 폴더에 올려 주세요.')}
+  }
+  if(!firebase.apps.length){
+   const config=typeof firebaseConfig!=='undefined'?firebaseConfig:window.firebaseConfig;
+   if(!config)throw Error('firebase-config.js에서 firebaseConfig를 찾지 못했습니다.');
+   firebase.initializeApp(config);
+  }
+  db=firebase.firestore();return db;
+ })(),15000).catch(error=>{dbReady=null;throw error});
+ return dbReady;
+}
+function reportProgress(step=stage){
+ if(practice)return;
+ const data={cls,group,mode,status:'playing',stage:step,updatedAt:Date.now()};
+ connect().then(base=>base.collection(COL).doc(docId(data.cls,data.group,data.mode)).set(data,{merge:true})).catch(()=>{});
+}
+function autosave(force){
+ if(practice||!playing)return;
+ if(!force&&(paused||performance.now()-lastAutosave<1000))return;
+ lastAutosave=performance.now();
+ try{localStorage.setItem(SAVE_KEY,JSON.stringify({savedAt:Date.now(),cls,group,mode,stage,route,answers,splits,iceSlip,time,crashes,lap,gate,segment,x,z,heading,lastBrake,gauge,boostItems}))}catch{}
+}
+function readSave(){
+ try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&Date.now()-s.savedAt<3600000&&Array.isArray(s.answers))return s}catch{}
+ return null;
+}
+function clearSave(){try{localStorage.removeItem(SAVE_KEY)}catch{}}
+function keepResult(){try{localStorage.setItem(RESULT_KEY,JSON.stringify(result))}catch{}}
+function readPending(){
+ try{const r=JSON.parse(localStorage.getItem(RESULT_KEY));if(r&&!r.sent&&validRecord(r))return r}catch{}
+ return null;
+}
+function pack(r,c){
+ return {version:3,cls:c,group:r.group,mode:r.mode==='group'?'group':'solo',status:'done',updatedAt:Date.now(),
+  splits:r.splits.map(s=>({time:s.time,crashes:s.crashes})),
+  answers:r.answers.map(a=>({first:{choice:a.first.choice,reason:a.first.reason},choice:a.choice,reason:a.reason,retried:a.retried,tries:Number.isInteger(a.tries)?a.tries:(a.retried?2:1),points:Number(a.points)||0})),
+  route:typeof r.route==='string'?r.route:'',iceSlip:Number.isFinite(r.iceSlip)?r.iceSlip:0,reflection:r.reflection};
+}
+function refreshIntro(){
+ const pending=readPending(), saved=pending?null:readSave(), button=byId('resume'), info=byId('resumeInfo');
+ button.hidden=!(pending||saved);info.textContent='';
+ if(pending){
+  button.textContent='제출 안 된 결과 열기';
+  info.textContent=pending.cls+'반 '+unitOf(pending.mode,pending.group)+' 결과를 아직 선생님께 제출하지 않았어요.';
+  button.onclick=()=>{result=pending;cls=result.cls;group=result.group;mode=result.mode==='group'?'group':'solo';answers=result.answers;studentResult()};
+ }else if(saved){
+  button.textContent='이어서 달리기';
+  info.textContent=saved.cls+'반 '+unitOf(saved.mode,saved.group)+' · '+stages[saved.stage]+'에서 이어서 달릴 수 있어요.';
+  button.onclick=()=>resume(readSave());
+ }
+}
+function escapeText(value){
+ const element=document.createElement('span');element.textContent=String(value??'');return element.innerHTML;
+}
+function panel(html,wide=false){
+ activity.classList.toggle('wide',wide);activity.innerHTML=html;
+ if(!activity.open)activity.showModal();
+ activity.scrollTop=0;
+}
+activity.addEventListener('cancel',event=>event.preventDefault());
+const on=(id,handler)=>byId(id).onclick=handler;
+async function begin(isPractice,again=false){
+ if(!isPractice&&!again){
+  const m=pickedMode();
+  if(!m){byId('error').textContent='참가 방식(모둠별 또는 개인별)을 먼저 고르세요.';document.querySelector('input[name=mode]').focus();return}
+  const c=Number(byId('cls').value),g=Number(byId(m==='group'?'group':'num').value);
+  if(!c){byId('error').textContent='반을 먼저 고르세요.';byId('cls').focus();return}
+  if(m==='group'&&!g){byId('error').textContent='모둠을 먼저 고르세요.';byId('group').focus();return}
+  if(m==='solo'&&(!Number.isInteger(g)||g<1||g>40)){byId('error').textContent='번호를 1~40 사이로 입력하세요.';byId('num').focus();return}
+  byId('error').textContent='';
+  if(!await ask('1학년 '+c+'반 '+unitOf(m,g)+'으로 시작할까요?'))return;
+  cls=c;group=g;mode=m;
+ }
+ byId('error').textContent='';
+ if(!isPractice){clearSave();connect().catch(()=>{})}
+ practice=isPractice;stage=0;route='';paused=false;
+ answers=[];splits=[];iceSlip=0;reflection='';result=null;
+ buildTrack();showGame(true);reportProgress();
+}
+on('race',()=>begin(false));
+function resume(s){
+ if(!s){refreshIntro();return}
+ practice=false;paused=false;result=null;reflection='';
+ ({cls,group,stage,route,splits,iceSlip,time,crashes,lap,gate,lastBrake}=s);mode=s.mode==='group'?'group':'solo';
+ answers=s.answers.map(a=>a||undefined);
+ buildTrack();
+ playing=true;clearInput();byId('intro').hidden=true;
+ for(const id of ['hud','actions','controls'])byId(id).hidden=false;
+ gauge=Number(s.gauge)||0;boostItems=Number(s.boostItems)||0;
+ x=s.x;z=s.z;heading=s.heading;vx=vz=0;segment=s.segment;camera=null;
+ lastCrash=-10;notice='';noticeUntil=0;braking=false;
+ reportProgress();countdown();
+}
+
+function freeze(){paused=true;clearInput();vx=0;vz=0}
+function countdown(){
+ freeze();
+ let n=3;
+ panel('<h2>주행 재개</h2><p id="countdown">3</p>');
+ const timer=setInterval(()=>{
+  if(--n){byId('countdown').textContent=n;return}
+  clearInterval(timer);activity.close();clearInput();paused=false;
+ },1000);
+}
+function brakingModel(type,step=1/120){
+ const road=surfaces[type], distances=[0];
+ let velocity=12,distance=0;
+ while(velocity>0){
+  velocity=Math.max(0,velocity-road.brake*step)*Math.exp(-road.drag*step);
+  distance+=velocity*step;distances.push(distance);
+ }
+ return distances;
+}
+const stops=[brakingModel(0),brakingModel(1)];
+const distanceLabel=i=>stops[i].at(-1).toFixed(1)+' m';
+function demonstration(id,after){
+ const corner=id===0;
+ const names=corner?['진입 전 감속','속력을 유지한 채 진입']:['아스팔트','얼음'];
+ panel('<h2>'+ (corner?'같은 얼음 코너에서 비교':'같은 초기 속력 43.2 km/h에서 제동') +'</h2>'+
+ names.map((name,i)=>'<p>'+name+'</p><div class="trackbar"><span class="marker" id="marker'+i+'"></span></div>').join('')+
+ '<p id="demoText"></p><button id="demoNext" disabled>계속</button>');
+ const start=performance.now();
+ function tick(now){
+  const t=Math.min(1,(now-start)/1950);
+  for(let i=0;i<2;i++){
+   const d=stops[i];
+   const fraction=corner?(i===0?38:95)*t:d[Math.min(d.length-1,Math.floor(t*stops[1].length))]/stops[1].at(-1)*95;
+   byId('marker'+i).style.left=fraction+'%';
+  }
+  if(t<1){requestAnimationFrame(tick);return}
+  byId('demoText').textContent=corner?'같은 얼음 커브라도 빠르게 들어가면 카트가 바깥쪽으로 훨씬 더 밀려요. 마찰력이 작아 방향을 바꾸는 힘이 부족하기 때문이에요. (위 막대는 개념 모형이에요.)':'아스팔트 '+distanceLabel(0)+' · 얼음 '+distanceLabel(1)+' · 마찰력이 작은 얼음에서 약 '+(stops[1].at(-1)/stops[0].at(-1)).toFixed(1)+'배 더 미끄러져요.';
+  byId('demoNext').disabled=false;
+ }
+ on('demoNext',after);requestAnimationFrame(tick);
+}
+const missions=[
+ {title:'얼음 커브의 비밀',prompt:'곧 얼음 커브예요. 얼음 커브에서 속력이 빠른 카트가 바깥쪽으로 미끄러지는 까닭으로 옳은 것은?',
+  options:['얼음은 마찰력이 작아서, 카트가 안쪽으로 방향을 바꾸는 데 필요한 힘을 충분히 받지 못하기 때문이다.','얼음은 마찰력이 커서 바퀴가 길에 붙어 버리기 때문이다.','속력이 빠를수록 카트에 작용하는 중력이 커지기 때문이다.','마찰력은 운동 방향과 같은 방향으로 작용해 카트를 바깥으로 밀기 때문이다.'],correct:0,
+  hint:'코너를 돌려면 카트를 안쪽으로 붙잡아 주는 힘이 필요해요. 그 힘은 무엇일까요? 얼음에서는 그 힘이 클까요, 작을까요?',
+  explain:'얼음은 표면이 매끄러워 마찰력이 작아요. 코너를 돌 때는 바퀴와 길 사이의 마찰력이 카트를 안쪽으로 붙잡아 줘야 하는데, 마찰력이 작으면 빠른 카트를 붙잡지 못해 바깥으로 미끄러져요. 그래서 마찰력이 큰 아스팔트에서 미리 속력을 줄여야 해요.'},
+ {title:'긴급 제동 테스트',prompt:'같은 카트가 같은 속력(43.2 km/h)에서 제동했더니, 멈출 때까지 아스팔트에서는 '+distanceLabel(0)+', 얼음에서는 '+distanceLabel(1)+'를 미끄러졌어요. 이 결과를 옳게 설명한 것은?',
+  options:['얼음은 아스팔트보다 마찰력이 작아서, 운동을 방해하는 힘이 작기 때문이다.','얼음은 아스팔트보다 마찰력이 커서, 카트를 앞으로 더 멀리 밀어 주기 때문이다.','마찰력이 카트의 운동 방향과 같은 방향으로 작용하기 때문이다.','두 노면에서 카트의 무게가 달라졌기 때문이다.'],correct:0,
+  hint:'마찰력은 운동을 방해하는 힘이에요. 운동을 방해하는 힘이 작으면 멈출 때까지 걸리는 거리는 어떻게 될까요? 같은 카트라는 점도 생각해 보세요.',
+  explain:'제동할 때 마찰력은 카트가 움직이는 방향과 반대 방향으로 작용해 운동을 방해해요. 얼음은 매끄러워 마찰력이 작기 때문에 속력이 천천히 줄어 더 멀리 미끄러져요. 겨울철 빙판길에서 자동차 바퀴에 스노체인을 감는 것도 마찰력을 크게 하기 위해서예요.'},
+ {title:'운명의 갈림길',prompt:'갈림길 앞! 한 번에 맞히면 지름길(얼음길)이 열려요.<br>얼음길에서 마찰력을 크게 해 덜 미끄러지게 하는 방법으로 옳은 것을 <strong>모두</strong> 고른 것은?<br>ㄱ. 바퀴에 스노체인을 감는다.<br>ㄴ. 얼음 위에 모래를 뿌린다.<br>ㄷ. 바퀴 표면을 매끄럽게 간다.',
+  options:['ㄱ','ㄷ','ㄱ, ㄴ','ㄴ, ㄷ'],correct:2,
+  hint:'마찰력은 접촉면이 거칠수록 커져요. ㄱ, ㄴ, ㄷ이 각각 접촉면을 거칠게 만드는지, 매끄럽게 만드는지 따져 보세요.',
+  explain:'스노체인과 모래는 바퀴와 얼음 사이의 접촉면을 거칠게 만들어 마찰력을 크게 해요. 바퀴 표면을 매끄럽게 갈면 마찰력이 작아져 더 잘 미끄러져요. 겨울철 빙판길에 모래나 염화 칼슘을 뿌리고, 타이어에 홈을 파는 것도 같은 까닭이에요.'},
+ {title:'무게와 마찰력',prompt:'같은 아스팔트 위에서 짐을 싣지 않은 카트와 짐을 가득 실은 카트를 같은 힘으로 밀었어요. 이에 대한 설명으로 옳은 것은?',
+  options:['무거운 카트는 바닥을 누르는 힘이 커서 마찰력이 더 크다.','무거운 카트는 마찰력이 작아서 더 쉽게 미끄러진다.','마찰력은 접촉면의 거칠기로만 정해지므로 두 카트의 마찰력은 같다.','무게가 클수록 마찰력이 운동 방향과 같은 방향으로 작용한다.'],correct:0,
+  hint:'마찰력의 크기를 정하는 것은 접촉면의 거칠기만이 아니에요. 물체가 무거우면 바닥을 누르는 힘은 어떻게 될까요? 마찰력의 방향도 다시 떠올려 보세요.',
+  explain:'마찰력은 접촉면이 거칠수록, 그리고 물체의 무게가 클수록 커요. 짐을 가득 실은 카트는 바닥을 더 세게 누르기 때문에 마찰력이 커서 같은 힘으로 밀어도 잘 움직이지 않아요. 마찰력은 무게와 상관없이 항상 운동을 방해하는 방향, 즉 운동 반대 방향으로 작용해요.'}
+,
+ {title:'저절로 느려지는 카트',prompt:'달리던 카트에서 가속 버튼을 떼었더니 카트가 점점 느려졌어요. 그 까닭으로 옳은 것은?',
+  options:['바퀴와 길 사이의 마찰력이 카트의 운동을 방해하기 때문이다.','카트에 작용하는 중력이 점점 작아지기 때문이다.','마찰력이 카트의 운동 방향과 같은 방향으로 작용하기 때문이다.','카트에는 아무 힘도 작용하지 않기 때문이다.'],correct:0,
+  hint:'마찰력은 물체의 운동을 어떻게 한다고 배웠나요? 도와줄까요, 방해할까요?',
+  explain:'마찰력은 두 물체의 접촉면에서 물체의 운동을 방해하는 힘이에요. 가속을 멈추면 앞으로 미는 힘은 없고 운동을 방해하는 마찰력만 남아서 카트가 점점 느려져요.'},
+ {title:'마찰력의 방향',prompt:'카트가 트랙 위에서 <strong>오른쪽</strong>으로 미끄러지고 있어요. 이때 카트에 작용하는 마찰력의 방향은?',
+  options:['왼쪽 (운동 방향과 반대)','오른쪽 (운동 방향과 같음)','위쪽','아래쪽 (지구 중심 방향)'],correct:0,
+  hint:'마찰력은 운동을 방해하는 힘이에요. 오른쪽으로 가는 것을 방해하려면 어느 쪽으로 힘이 작용해야 할까요?',
+  explain:'마찰력은 물체가 운동하는 방향과 반대 방향으로 작용해요. 오른쪽으로 미끄러지는 카트에는 왼쪽으로 마찰력이 작용해 운동을 방해해요. 아래쪽으로 작용하는 힘은 중력이에요.'},
+ {title:'거친 길, 매끄러운 길',prompt:'모래길은 아스팔트보다 표면이 거칠어요. 모래길에서 일어나는 일로 옳은 것은?',
+  options:['마찰력이 커서 가속해도 속력이 잘 붙지 않지만, 제동하면 빨리 멈춘다.','마찰력이 작아서 속력이 잘 붙고, 제동하면 멀리 미끄러진다.','접촉면의 거칠기는 마찰력의 크기와 관계없다.','마찰력이 커서 제동해도 잘 멈추지 않는다.'],correct:0,
+  hint:'접촉면이 거칠수록 마찰력은 커질까요, 작아질까요? 마찰력이 크면 운동을 방해하는 정도는 어떻게 될까요?',
+  explain:'접촉면이 거칠수록 마찰력이 커요. 모래길에서는 운동을 방해하는 힘이 커서 속력이 잘 붙지 않지만, 같은 까닭으로 제동하면 빨리 멈춰요.'},
+ {title:'마찰력을 작게!',prompt:'다음 중 마찰력을 <strong>작게</strong> 하여 이용하는 예를 모두 고른 것은?<br>ㄱ. 기계의 톱니바퀴에 윤활유를 바른다.<br>ㄴ. 등산화 바닥을 울퉁불퉁하게 만든다.<br>ㄷ. 스케이트 날을 매끄럽게 간다.',
+  options:['ㄱ','ㄴ','ㄱ, ㄷ','ㄴ, ㄷ'],correct:2,
+  hint:'접촉면을 매끄럽게 만드는 것을 찾아보세요. 울퉁불퉁한 바닥은 접촉면을 어떻게 만들까요?',
+  explain:'윤활유와 매끄러운 스케이트 날은 접촉면을 매끄럽게 해 마찰력을 작게 해요. 등산화 바닥을 울퉁불퉁하게 하는 것은 마찰력을 크게 해 미끄러지지 않게 하는 예예요.'},
+ {title:'닳아 버린 타이어',prompt:'타이어 표면의 홈이 다 닳아 매끈해진 자동차는 비 오는 날 더 위험해요. 그 까닭으로 옳은 것은?',
+  options:['접촉면이 매끄러워져 마찰력이 작아지므로 잘 미끄러지기 때문이다.','접촉면이 거칠어져 마찰력이 커지기 때문이다.','타이어가 닳으면 자동차의 무게가 커지기 때문이다.','마찰력이 자동차의 운동 방향으로 작용하기 때문이다.'],correct:0,
+  hint:'타이어의 홈은 접촉면을 거칠게 할까요, 매끄럽게 할까요? 홈이 없어지면 마찰력은 어떻게 될까요?',
+  explain:'타이어의 홈은 접촉면을 거칠게 해 마찰력을 크게 해요. 홈이 닳아 매끈해지면 마찰력이 작아져, 젖은 길에서 제동해도 잘 멈추지 못하고 미끄러지기 쉬워요.'},
+ {title:'마찰력이 사라진다면?',prompt:'만약 바퀴와 길 사이에 마찰력이 <strong>전혀 없다면</strong> 카트는 어떻게 될까요?',
+  options:['바퀴가 헛돌아 출발하기 어렵고, 달리던 카트는 멈추거나 방향을 바꾸기 어렵다.','카트가 더 빠르고 안전하게 코너를 돌 수 있다.','제동하면 아스팔트에서보다 더 빨리 멈춘다.','카트에 작용하는 중력도 함께 사라진다.'],correct:0,
+  hint:'얼음길에서 카트가 어땠는지 떠올려 보세요. 마찰력이 아주 작아지는 정도를 넘어 아예 없다면?',
+  explain:'카트는 바퀴와 길 사이의 마찰력 덕분에 출발하고, 멈추고, 코너를 돌 수 있어요. 마찰력이 없으면 바퀴가 헛돌고, 한 번 움직이면 멈추거나 방향을 바꾸기 어려워요. 마찰력은 운동을 방해하지만 우리 생활에 꼭 필요한 힘이기도 해요.'}
+];
+const triesPoints=(id,tries)=>[6,3,1][Math.min(tries,3)-1];
+const shuffled=n=>{const order=[...Array(n).keys()];for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}return order};
+function openMission(id){
+ freeze();
+ const m=missions[id];
+ let choice=-1, first=null, tries=0, order=shuffled(m.options.length);
+ function prompt(){
+  const scoreLine='첫 시도 정답 '+triesPoints(id,1)+'점 · 두 번째 '+triesPoints(id,2)+'점 · 세 번째부터 '+triesPoints(id,3)+'점';
+  panel('<small>과학 미션 '+missionNo(id)+' / '+MISSION_COUNT+' · '+scoreLine+'</small><h2>'+m.title+'</h2>'+
+   (tries?'<p class="explain">힌트 · '+m.hint+'</p>':'')+'<p>'+m.prompt+'</p>'+
+   '<div class="options">'+order.map((k,n)=>'<button id="option'+k+'" aria-pressed="false">'+'①②③④'[n]+' '+m.options[k]+'</button>').join('')+'</div>'+
+   '<p id="missionError" role="alert"></p><button id="submitMission" class="primary">응답 제출</button>');
+  choice=-1;
+  order.forEach(i=>on('option'+i,()=>{
+   choice=i;
+   order.forEach(j=>{const button=byId('option'+j);button.classList.toggle('primary',i===j);button.setAttribute('aria-pressed',i===j)});
+  }));
+  on('submitMission',()=>{
+   if(choice<0){byId('missionError').textContent='답을 먼저 고르세요.';return}
+   tries++;
+   if(first===null)first={choice,reason:''};
+   if(choice!==m.correct){wrong();return}
+   if(id<2)demonstration(id,finish);else finish();
+  });
+ }
+ function wrong(){
+  autosave(true);
+  let wait=5;
+  panel('<h2>아쉬워요, 정답이 아니에요</h2><p>정답을 맞혀야 다음으로 갈 수 있어요. 틀릴수록 이 미션 점수가 줄어들어요. (다음 시도 정답이면 '+triesPoints(id,tries+1)+'점)</p><p class="explain">힌트 · '+m.hint+'</p><p>'+(mode==='group'?'모둠원과 함께':'천천히')+' 다시 생각해 보세요. 보기 순서는 바뀌어요.</p><button id="retryMission" class="primary" disabled>'+wait+'초 뒤 다시 풀기</button>');
+  const timer=setInterval(()=>{
+   const button=byId('retryMission');
+   if(!button){clearInterval(timer);return}
+   if(--wait>0){button.textContent=wait+'초 뒤 다시 풀기';return}
+   clearInterval(timer);button.textContent='다시 풀기';button.disabled=false;
+  },1000);
+  on('retryMission',()=>{order=shuffled(m.options.length);prompt()});
+ }
+ function finish(){
+  answers[id]={first,choice,reason:'',retried:tries>1,tries,points:triesPoints(id,tries)};
+  if(id===2)route='B';
+  autosave(true);
+  const verdict='<p>정답이에요! '+(tries===1?'한 번에 맞혔어요.':tries+'번째 시도에 맞혔어요.')+' · '+triesPoints(id,tries)+'점</p>';
+  panel('<small>마찰력으로 정리</small><h2>'+m.title+'</h2>'+verdict+'<p class="explain">'+m.explain+'</p><button id="explainNext" class="primary">계속 달리기</button>');
+  on('explainNext',id===2?()=>chooseRoute(tries===1):countdown);
+ }
+ prompt();
+}
+function chooseRoute(open){
+ panel('<small>운명의 갈림길</small><h2>코스 선택</h2>'+
+  (open?'<p>한 번에 맞혀서 지름길이 열렸어요! 어느 길로 갈까요?</p>':'<p>한 번에 맞히지 못해 지름길이 닫혔어요. 긴 아스팔트길로 가야 해요.</p>')+
+  '<div class="options"><button id="routeA"'+(open?'':' disabled')+'>'+(open?'':'🔒 ')+'A · 짧은 얼음길 — 짧지만 마찰력이 작고, 장애물이 있어요</button>'+
+  '<button id="routeB">B · 긴 아스팔트길 — 길지만 마찰력이 커서 안정적이에요</button></div>');
+ const go=r=>{route=r;buildTrack();place(97);autosave(true);countdown()};
+ on('routeA',()=>{if(open)go('A')});on('routeB',()=>go('B'));
+}
+function stageFinish(){
+ freeze();
+ splits.push({time,crashes});
+ if(stage<2){
+  panel('<h2>'+stages[stage]+' 완주</h2><p>'+time.toFixed(1)+'초 · 충돌 '+crashes+'회</p><button id="nextStage" class="primary">다음 · '+stages[stage+1]+'</button>');
+  on('nextStage',()=>{stage++;buildTrack();restart();reportProgress();autosave(true);countdown()});
+ }else{
+  result={version:3,cls,group,mode,splits,answers,route,iceSlip,reflection:'',sent:false};
+  keepResult();clearSave();reportProgress(3);
+  studentResult();
+ }
+}
+function saveFile(blob,name){
+ const url=URL.createObjectURL(blob), link=document.createElement('a');
+ link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+function takeReflection(){const box=byId('reflection');if(box){result.reflection=box.value.trim();keepResult()}}
+function downloadResult(){
+ takeReflection();
+ const data=pack(result,result.cls);delete data.status;delete data.updatedAt;
+ saveFile(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),'friction-kart-1학년-'+result.cls+'반-'+unitOf(result.mode,result.group)+'.json');
+}
+async function submitResult(){
+ const box=byId('reflection'), status=byId('sendStatus'), button=byId('submitResult'), backup=byId('backup');
+ const text=box.value.trim();
+ if(!text){status.textContent='마찰력에 대해 배운 점을 먼저 써 주세요.';box.focus();return}
+ result.reflection=text;keepResult();
+ button.disabled=true;status.textContent='선생님께 보내는 중…';
+ try{
+  const base=await connect();
+  await withTimeout(base.collection(COL).doc(docId(result.cls,result.group,result.mode)).set(pack(result,result.cls)),15000);
+  result.sent=true;keepResult();
+  status.textContent='선생님께 제출했어요!';button.textContent='다시 제출하기';
+ }catch(error){
+  status.textContent='제출하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요. 계속 안 되면 「기록 파일 내려받기」로 선생님께 전달하세요.';
+  backup.hidden=false;
+ }
+ button.disabled=false;
+}
+function saveImage(){
+ takeReflection();
+ const W=1200,P=64,c=document.createElement('canvas');c.width=W;c.height=5000;
+ const g=c.getContext('2d');g.fillStyle='#152239';g.fillRect(0,0,W,c.height);g.textBaseline='alphabetic';
+ let y=P;
+ function write(text,size,color,weight,gap){
+  g.font=weight+' '+size+'px system-ui, sans-serif';g.fillStyle=color;
+  const lines=[];
+  for(const para of String(text).split('\n')){
+   let line='';
+   for(const ch of para){if(line&&g.measureText(line+ch).width>W-2*P){lines.push(line);line=ch}else line+=ch}
+   lines.push(line);
+  }
+  for(const line of lines){y+=size*1.4;g.fillText(line,P,y)}
+  y+=gap;
+ }
+ write('FRICTION KART 결과',54,'#9affde',800,6);
+ write('1학년 '+result.cls+'반 '+unitOf(result.mode,result.group),38,'#ffffff',700,26);
+ result.splits.forEach((s,i)=>write(stages[i]+'   '+s.time.toFixed(1)+'초 · 충돌 '+s.crashes+'회',28,'#dfe8f2',600,2));
+ write('안전 운전 '+safety(result)+' / 10점',28,'#dfe8f2',600,30);
+ missionOrder.forEach((i,n)=>{
+  const a=result.answers[i],m=missions[i];
+  write('미션 '+(n+1)+'. '+m.title,31,'#9affde',700,2);
+  write('정답: '+m.options[m.correct]+'  ('+(a.tries>1?a.tries+'번째 시도에 정답':'한 번에 정답')+' · '+a.points+'점)',27,'#ffffff',500,2);
+  y+=18;
+ });
+ write('마찰력에 대해 배운 점',31,'#9affde',700,2);
+ write(result.reflection||'(아직 쓰지 않았어요)',27,'#ffffff',500,34);
+ write('Copyright 2026 sapphire',20,'#8fa3b8',500,0);
+ const out=document.createElement('canvas');out.width=W;out.height=Math.min(c.height,Math.ceil(y+P));
+ out.getContext('2d').drawImage(c,0,0);
+ out.toBlob(blob=>saveFile(blob,'마찰레이싱_1학년_'+result.cls+'반_'+unitOf(result.mode,result.group)+'.png'),'image/png');
+}
+function studentResult(){
+ const last=result.splits[2];
+ panel('<h2>1학년 '+result.cls+'반 '+unitOf(result.mode,result.group)+' · 결승선 통과!</h2><p>그랑프리 '+last.time.toFixed(1)+'초 · 충돌 '+last.crashes+'회 · 안전 운전 '+safety(result)+' / 10점</p>'+
+ missionOrder.map((i,n)=>{const a=result.answers[i];return '<p>미션 '+(n+1)+' '+missions[i].title+' · '+a.points+'점'+(a.tries>1?' ('+a.tries+'번째 시도)':' (한 번에 정답)')+'</p>'}).join('')+'<p>선택한 코스 · '+(result.route==='A'?'A 짧은 얼음길':'B 긴 아스팔트길')+'</p>'+
+ '<p>완주 점수, 총점, 최종 순위는 선생님 화면에서 발표해요.</p>'+
+ '<label>마찰력에 대해 배운 점<textarea id="reflection" maxlength="400" rows="2" placeholder="예) 얼음은 마찰력이 작아서 …"></textarea></label>'+
+ '<p id="sendStatus" role="status">'+(result.sent?'선생님께 제출했어요!':'')+'</p>'+
+ '<button id="submitResult" class="primary">'+(result.sent?'다시 제출하기':'선생님께 제출하기')+'</button><button id="saveImage">이미지 저장하기</button><button id="backup" hidden>기록 파일 내려받기</button><button id="finishHome">홈</button>');
+ byId('reflection').value=result.reflection||'';
+ byId('reflection').oninput=takeReflection;
+ on('submitResult',submitResult);on('saveImage',saveImage);on('backup',downloadResult);
+ on('finishHome',async()=>{
+  takeReflection();
+  if(!result.sent&&!await ask('아직 선생님께 제출하지 않았어요. 그래도 홈으로 갈까요?'))return;
+  activity.close();paused=false;showGame(false);
+ });
+}
+const raceTime=r=>r.splits[2].time;
+const safety=r=>Math.max(0,10-r.splits[2].crashes);
+const science=r=>r.answers.reduce((sum,a,i)=>sum+(a.choice===missions[i].correct?triesPoints(i,Number.isInteger(a.tries)&&a.tries>=1?a.tries:1):0),0);
+const validResponse=(response,id)=>response&&Number.isInteger(response.choice)&&response.choice>=0&&response.choice<missions[id].options.length&&typeof response.reason==='string'&&response.reason.length<=400;
+function validRecord(r){
+ return r?.version===3&&Number.isInteger(r.group)&&r.group>=1&&r.group<=(r.mode==='group'?7:40)&&Array.isArray(r.splits)&&r.splits.length===3&&r.splits.every(s=>s&&Number.isFinite(s.time)&&s.time>0&&Number.isInteger(s.crashes)&&s.crashes>=0)&&Array.isArray(r.answers)&&r.answers.length===MISSION_COUNT&&r.answers.every((a,i)=>validResponse(a,i)&&validResponse(a.first,i)&&typeof a.retried==='boolean')&&typeof r.reflection==='string'&&r.reflection.length<=400;
+}
+let teacherCls=1, teacherMode='group', teacherAll=[], teacherDocs=[], teacherUnsub=null, gradesDirty=false, teacherMsg='';
+function openTeacher(){
+ panel('<h2>교사 모드</h2><p>기록 저장소에 연결하는 중…</p>',true);
+ connect().then(()=>watchClass(teacherCls)).catch(error=>{
+  panel('<h2>교사 모드</h2><p>'+escapeText(error.message)+'</p><button id="teacherClose">닫기</button>',true);
+  on('teacherClose',closeTeacher);
+ });
+}
+function watchClass(c){
+ teacherCls=c;teacherAll=[];teacherDocs=[];gradesDirty=false;teacherMsg='';
+ if(teacherUnsub)teacherUnsub();
+ renderTeacher();
+ teacherUnsub=db.collection(COL).where('cls','==',c).onSnapshot(snapshot=>{
+  teacherAll=snapshot.docs.map(d=>Object.assign({id:d.id},d.data()));filterTeacher();
+  if(gradesDirty){const note=byId('pendingNote');if(note)note.textContent='새 기록이 들어왔어요. 「채점 저장」을 누르면 표에 반영됩니다.'}
+  else renderTeacher();
+ },error=>{teacherMsg='기록을 불러오지 못했습니다: '+error.message;renderTeacher()});
+}
+function filterTeacher(){teacherDocs=teacherAll.filter(d=>(d.mode==='group'?'group':'solo')===teacherMode)}
+function closeTeacher(){if(teacherUnsub){teacherUnsub();teacherUnsub=null}activity.close()}
+function renderTeacher(){
+ const scroll=activity.scrollTop, opened=[...activity.querySelectorAll('details[data-g][open]')].map(d=>d.dataset.g);
+ const done=teacherDocs.filter(d=>d.status==='done'&&validRecord(d));
+ const waiting=teacherDocs.filter(d=>d.status==='playing'&&Number.isInteger(d.group));
+ const sorted=[...done].sort((a,b)=>raceTime(a)-raceTime(b));
+ const rows=sorted.map(r=>{
+  const place=sorted.findIndex(a=>raceTime(a).toFixed(1)===raceTime(r).toFixed(1));
+  const race=(teacherMode==='group'?Math.max(12,30-3*place):Math.max(10,30-place))+safety(r);
+  return {r,race,total:race+science(r)};
+ }).sort((a,b)=>b.total-a.total);
+ const official=rows.length>0&&!waiting.length, G=teacherMode==='group', who=G?'모둠':'학생', cnt=G?'모둠':'명';
+ const winners=official?rows.filter(row=>row.total===rows[0].total).map(row=>unitOf(teacherMode,row.r.group)).join(' · '):'';
+ const groups=[...new Set([...done,...waiting].map(d=>d.group))].sort((a,b)=>a-b);
+ const classOptions=[1,2,3,4,5].map(c=>'<option value="'+c+'"'+(c===teacherCls?' selected':'')+'>'+c+'반</option>').join('');
+ const body=groups.length?groups.map(g=>{
+  const row=rows.find(a=>a.r.group===g);
+  if(row){
+   const {r,race,total}=row;
+   return '<tr><td>'+g+'</td><td>제출</td><td>'+raceTime(r).toFixed(1)+'초</td><td>'+r.splits[2].crashes+'</td><td>'+race+'</td><td>'+science(r)+'</td><td>'+total+(official?'':' (잠정)')+'</td><td>'+(official?rows.findIndex(a=>a.total===total)+1:'—')+'</td></tr>';
+  }
+  const p=waiting.find(d=>d.group===g);
+  const label=p.stage>=3?'결승 통과 · 제출 기다리는 중':'달리는 중 · '+(stages[p.stage]||'');
+  return '<tr><td>'+g+'</td><td colspan="6">'+label+'</td><td><button class="dropRow" data-g="'+g+'" data-doc="'+escapeText(p.id)+'">빼기</button></td></tr>';
+ }).join(''):'<tr><td colspan="8">아직 들어온 기록이 없어요. 학생이 게임을 시작하면 여기에 나타납니다.</td></tr>';
+ panel('<h2>교사 모드 · '+(G?'모둠':'개인')+' 성적표</h2>'+
+  '<p><label>반 <select id="teacherClass">'+classOptions+'</select></label> <label>구분 <select id="teacherMode"><option value="group"'+(G?' selected':'')+'>모둠별</option><option value="solo"'+(G?'':' selected')+'>개인별</option></select></label> 학생이 결과를 제출하면 이 표에 바로 나타나요.</p>'+
+  '<p role="status">'+escapeText(teacherMsg)+'</p><p id="pendingNote" role="status"></p>'+
+  (official?'<h3>🏆 챔피언 · '+winners+'</h3>':'<p>제출 '+rows.length+cnt+(waiting.length?' · 아직 달리는 중 '+waiting.length+cnt:'')+'. 모든 '+who+'이 제출하면 최종 순위가 나와요. 달리는 중인 '+who+'을 빼면 바로 발표할 수도 있어요.</p>')+
+  '<div class="table-scroll"><table><thead><tr><th>'+(G?'모둠':'번호')+'</th><th>진행</th><th>결승 기록</th><th>충돌</th><th>레이스 /40</th><th>미션 /60</th><th>합계 /100</th><th>최종 순위</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
+  '<p>완주 순위 배점은 '+(G?'30·27·24·21·18·15·12점이며':'1등 30점부터 한 등수마다 1점씩 줄고 최소 10점이며')+', 0.1초 단위 동률은 같은 점수입니다. 미션은 10문제이고, 한 문제당 첫 시도에 맞히면 6점, 두 번째 3점, 세 번째부터 1점이에요.</p>'+
+  rows.map(({r})=>'<details data-g="'+r.group+'"><summary>'+unitOf(teacherMode,r.group)+' 응답과 기록</summary>'+
+   '<p>'+r.splits.map((s,i)=>stages[i]+' '+s.time.toFixed(1)+'초 · 충돌 '+s.crashes+'회').join(' / ')+(r.route?' · 선택 코스 '+escapeText(r.route):'')+'</p>'+
+   missionOrder.map(i=>{const a=r.answers[i];return '<p><strong>'+missionNo(i)+'. '+missions[i].title+'</strong><br>'+(a.tries>1?a.tries+'번 시도 · 처음 고른 답: '+escapeText(missions[i].options[a.first.choice]):'한 번에 정답')+'</p>'}).join('')+
+   '<p>배운 점 · '+escapeText(r.reflection)+'</p></details>').join('')+
+  '<button id="clearClass">이 반 '+(G?'모둠별':'개인별')+' 기록 모두 지우기</button><button id="teacherClose">닫기</button>'+
+  '<details><summary>제출이 안 된 '+who+'의 기록 파일 가져오기</summary><input id="importRecords" type="file" accept=".json,application/json" multiple></details>',true);
+ activity.scrollTop=scroll;
+ activity.querySelectorAll('details[data-g]').forEach(d=>{if(opened.includes(d.dataset.g))d.open=true});
+ byId('teacherClass').onchange=async event=>{
+  if(gradesDirty&&!await ask('저장하지 않은 채점이 있어요. 다른 반으로 바꿀까요?')){event.target.value=teacherCls;return}
+  watchClass(Number(event.target.value));
+ };
+ byId('teacherMode').onchange=event=>{teacherMode=event.target.value;filterTeacher();teacherMsg='';renderTeacher()};
+ activity.querySelectorAll('.grade').forEach(field=>field.oninput=()=>{gradesDirty=true});
+ activity.querySelectorAll('.dropRow').forEach(button=>button.onclick=async()=>{
+  if(!await ask(unitOf(teacherMode,button.dataset.g)+'을 목록에서 뺄까요?'))return;
+  try{await db.collection(COL).doc(button.dataset.doc).delete()}catch(error){teacherMsg='빼지 못했습니다: '+error.message;renderTeacher()}
+ });
+ on('teacherClose',async()=>{if(gradesDirty&&!await ask('저장하지 않은 채점이 있어요. 그래도 닫을까요?'))return;closeTeacher()});
+ on('clearClass',async()=>{
+  if(!await ask(teacherCls+'반의 '+(teacherMode==='group'?'모둠별':'개인별')+' 기록을 모두 지울까요? 되돌릴 수 없어요.'))return;
+  const batch=db.batch();
+  teacherDocs.forEach(d=>batch.delete(db.collection(COL).doc(d.id)));
+  try{await batch.commit();gradesDirty=false;teacherMsg=teacherCls+'반 '+(teacherMode==='group'?'모둠별':'개인별')+' 기록을 지웠습니다.'}catch(error){teacherMsg='지우지 못했습니다: '+error.message}
+  renderTeacher();
+ });
+ byId('importRecords').onchange=async event=>{
+  let added=0,skipped=0;
+  for(const file of [...event.target.files]){
+   try{
+    if(file.size>65536)throw Error();
+    const r=JSON.parse(await file.text());
+    if(!validRecord(r))throw Error();
+    const c=Number.isInteger(r.cls)&&r.cls>=1&&r.cls<=5?r.cls:teacherCls;
+    if(c===teacherCls&&(r.mode==='group'?'group':'solo')===teacherMode&&done.some(d=>d.group===r.group)&&!await ask(unitOf(r.mode,r.group)+'의 기존 기록을 새 파일로 바꿀까요?')){skipped++;continue}
+    await db.collection(COL).doc(docId(c,r.group,r.mode)).set(pack(r,c));added++;
+   }catch{skipped++}
+  }
+  teacherMsg=added+'개 가져옴 · '+skipped+'개 건너뜀';renderTeacher();
+ };
+}
+on('teacher',openTeacher);
+
+byId('teacher').hidden=!new URLSearchParams(location.search).has('teacher');
+buildTrack();place(67);refreshIntro();
+let previous=performance.now(),accumulator=0;
+function frame(now){
+ const dt=Math.min(.05,(now-previous)/1000);previous=now;
+ if(playing&&!paused&&!document.hidden){
+  accumulator+=dt;
+  while(accumulator>=1/120&&!paused){physics(1/120);accumulator-=1/120}
+  autosave();
+ }else accumulator=0;
+ render(dt);requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+}
+</script></html>
