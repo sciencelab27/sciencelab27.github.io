@@ -1,0 +1,15 @@
+{
+  "name": "레슨 기록장",
+  "short_name": "레슨 기록장",
+  "id": "./lesson.html",
+  "start_url": "./lesson.html",
+  "scope": "./lesson.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "lesson-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "lesson-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "lesson-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
