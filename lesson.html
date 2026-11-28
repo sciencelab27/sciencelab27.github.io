@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="레슨 기록장">
+<title>레슨 기록장</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%232f7cf6'/%3E%3Cpath d='M20 33l8 8 16-18' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#17181a);--paper:light-dark(#f6f6f3,#222326);--line:light-dark(#dcdcd6,#3a3b40);--ink:light-dark(#1d1d1f,#f1f1ee);--mute:light-dark(#6b6b70,#a4a4aa);--warn:#e5484d}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(20px,3.5vw,48px) max(5vw,16px);max-width:1240px;margin:0 auto}
+h1,h2,.num{font-family:Jua,"Noto Sans KR",sans-serif;font-weight:400}
+h1{font-size:clamp(30px,5vw,44px);line-height:1.05;margin:0}
+h2{font-size:26px;margin:0}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:22px}
+.sub{color:var(--mute);margin:6px 0 0}
+.status{font-size:13px;color:var(--mute)}
+.status.warn{color:var(--warn);font-weight:700}
+button,input,select,textarea{font:inherit;font-size:16px;color:inherit}
+.btn{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-weight:500}
+.btn.main{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.danger{color:var(--warn);border-color:var(--warn)}
+.btn:focus-visible,.slot:focus-visible,.day:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #2f7cf6;outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr));gap:18px}
+.card{background:var(--paper);border-radius:20px;padding:20px;border:1px solid var(--line);display:flex;flex-direction:column;gap:14px}
+.card.low{border-color:var(--warn)}
+.chead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.cname{font-family:Jua,sans-serif;font-size:28px;line-height:1.1;display:flex;align-items:center;gap:8px}
+.dot{width:14px;height:14px;border-radius:50%;flex:none}
+.meta{font-size:14px;color:var(--mute)}
+.left{text-align:right;white-space:nowrap}
+.left .num{font-size:44px;line-height:1}
+.left small{display:block;font-size:13px;color:var(--mute)}
+.alert{font-size:14px;font-weight:700;color:var(--warn)}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.slot{aspect-ratio:1;border-radius:50%;border:2px dashed var(--line);background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:0;line-height:1.1}
+.slot b{font-family:Jua,sans-serif;font-weight:400;font-size:20px}
+.slot span{font-size:13px}
+.slot.on{border:2px solid var(--c);background:var(--c);color:#fff;transform:rotate(var(--r))}
+.slot.on.anim{animation:stamp .35s ease-out}
+@keyframes stamp{0%{transform:scale(1.6);opacity:0}100%{transform:rotate(var(--r)) scale(1);opacity:1}}
+.slot.next{border-color:var(--c);color:var(--c)}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.row .btn.main{flex:1 1 160px}
+details{font-size:14px}
+summary{cursor:pointer;color:var(--mute);min-height:32px}
+.past{margin:6px 0 0;padding-left:18px}
+.empty{background:var(--paper);border-radius:20px;padding:36px 20px;text-align:center;color:var(--mute)}
+.calhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 14px;flex-wrap:wrap}
+.calnav{display:flex;gap:6px;align-items:center}
+.calnav .num{font-size:24px;min-width:120px;text-align:center}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.wd{text-align:center;font-size:13px;color:var(--mute);padding:4px 0}
+.wd:first-child{color:var(--warn)}
+.day{min-height:84px;border:1px solid var(--line);border-radius:10px;padding:4px;background:var(--bg);text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:stretch}
+.day.out{opacity:.35}
+.day.today{border:2px solid var(--ink)}
+.day .dn{font-size:13px;font-weight:700}
+.chip{font-size:12px;color:#fff;border-radius:6px;padding:1px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:14px;color:var(--mute);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:9}
+.ov.open{display:flex}
+.modal{background:var(--bg);border-radius:20px;padding:22px;width:min(460px,100%);max-height:90vh;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.modal h3{font-family:Jua,sans-serif;font-weight:400;font-size:24px;margin:0}
+label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--mute)}
+input,textarea{min-height:44px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg)}
+textarea{min-height:100px;font-size:13px}
+.colors{display:flex;gap:8px;flex-wrap:wrap}
+.colors button{width:40px;height:40px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.colors button.sel{border-color:var(--ink)}
+.warnbox{background:light-dark(#fff1f1,#3a1f20);color:var(--warn);border-radius:10px;padding:10px;font-size:14px}
+.okbox{background:light-dark(#eefaf5,#1b2f28);color:light-dark(#0b7a5c,#5fd3ae);border-radius:10px;padding:10px;font-size:14px}
+.list{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.list li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:12px}
+.note{font-size:13px;color:var(--mute)}
+.hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+@media(max-width:600px){.day{min-height:62px}.chip{font-size:11px;padding:0 3px}.cname{font-size:24px}.left .num{font-size:38px}}
+@media(prefers-reduced-motion:reduce){.slot.on.anim{animation:none}}
+</style>
+</head>
+<body>
+<header class="band" style="padding-bottom:0">
+  <div class="top">
+    <div>
+      <h1>레슨 기록장</h1>
+      <p class="sub">수업할 때마다 도장 한 개. 도장에 날짜가 찍혀서 언제 했는지 바로 보여요.</p>
+    </div>
+    <div class="row"><button class="btn main" data-act="addSub">+ 레슨 추가</button></div>
+  </div>
+  <div class="status" id="status"></div>
+</header>
+<main class="band"><div class="grid" id="cards"></div></main>
+<section class="band" style="padding-top:0">
+  <div class="calhead">
+    <h2>수업 달력</h2>
+    <div class="calnav">
+      <button class="btn" data-act="prevM" aria-label="이전 달">◀</button>
+      <span class="num" id="mlabel"></span>
+      <button class="btn" data-act="nextM" aria-label="다음 달">▶</button>
+      <button class="btn" data-act="thisM">이번 달</button>
+    </div>
+  </div>
+  <div class="cal" id="cal"></div>
+  <div class="legend" id="legend"></div>
+</section>
+<footer class="band" style="padding-top:0">
+  <div class="row"><button class="btn" data-act="backup">백업 · 복원</button></div>
+  <p class="note">날짜를 누르면 그날 수업을 기록하거나 확인할 수 있어요. 도장을 누르면 날짜를 고치거나 지울 수 있어요.<br>기록은 이 휴대폰의 이 브라우저에만 저장돼요. 한 달에 한 번쯤 백업 파일을 저장해 두세요.</p>
+</footer>
+<div class="ov" id="ov"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+<input type="file" id="fileIn" accept=".json,application/json,text/plain" hidden>
+<script>
+{
+const KEY='lessonRecord.v1';
+const COLORS=['#2f7cf6','#12a594','#e5484d','#f76b15','#8e4ec6','#d6409f','#b8860b','#5b6470'];
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=()=>ymd(new Date());
+const md=s=>{const [,m,d]=s.split('-');return (+m)+'/'+(+d)};
+const WD=['일','월','화','수','목','금','토'];
+const longD=s=>{const [y,m,d]=s.split('-').map(Number);const w=new Date(y,m-1,d).getDay();return `${m}월 ${d}일 (${WD[w]})`};
+const uid=()=>Math.random().toString(36).slice(2,9);
+
+let S={subs:[],lastBackup:''}, storageOK=true;
+try{const L=JSON.parse(localStorage.getItem(KEY)||'null'); if(L&&Array.isArray(L.subs))S=L}catch(e){storageOK=false}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+
+let view=new Date(), justStamped=null; view.setDate(1);
+const cur=s=>s.rounds[s.rounds.length-1];
+const sorted=r=>[...r.sessions].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+const findSub=id=>S.subs.find(s=>s.id===id);
+
+function status(){
+  const el=$('status'); el.className='status';
+  if(!storageOK){el.textContent='이 브라우저에서는 저장이 안 돼요. 삼성 인터넷이나 크롬에서 열어 주세요.';el.classList.add('warn');return}
+  const has=S.subs.some(s=>s.rounds.some(r=>r.sessions.length));
+  if(!has){el.textContent='이 휴대폰에 자동 저장돼요';return}
+  if(!S.lastBackup){el.textContent='아직 백업한 적이 없어요 · 아래 "백업 · 복원"에서 저장해 두세요';el.classList.add('warn');return}
+  const days=Math.floor((Date.now()-new Date(S.lastBackup+'T00:00').getTime())/864e5);
+  el.textContent=`자동 저장 중 · 마지막 백업 ${md(S.lastBackup)}`+(days>=30?' · 백업한 지 한 달이 지났어요':'');
+  if(days>=30)el.classList.add('warn');
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(S));storageOK=true}catch(e){storageOK=false}
+  status();
+}
+
+function card(s){
+  const r=cur(s), list=sorted(r), used=list.length, left=r.total-used;
+  let slots='';
+  for(let i=0;i<r.total;i++){
+    const x=list[i];
+    if(x){const rot=((i*37)%9)-4;
+      const anim=justStamped&&justStamped.sub===s.id&&justStamped.d===x.d?' anim':'';
+      slots+=`<button class="slot on${anim}" style="--c:${esc(s.color)};--r:${rot}deg" data-act="sess" data-s="${esc(s.id)}" data-d="${esc(x.d)}" aria-label="${i+1}회 ${esc(longD(x.d))}"><b>${i+1}</b><span>${esc(md(x.d))}</span></button>`;}
+    else slots+=`<button class="slot${i===used?' next':''}" style="--c:${esc(s.color)}" data-act="rec" data-s="${esc(s.id)}" aria-label="${i+1}회 기록하기"><b>${i+1}</b><span>${i===used?'다음':''}</span></button>`;
+  }
+  const extra=used>r.total?`<div class="alert">정해진 횟수보다 ${used-r.total}회 더 기록됐어요</div>`:'';
+  const lastD=list.length?`마지막 수업 ${longD(list[list.length-1].d)}`:'아직 수업 기록 없음';
+  const past=s.rounds.slice(0,-1).reverse();
+  const pastHTML=past.length?`<details><summary>지난 회차 ${past.length}번 보기</summary><ol class="past">${past.map(p=>{const l=sorted(p);return `<li>${esc(p.total)}회 등록 · ${l.length}회 수업 ${l.length?`(${esc(md(l[0].d))} ~ ${esc(md(l[l.length-1].d))})`:''}</li>`}).join('')}</ol></details>`:'';
+  const full=left<=0;
+  return `<article class="card${left<=1?' low':''}">
+    <div class="chead">
+      <div><div class="cname"><span class="dot" style="background:${esc(s.color)}"></span>${esc(s.name)}</div>
+      <div class="meta">${esc([s.teacher,s.memo].filter(Boolean).join(' · '))}</div>
+      <div class="meta">${esc(r.start?md(r.start)+' 등록 · ':'')}${esc(lastD)}</div></div>
+      <div class="left"><span class="num">${Math.max(left,0)}</span><small>남음 / ${esc(r.total)}회</small></div>
+    </div>
+    ${left===1?'<div class="alert">1회 남았어요 — 재등록 준비</div>':''}${full&&used===r.total?'<div class="alert">모두 사용했어요 — 재등록해 주세요</div>':''}${extra}
+    <div class="slots">${slots}</div>
+    <div class="row">
+      ${full?`<button class="btn main" data-act="renew" data-s="${esc(s.id)}">재등록 (새 회차 시작)</button>`:`<button class="btn main" data-act="rec" data-s="${esc(s.id)}">오늘 수업했어요</button>`}
+      <button class="btn" data-act="editSub" data-s="${esc(s.id)}">수정</button>
+      ${full?'':`<button class="btn" data-act="renew" data-s="${esc(s.id)}">재등록</button>`}
+    </div>${pastHTML}
+  </article>`;
+}
+
+function renderCal(){
+  const y=view.getFullYear(), m=view.getMonth();
+  $('mlabel').textContent=`${y}년 ${m+1}월`;
+  const map={};
+  S.subs.forEach(s=>s.rounds.forEach(r=>sorted(r).forEach((x,i)=>{(map[x.d]=map[x.d]||[]).push({s,n:i+1})})));
+  const startW=new Date(y,m,1).getDay(), t=today();
+  let h=WD.map(w=>`<div class="wd">${w}</div>`).join('');
+  const days=Math.ceil((startW+new Date(y,m+1,0).getDate())/7)*7;
+  for(let i=0;i<days;i++){
+    const d=new Date(y,m,1-startW+i), k=ymd(d);
+    const chips=(map[k]||[]).map(o=>`<span class="chip" style="background:${esc(o.s.color)}">${esc(o.s.name)} ${o.n}</span>`).join('');
+    h+=`<button class="day${d.getMonth()!==m?' out':''}${k===t?' today':''}" data-act="day" data-d="${k}" aria-label="${esc(longD(k))}"><span class="dn">${d.getDate()}</span>${chips}</button>`;
+  }
+  $('cal').innerHTML=h;
+  $('legend').innerHTML=S.subs.map(s=>`<span><i style="background:${esc(s.color)}"></i>${esc(s.name)}</span>`).join('')+(S.subs.length?'<span>숫자는 몇 번째 수업인지예요</span>':'');
+}
+function render(){
+  $('cards').innerHTML=S.subs.length?S.subs.map(card).join(''):`<div class="empty" style="grid-column:1/-1">아직 등록한 레슨이 없어요. 위의 <b>+ 레슨 추가</b>를 눌러 시작하세요.</div>`;
+  renderCal();status();justStamped=null;
+}
+
+function open(html){$('modal').innerHTML=html;$('ov').classList.add('open')}
+function close(){$('ov').classList.remove('open')}
+
+function subForm(s){
+  const r=s?cur(s):null, col=s?s.color:COLORS[S.subs.length%COLORS.length];
+  open(`<h3>${s?'레슨 수정':'레슨 추가'}</h3>
+  <label>과목·이름<input id="fName" value="${esc(s?.name)}" placeholder="예: 피아노, 미술, 태권도"></label>
+  <label>선생님 (선택)<input id="fTeacher" value="${esc(s?.teacher)}" placeholder="예: 이 선생님"></label>
+  <label>${s?'이번 회차 총 횟수':'한 번 등록할 때 횟수'}<input id="fTotal" type="number" min="1" max="60" inputmode="numeric" value="${esc(r?r.total:8)}"></label>
+  ${s?'':`<label>등록한 날<input id="fStart" type="date" value="${today()}"></label>`}
+  <label>메모 (요일·시간·비용 등)<input id="fMemo" value="${esc(s?.memo)}" placeholder="예: 월·수 오후 4시, 레슨비"></label>
+  <div><div class="note" style="margin-bottom:6px">도장 색</div><div class="colors" id="fColors">${COLORS.map(c=>`<button type="button" data-c="${c}" class="${c===col?'sel':''}" style="background:${c}" aria-label="색 ${c}"></button>`).join('')}</div></div>
+  <div id="fErr"></div>
+  <div class="row"><button class="btn main" data-act="saveSub" data-s="${esc(s?.id||'')}">저장</button><button class="btn" data-act="close">취소</button>${s?`<button class="btn danger" data-act="delSub" data-s="${esc(s.id)}">삭제</button>`:''}</div>`);
+}
+function recForm(s,d){
+  open(`<h3>${esc(s.name)} 수업 기록</h3>
+  <label>수업한 날<input id="rDate" type="date" value="${esc(d||today())}"></label>
+  <label>메모 (선택)<input id="rNote" placeholder="예: 보강, 연습곡 바꿈"></label>
+  <div id="rWarn"></div>
+  <div class="row"><button class="btn main" data-act="saveRec" data-s="${esc(s.id)}">도장 찍기</button><button class="btn" data-act="close">취소</button></div>`);
+  checkDup(s);
+  $('rDate').addEventListener('input',()=>checkDup(s));
+}
+function checkDup(s){
+  const d=$('rDate').value, r=cur(s), w=[];
+  if(r.sessions.some(x=>x.d===d))w.push('이 날짜에 이미 기록이 있어요. 같은 날 두 번 했을 때만 찍으세요.');
+  if(r.sessions.length>=r.total)w.push('이번 회차 횟수를 모두 썼어요. 재등록을 먼저 하는 게 좋아요.');
+  if(d>today())w.push('오늘 이후 날짜예요.');
+  $('rWarn').innerHTML=w.map(t=>`<div class="warnbox">${esc(t)}</div>`).join('');
+}
+function restore(text){
+  try{const v=JSON.parse(text); if(!Array.isArray(v.subs))throw 0; S=v; save(); render(); return true}catch(e){return false}
+}
+function backupForm(msg){
+  open(`<h3>백업 · 복원</h3>
+  ${msg||''}
+  <div class="note">백업 파일을 저장해 두면 휴대폰을 바꾸거나 기록이 지워져도 되살릴 수 있어요. 파일은 휴대폰의 '다운로드' 폴더에 저장돼요.</div>
+  <div class="row"><button class="btn main" data-act="dlBk">백업 파일 저장</button><button class="btn" data-act="pickBk">백업 파일 불러오기</button></div>
+  <hr class="hr">
+  <details><summary>파일 대신 글자로 백업하기 (카톡 '나와의 채팅'에 붙여 넣기)</summary>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+  <textarea id="bk">${esc(JSON.stringify(S))}</textarea>
+  <div class="row"><button class="btn" data-act="copyBk">글자 복사</button><button class="btn" data-act="restoreBk">붙여 넣은 글자로 복원</button></div></div></details>
+  <div id="bkMsg"></div>
+  <div class="row"><button class="btn" data-act="close">닫기</button></div>`);
+}
+function markBackup(){S.lastBackup=today();save()}
+
+document.addEventListener('click',e=>{
+  if(e.target===$('ov')){close();return}
+  const cb=e.target.closest('#fColors button');
+  if(cb){$('fColors').querySelectorAll('button').forEach(b=>b.classList.toggle('sel',b===cb));return}
+  const b=e.target.closest('[data-act]'); if(!b)return;
+  const a=b.dataset.act, s=b.dataset.s?findSub(b.dataset.s):null;
+  if(a==='close')close();
+  else if(a==='addSub')subForm(null);
+  else if(a==='editSub')subForm(s);
+  else if(a==='saveSub'){
+    const name=$('fName').value.trim(), total=parseInt($('fTotal').value,10);
+    if(!name||!(total>0)){$('fErr').innerHTML='<div class="warnbox">과목 이름과 횟수를 넣어 주세요.</div>';return}
+    const sel=$('fColors').querySelector('.sel'), color=sel?sel.dataset.c:COLORS[0];
+    const t=$('fTeacher').value.trim(), memo=$('fMemo').value.trim();
+    if(s){Object.assign(s,{name,teacher:t,memo,color});cur(s).total=total}
+    else S.subs.push({id:uid(),name,teacher:t,memo,color,rounds:[{id:uid(),total,start:$('fStart').value||today(),sessions:[]}]});
+    close();save();render();
+  }
+  else if(a==='delSub')open(`<h3>${esc(s.name)} 삭제할까요?</h3><p>지난 회차까지 모든 기록이 지워져요. 되돌릴 수 없어요.</p><div class="row"><button class="btn danger" data-act="delSubOk" data-s="${esc(s.id)}">삭제</button><button class="btn" data-act="close">취소</button></div>`);
+  else if(a==='delSubOk'){S.subs=S.subs.filter(x=>x!==s);close();save();render()}
+  else if(a==='rec')recForm(s);
+  else if(a==='saveRec'){
+    const d=$('rDate').value; if(!d)return;
+    cur(s).sessions.push({d,note:$('rNote').value.trim()});
+    justStamped={sub:s.id,d};close();save();render();
+  }
+  else if(a==='sess'){
+    const r=cur(s), list=sorted(r), idx=list.findIndex(x=>x.d===b.dataset.d), x=list[idx]; if(!x)return;
+    open(`<h3>${esc(s.name)} ${idx+1}회째</h3><p class="num" style="font-size:24px;margin:0">${esc(longD(x.d))}</p>
+    <label>날짜 고치기<input id="eDate" type="date" value="${esc(x.d)}"></label>
+    <label>메모<input id="eNote" value="${esc(x.note)}"></label>
+    <div class="row"><button class="btn main" data-act="saveSess" data-s="${esc(s.id)}" data-d="${esc(x.d)}">저장</button><button class="btn danger" data-act="delSess" data-s="${esc(s.id)}" data-d="${esc(x.d)}">이 도장 지우기</button><button class="btn" data-act="close">닫기</button></div>`);
+  }
+  else if(a==='saveSess'||a==='delSess'){
+    const r=cur(s), i=r.sessions.findIndex(x=>x.d===b.dataset.d);
+    if(i>-1){if(a==='delSess')r.sessions.splice(i,1);else{r.sessions[i].d=$('eDate').value||r.sessions[i].d;r.sessions[i].note=$('eNote').value.trim()}}
+    close();save();render();
+  }
+  else if(a==='renew'){
+    const r=cur(s), left=r.total-r.sessions.length;
+    open(`<h3>${esc(s.name)} 재등록</h3>
+    ${left>0?`<div class="warnbox">아직 ${left}회가 남아 있어요. 재등록하면 남은 횟수는 지난 회차로 넘어가고 새 도장판이 시작돼요.</div>`:''}
+    <label>새로 등록한 횟수<input id="nTotal" type="number" min="1" max="60" inputmode="numeric" value="${esc(r.total)}"></label>
+    <label>등록한 날<input id="nStart" type="date" value="${today()}"></label>
+    <div class="row"><button class="btn main" data-act="renewOk" data-s="${esc(s.id)}">새 도장판 시작</button><button class="btn" data-act="close">취소</button></div>`);
+  }
+  else if(a==='renewOk'){
+    const total=parseInt($('nTotal').value,10); if(!(total>0))return;
+    s.rounds.push({id:uid(),total,start:$('nStart').value||today(),sessions:[]});close();save();render();
+  }
+  else if(a==='day'){
+    const d=b.dataset.d, items=[];
+    S.subs.forEach(s=>s.rounds.forEach(r=>sorted(r).forEach((x,i)=>{if(x.d===d)items.push({s,n:i+1,x,curR:r===cur(s)})})));
+    open(`<h3>${esc(longD(d))}</h3>
+    ${items.length?`<ul class="list">${items.map(o=>`<li><span><span class="dot" style="display:inline-block;background:${esc(o.s.color)};margin-right:6px"></span>${esc(o.s.name)} ${o.n}회째${o.x.note?' · '+esc(o.x.note):''}</span>${o.curR?`<button class="btn" data-act="sess" data-s="${esc(o.s.id)}" data-d="${esc(d)}">고치기</button>`:'<span class="note">지난 회차</span>'}</li>`).join('')}</ul>`:'<p class="note" style="margin:0">이 날은 수업 기록이 없어요.</p>'}
+    ${S.subs.length?`<div class="note">이 날 수업 기록하기</div><div class="row">${S.subs.map(s=>`<button class="btn" data-act="recDay" data-s="${esc(s.id)}" data-d="${esc(d)}" style="border-color:${esc(s.color)};color:${esc(s.color)}">${esc(s.name)}</button>`).join('')}</div>`:''}
+    <div class="row"><button class="btn" data-act="close">닫기</button></div>`);
+  }
+  else if(a==='recDay')recForm(s,b.dataset.d);
+  else if(a==='prevM'){view.setMonth(view.getMonth()-1);renderCal()}
+  else if(a==='nextM'){view.setMonth(view.getMonth()+1);renderCal()}
+  else if(a==='thisM'){view=new Date();view.setDate(1);renderCal()}
+  else if(a==='backup')backupForm();
+  else if(a==='dlBk'){
+    const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
+    const u=URL.createObjectURL(blob), l=document.createElement('a');
+    l.href=u; l.download=`레슨기록_백업_${today()}.json`; document.body.appendChild(l); l.click(); l.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),2000);
+    markBackup(); $('bkMsg').innerHTML='<div class="okbox">백업 파일을 저장했어요. 다운로드 폴더를 확인해 보세요.</div>';
+  }
+  else if(a==='pickBk')$('fileIn').click();
+  else if(a==='copyBk'){
+    const t=$('bk'); t.select();
+    (navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).then(()=>{markBackup();$('bkMsg').innerHTML='<div class="okbox">복사했어요. 카톡 나와의 채팅 등에 붙여 넣어 두세요.</div>'}).catch(()=>$('bkMsg').innerHTML='<div class="note">글자를 길게 눌러 복사해 주세요.</div>');
+  }
+  else if(a==='restoreBk'){
+    if(restore($('bk').value)){close()}else $('bkMsg').innerHTML='<div class="warnbox">백업 내용이 올바르지 않아요.</div>';
+  }
+});
+$('fileIn').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{ if(restore(rd.result))backupForm('<div class="okbox">백업 파일로 되살렸어요.</div>'); else $('bkMsg').innerHTML='<div class="warnbox">이 파일은 레슨 기록 백업 파일이 아니에요.</div>'; };
+  rd.readAsText(f); e.target.value='';
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+render();
+}
+</script>
+</body>
+</html>
